@@ -42,6 +42,9 @@ for (let i = 0; i < GRIDS.length; i++) {
   const file = findLote(i + 1);
   if (!file) continue;
   const names = GRIDS[i];
+  // Lote ya recortado y sin cambios desde entonces: se salta.
+  const cutAt = (n) => (existsSync(join(SRC, `${n}.png`)) ? statSync(join(SRC, `${n}.png`)).mtimeMs : 0);
+  if (names.every((n) => cutAt(n) > statSync(file).mtimeMs)) continue;
   if (names.length === 1) {
     await sharp(file).png().toFile(join(SRC, `${names[0]}.png`));
     cut++;
