@@ -1,62 +1,55 @@
 # Prompts para Nano Banana (Gemini)
 
-Estilo elegido: line art editorial en tinta negra, el de la hoja que generó Nano Banana.
-Guarda esa hoja como **referencia** (por ejemplo `hoja-referencia.webp`) y adjúntala siempre.
+Lo normal es no usar este archivo: `npm run illustrations` las genera todas solas con la API.
+Esto es para hacer alguna a mano en la web de Gemini.
 
-## Reglas para que salgan utilizables
+1. Adjunta las imágenes de `illustrations-src/_referencia/`.
+2. Elige el formato indicado y pega **ESTILO + escena**. Una ilustración por mensaje.
+3. Guarda el PNG como `illustrations-src/<nombre>.png` y ejecuta `npm run trace <nombre>`.
 
-1. **Una ilustración por mensaje.** Si pegas varias escenas juntas, devuelve otra hoja.
-2. Adjunta la hoja de referencia en el primer mensaje de cada chat.
-3. Elige el formato **antes** de generar: **1:1** para todas, salvo las marcadas **16:9**.
-4. Cada prompt = **bloque ESTILO + escena**.
-5. Descarga en PNG y guárdala como `illustrations-src/<nombre>.png`.
-6. Ejecuta `npm run trace`: la vectoriza a `public/illustrations/<nombre>.svg` (tinta `#191919`, fondo transparente) y la app la muestra sola.
-   Para una sola: `npm run trace <nombre>`.
-
----
-
-## Bloque ESTILO (pegar delante de cada escena)
+## ESTILO
 
 ```
-Clean black ink line illustration in the same style as the attached reference sheet: modern editorial line art, simplified but realistic human proportions, people in office clothes or prison-officer uniforms, confident even line weight, solid flat black fills on hair, ties, trousers and shoes, minimal facial features with expressive poses. Strictly black ink only, no gray, no color, no hatching-heavy shading. Plain flat off-white background #FDFAF7. Absolutely no text, letters or numbers anywhere, including on books, signs and papers. One single scene only, centered, with at least 10% empty margin on all sides.
+Clean black ink line illustration in the same style as the attached reference images: modern editorial line art, simplified but realistic human proportions, people in office clothes or prison-officer uniforms, confident even line weight, solid flat black fills on hair, ties, trousers and shoes, minimal facial features with expressive poses. Strictly black ink only, no gray, no color, no hatching-heavy shading. Plain flat off-white background #FDFAF7. Absolutely no text, letters or numbers anywhere, including on books, signs and papers. One single scene only, one image, no grid, no sheet, centered, with at least 10% empty margin on all sides.
 ```
 
----
+## Inicio
 
-## A · Redibujar desde la hoja (15)
+**bienvenida** · 16:9 · redibujo de la hoja
+```
+Redraw only the group of five people walking left to right carrying folders. Wide horizontal composition from the attached reference sheet as a single high-resolution image. Keep the same pose and design.
+```
 
-Estas ya existen en la hoja; así salen a alta resolución con el mismo dibujo.
-Prompt: `ESTILO` + `Redraw only the [figura] from the attached reference sheet as a single high-resolution image. Keep the same pose and design.`
+**racha-activa** · 1:1 · redibujo de la hoja
+```
+Redraw only the smiling man in a tie raising a burning torch with one fist up from the attached reference sheet as a single high-resolution image. Keep the same pose and design.
+```
 
-| Archivo | Formato | [figura] |
-|---|---|---|
-| `bienvenida` | 16:9 | group of five people walking left to right carrying folders (second row, left). Wide horizontal composition |
-| `racha-activa` | 1:1 | smiling man in a tie raising a burning torch with one fist up |
-| `racha-pendiente` | 1:1 | man yawning next to a small candle with a tiny flame |
-| `racha-apagada` | 1:1 | sad man sitting next to a blown-out candle with a curl of smoke |
-| `instalar` | 1:1 | man pushing a giant smartphone on a hand truck |
-| `apuntes-vacio` | 16:9 | woman in a school uniform carrying a tall stack of books on her head. Wide horizontal composition, figure centered |
-| `rango-2-practicas` | 1:1 | person holding a giant ring of keys |
-| `entregar` | 1:1 | man handing a folder over a counter to a woman behind it |
-| `tiempo-agotado` | 1:1 | man running away in panic from a ringing alarm clock |
-| `resultado-alto` | 1:1 | man jumping for joy with papers flying around him |
-| `resultado-bajo` | 1:1 | boy sitting cross-legged among scattered papers under a small rain cloud |
-| `medalla-celda-castigo` | 1:1 | man peeking out from behind prison cell bars |
-| `bloque-penitenciario` | 1:1 | heavy cell door with a barred peephole window, with a prison officer holding keys standing next to it |
-| `bloque-funcion-publica` | 1:1 | hand holding a rubber stamp, redrawn as a full civil servant behind a service window about to stamp a document |
-| `simulacro` | 16:9 | older man at a desk with a large wall clock behind him, redrawn as a candidate writing an exam at the desk. Wide horizontal composition |
+**racha-pendiente** · 1:1 · redibujo de la hoja
+```
+Redraw only the man yawning next to a small candle with a tiny flame from the attached reference sheet as a single high-resolution image. Keep the same pose and design.
+```
 
----
+**racha-apagada** · 1:1 · redibujo de la hoja
+```
+Redraw only the sad man sitting next to a blown-out candle with a curl of smoke from the attached reference sheet as a single high-resolution image. Keep the same pose and design.
+```
 
-## B · Nuevas (14)
+**instalar** · 1:1 · redibujo de la hoja
+```
+Redraw only the man pushing a giant smartphone on a hand truck from the attached reference sheet as a single high-resolution image. Keep the same pose and design.
+```
 
-Prompt: `ESTILO` + la escena.
-
-### Rangos
+## Rangos
 
 **rango-1-novato** · 1:1
 ```
 A young beginner candidate with an oversized backpack, hugging a pile of thick law books, determined but a bit overwhelmed.
+```
+
+**rango-2-practicas** · 1:1 · redibujo de la hoja
+```
+Redraw only the person holding a giant ring of keys from the attached reference sheet as a single high-resolution image. Keep the same pose and design.
 ```
 
 **rango-3-jefe-servicio** · 1:1
@@ -74,28 +67,70 @@ A head of prison center in a suit sitting behind a desk with a rubber stamp, a d
 A prison director in a suit standing firm and tall, holding a flag on a pole, calm and proud like a monument.
 ```
 
+## Resultado
+
 **ascenso** · 1:1
 ```
 An officer in uniform smiling while a hand from the side pins a rank insignia onto their shoulder, a few small sparkle marks around.
 ```
 
-### Test y resultado
+**tiempo-agotado** · 1:1 · redibujo de la hoja
+```
+Redraw only the man running away in panic from a ringing alarm clock from the attached reference sheet as a single high-resolution image. Keep the same pose and design.
+```
+
+**resultado-alto** · 1:1 · redibujo de la hoja
+```
+Redraw only the man jumping for joy with papers flying around him from the attached reference sheet as a single high-resolution image. Keep the same pose and design.
+```
+
+**resultado-medio** · 1:1
+```
+A person balancing a tall wobbly pile of papers on one hand and shrugging with the other, 'almost there' expression.
+```
+
+**resultado-bajo** · 1:1 · redibujo de la hoja
+```
+Redraw only the boy sitting cross-legged among scattered papers under a small rain cloud from the attached reference sheet as a single high-resolution image. Keep the same pose and design.
+```
+
+## Test
+
+**simulacro** · 16:9 · redibujo de la hoja
+```
+Redraw only the man at a desk with a large wall clock behind him, redrawn as an exam candidate writing an exam at the desk. Wide horizontal composition from the attached reference sheet as a single high-resolution image. Keep the same pose and design.
+```
+
+**entregar** · 1:1 · redibujo de la hoja
+```
+Redraw only the man handing a folder over a counter to a woman behind it from the attached reference sheet as a single high-resolution image. Keep the same pose and design.
+```
 
 **abandonar** · 1:1
 ```
 A person tiptoeing out through a half-open door, looking back over their shoulder sneakily.
 ```
 
-**resultado-medio** · 1:1
+## Apuntes
+
+**apuntes-vacio** · 16:9 · redibujo de la hoja
 ```
-A person balancing a tall wobbly pile of papers on one hand and shrugging with the other, "almost there" expression.
+Redraw only the woman carrying a tall stack of books on her head. Wide horizontal composition, figure centered from the attached reference sheet as a single high-resolution image. Keep the same pose and design.
 ```
 
-### Apuntes
+**bloque-penitenciario** · 1:1 · redibujo de la hoja
+```
+Redraw only the heavy cell door with a barred peephole window, adding a prison officer holding keys standing next to it from the attached reference sheet as a single high-resolution image. Keep the same pose and design.
+```
 
 **bloque-penal** · 1:1
 ```
 A person holding up a large scale of justice in one hand and a thick closed book under the other arm.
+```
+
+**bloque-funcion-publica** · 1:1 · redibujo de la hoja
+```
+Redraw only the hand holding a rubber stamp, redrawn as a full civil servant behind a service window about to stamp a document from the attached reference sheet as a single high-resolution image. Keep the same pose and design.
 ```
 
 **procesando** · 1:1
@@ -108,11 +143,16 @@ A thoughtful woman with her hand on her chin, a thought bubble above her head co
 A person proudly holding up an exam sheet with one big check mark drawn on it.
 ```
 
-### Logros
+## Logros
 
 **medalla-primer-turno** · 1:1
 ```
 A new prison officer in uniform turning a giant key in the lock of a heavy door, first day on the job, excited.
+```
+
+**medalla-celda-castigo** · 1:1 · redibujo de la hoja
+```
+Redraw only the man peeking out from behind prison cell bars from the attached reference sheet as a single high-resolution image. Keep the same pose and design.
 ```
 
 **medalla-imbatible** · 1:1
@@ -130,12 +170,3 @@ A person reading a book at a desk under a desk lamp at night, a crescent moon an
 A person sweeping a messy pile of papers with a broom, clearing the floor.
 ```
 
----
-
-## Si algo sale mal
-
-- **Aparece texto** (títulos en libros, carteles): añade `Books and papers must be completely blank.`
-- **Devuelve varias escenas**: añade `Only one scene, one image, no grid, no sheet.`
-- **Mete grises o color**: añade `Pure black and off-white only, 2 colors total.`
-- **Se aparta del estilo**: vuelve a adjuntar la hoja y añade `Match exactly the line style of the attached reference sheet.`
-- **Figura pegada al borde**: añade `Leave at least 10% empty margin on all sides.`

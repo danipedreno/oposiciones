@@ -1,34 +1,59 @@
-// Genera ILUSTRACIONES.md a partir de src/lib/illustrations.js
+// Genera ILUSTRACIONES.md y PROMPTS-NANO-BANANA.md a partir de src/lib/illustrations.js
 import { writeFileSync } from "node:fs";
-import { ILLUSTRATIONS } from "../src/lib/illustrations.js";
+import { ILLUSTRATIONS, STYLE } from "../src/lib/illustrations.js";
 
 const entries = Object.entries(ILLUSTRATIONS);
 const screens = [...new Set(entries.map(([, v]) => v.screen))];
-const size = (r) => (r === "wide" ? "1600 × 900 (16:9)" : "800 × 800 (1:1)");
+const size = (r) => (r === "wide" ? "16:9" : "1:1");
 
+/* --- ILUSTRACIONES.md --- */
 let md = `# Ilustraciones de Recuento
 
-Total: **${entries.length} ilustraciones**, en line art editorial de tinta negra (ver la hoja de referencia y PROMPTS-NANO-BANANA.md).
+Total: **${entries.length} ilustraciones**, en line art editorial de tinta negra.
 
-## Especificaciones
+## Cómo se generan
 
-- **Formato**: PNG de Gemini guardado en \`illustrations-src/<nombre>.png\`; \`npm run trace\` lo convierte a SVG.
-- **Fondo transparente**. En la app siempre se colocan sobre papel crema \`#fdfaf7\`.
-- **Color**: tinta \`#191919\`. Si quieres un toque de color, usa uno solo de la paleta:
-  azul \`#1e4bd7\`, rojo \`#d71e1e\`, verde \`#0c7866\`, morado \`#581e70\` o amarillo \`#ffe927\`.
-- **Encuadre**: deja un 6–8 % de margen para que el personaje no toque los bordes.
-- **Grosor de línea**: pensado para verse bien a 96 px de ancho (tamaño mínimo en la app).
-- **Dónde acaban**: \`public/illustrations/<nombre>.svg\`. La app los detecta sola;
-  mientras falten se ve un marcador con el nombre.
-- **Medallas bloqueadas y rangos no alcanzados** reutilizan la misma ilustración en gris: no hace falta dibujar versión bloqueada.
+\`\`\`bash
+npm run illustrations          # genera con Gemini las que falten y las vectoriza a SVG
+npm run illustrations ascenso  # regenera solo esa (útil si no te gusta el resultado)
+\`\`\`
+
+- Los PNG originales quedan en \`illustrations-src/\`; los SVG finales en \`public/illustrations/\`.
+- Las imágenes de \`illustrations-src/_referencia/\` se envían a Gemini como referencia de estilo.
+  Cuando una ilustración te guste mucho, cópiala ahí para que las siguientes se parezcan más.
+- Si prefieres hacerlas a mano en Gemini, los prompts completos están en PROMPTS-NANO-BANANA.md.
+- Medallas bloqueadas y rangos no alcanzados reutilizan la misma ilustración en gris.
 
 `;
 for (const screen of screens) {
-  md += `## ${screen}\n\n| Archivo | Tamaño | Dónde aparece | Qué dibujar |\n|---|---|---|---|\n`;
-  for (const [name, v] of entries.filter(([, v]) => v.screen === screen)) {
-    md += `| \`${name}.svg\` | ${size(v.ratio)} | ${v.where} | ${v.brief} |\n`;
-  }
+  md += `## ${screen}\n\n| Archivo | Formato | Dónde aparece |\n|---|---|---|\n`;
+  for (const [name, v] of entries.filter(([, v]) => v.screen === screen)) md += `| \`${name}\` | ${size(v.ratio)} | ${v.where} |\n`;
   md += "\n";
 }
 writeFileSync("ILUSTRACIONES.md", md);
-console.log(`ILUSTRACIONES.md · ${entries.length} ilustraciones`);
+
+/* --- PROMPTS-NANO-BANANA.md (para hacerlas a mano) --- */
+let prompts = `# Prompts para Nano Banana (Gemini)
+
+Lo normal es no usar este archivo: \`npm run illustrations\` las genera todas solas con la API.
+Esto es para hacer alguna a mano en la web de Gemini.
+
+1. Adjunta las imágenes de \`illustrations-src/_referencia/\`.
+2. Elige el formato indicado y pega **ESTILO + escena**. Una ilustración por mensaje.
+3. Guarda el PNG como \`illustrations-src/<nombre>.png\` y ejecuta \`npm run trace <nombre>\`.
+
+## ESTILO
+
+\`\`\`
+${STYLE}
+\`\`\`
+
+`;
+for (const screen of screens) {
+  prompts += `## ${screen}\n\n`;
+  for (const [name, v] of entries.filter(([, v]) => v.screen === screen)) {
+    prompts += `**${name}** · ${size(v.ratio)}${v.fromSheet ? " · redibujo de la hoja" : ""}\n\`\`\`\n${v.prompt}\n\`\`\`\n\n`;
+  }
+}
+writeFileSync("PROMPTS-NANO-BANANA.md", prompts);
+console.log(`ILUSTRACIONES.md y PROMPTS-NANO-BANANA.md · ${entries.length} ilustraciones`);

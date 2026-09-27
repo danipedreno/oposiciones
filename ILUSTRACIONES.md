@@ -1,75 +1,76 @@
 # Ilustraciones de Recuento
 
-Total: **29 ilustraciones**, en line art editorial de tinta negra (ver la hoja de referencia y PROMPTS-NANO-BANANA.md).
+Total: **29 ilustraciones**, en line art editorial de tinta negra.
 
-## Especificaciones
+## Cómo se generan
 
-- **Formato**: PNG de Gemini guardado en `illustrations-src/<nombre>.png`; `npm run trace` lo convierte a SVG.
-- **Fondo transparente**. En la app siempre se colocan sobre papel crema `#fdfaf7`.
-- **Color**: tinta `#191919`. Si quieres un toque de color, usa uno solo de la paleta:
-  azul `#1e4bd7`, rojo `#d71e1e`, verde `#0c7866`, morado `#581e70` o amarillo `#ffe927`.
-- **Encuadre**: deja un 6–8 % de margen para que el personaje no toque los bordes.
-- **Grosor de línea**: pensado para verse bien a 96 px de ancho (tamaño mínimo en la app).
-- **Dónde acaban**: `public/illustrations/<nombre>.svg`. La app los detecta sola;
-  mientras falten se ve un marcador con el nombre.
-- **Medallas bloqueadas y rangos no alcanzados** reutilizan la misma ilustración en gris: no hace falta dibujar versión bloqueada.
+```bash
+npm run illustrations          # genera con Gemini las que falten y las vectoriza a SVG
+npm run illustrations ascenso  # regenera solo esa (útil si no te gusta el resultado)
+```
+
+- Los PNG originales quedan en `illustrations-src/`; los SVG finales en `public/illustrations/`.
+- Las imágenes de `illustrations-src/_referencia/` se envían a Gemini como referencia de estilo.
+  Cuando una ilustración te guste mucho, cópiala ahí para que las siguientes se parezcan más.
+- Si prefieres hacerlas a mano en Gemini, los prompts completos están en PROMPTS-NANO-BANANA.md.
+- Medallas bloqueadas y rangos no alcanzados reutilizan la misma ilustración en gris.
 
 ## Inicio
 
-| Archivo | Tamaño | Dónde aparece | Qué dibujar |
-|---|---|---|---|
-| `bienvenida.svg` | 1600 × 900 (16:9) | Tarjeta de bienvenida mientras no hay ningún test hecho. | Grupo de 3–4 opositores caminando en fila con carpetas, códigos y una mochila; uno saluda. |
-| `racha-activa.svg` | 800 × 800 (1:1) | Tarjeta de racha cuando ya has estudiado hoy. | Personaje orgulloso sosteniendo en alto una vela o antorcha encendida. |
-| `racha-pendiente.svg` | 800 × 800 (1:1) | Tarjeta de racha cuando estudiaste ayer pero aún no hoy. | Personaje bostezando junto a una vela con la llama pequeña, mirando un reloj. |
-| `racha-apagada.svg` | 800 × 800 (1:1) | Tarjeta de racha sin racha o con la racha rota. | Personaje soplando o mirando una vela apagada con una voluta de humo. |
-| `instalar.svg` | 800 × 800 (1:1) | Aviso para instalar la app en el móvil (Android). | Personaje abrazando o cargando un móvil gigante. |
+| Archivo | Formato | Dónde aparece |
+|---|---|---|
+| `bienvenida` | 16:9 | Tarjeta de bienvenida mientras no hay ningún test hecho. |
+| `racha-activa` | 1:1 | Tarjeta de racha cuando ya has estudiado hoy. |
+| `racha-pendiente` | 1:1 | Tarjeta de racha cuando estudiaste ayer pero aún no hoy. |
+| `racha-apagada` | 1:1 | Tarjeta de racha sin racha o con la racha rota. |
+| `instalar` | 1:1 | Aviso para instalar la app en el móvil (Android). |
 
 ## Rangos
 
-| Archivo | Tamaño | Dónde aparece | Qué dibujar |
-|---|---|---|---|
-| `rango-1-novato.svg` | 800 × 800 (1:1) | Nivel 1 · Opositor Novato. | Personaje con mochila enorme y una pila de libros más alta que él. |
-| `rango-2-practicas.svg` | 800 × 800 (1:1) | Nivel 2 · Funcionario en Prácticas. | Personaje con uniforme que le queda grande, sujetando un llavero gigante. |
-| `rango-3-jefe-servicio.svg` | 800 × 800 (1:1) | Nivel 3 · Jefe de Servicio. | Personaje con portapapeles y walkie-talkie, pose de mando. |
-| `rango-4-jefe-centro.svg` | 800 × 800 (1:1) | Nivel 4 · Jefe de Centro. | Personaje tras un escritorio con sello, teléfono y montaña de expedientes. |
-| `rango-5-director.svg` | 800 × 800 (1:1) | Nivel 5 · Director de Centro. | Personaje de pie, firme, con una bandera (como el de la bandera de tu referencia). |
+| Archivo | Formato | Dónde aparece |
+|---|---|---|
+| `rango-1-novato` | 1:1 | Nivel 1 · Opositor Novato. |
+| `rango-2-practicas` | 1:1 | Nivel 2 · Funcionario en Prácticas. |
+| `rango-3-jefe-servicio` | 1:1 | Nivel 3 · Jefe de Servicio. |
+| `rango-4-jefe-centro` | 1:1 | Nivel 4 · Jefe de Centro. |
+| `rango-5-director` | 1:1 | Nivel 5 · Director de Centro. |
 
 ## Resultado
 
-| Archivo | Tamaño | Dónde aparece | Qué dibujar |
-|---|---|---|---|
-| `ascenso.svg` | 800 × 800 (1:1) | Resultado del test cuando subes de rango. | Personaje recibiendo un galón o medalla en el hombro, con destellos. |
-| `tiempo-agotado.svg` | 800 × 800 (1:1) | Resultado cuando se acabó el tiempo. | Personaje huyendo de un despertador o reloj de arena gigante. |
-| `resultado-alto.svg` | 800 × 800 (1:1) | Resultado con nota ≥ 7 sobre 10. | Personaje saltando de alegría, papeles volando. |
-| `resultado-medio.svg` | 800 × 800 (1:1) | Resultado con nota entre 4 y 7. | Personaje haciendo equilibrio con una pila de papeles, gesto de «casi». |
-| `resultado-bajo.svg` | 800 × 800 (1:1) | Resultado con nota < 4. | Personaje sentado y hundido junto a una pila de papeles, con una nubecilla. |
+| Archivo | Formato | Dónde aparece |
+|---|---|---|
+| `ascenso` | 1:1 | Resultado del test cuando subes de rango. |
+| `tiempo-agotado` | 1:1 | Resultado cuando se acabó el tiempo. |
+| `resultado-alto` | 1:1 | Resultado con nota ≥ 7 sobre 10. |
+| `resultado-medio` | 1:1 | Resultado con nota entre 4 y 7. |
+| `resultado-bajo` | 1:1 | Resultado con nota < 4. |
 
 ## Test
 
-| Archivo | Tamaño | Dónde aparece | Qué dibujar |
-|---|---|---|---|
-| `simulacro.svg` | 1600 × 900 (16:9) | Cabecera de la configuración del simulacro. | Personaje sentado en un pupitre con lápiz, y un reloj grande en la pared. |
-| `entregar.svg` | 800 × 800 (1:1) | Hoja de confirmación «¿Entregar el examen?». | Personaje entregando una carpeta por encima de un mostrador. |
-| `abandonar.svg` | 800 × 800 (1:1) | Hoja de confirmación «¿Abandonar el examen?». | Personaje saliendo de puntillas por una puerta. |
+| Archivo | Formato | Dónde aparece |
+|---|---|---|
+| `simulacro` | 16:9 | Cabecera de la configuración del simulacro. |
+| `entregar` | 1:1 | Hoja de confirmación «¿Entregar el examen?». |
+| `abandonar` | 1:1 | Hoja de confirmación «¿Abandonar el examen?». |
 
 ## Apuntes
 
-| Archivo | Tamaño | Dónde aparece | Qué dibujar |
-|---|---|---|---|
-| `apuntes-vacio.svg` | 1600 × 900 (16:9) | Cabecera de Apuntes antes de cargar texto. | Personaje con una torre de apuntes y PDFs en equilibrio sobre la cabeza. |
-| `bloque-penitenciario.svg` | 800 × 800 (1:1) | Carpeta azul · Derecho Penitenciario. | Personaje con un manojo de llaves grande junto a una puerta con mirilla. |
-| `bloque-penal.svg` | 800 × 800 (1:1) | Carpeta roja · Derecho Penal. | Personaje sosteniendo una balanza de la justicia o un Código Penal enorme. |
-| `bloque-funcion-publica.svg` | 800 × 800 (1:1) | Carpeta verde · Función Pública. | Personaje en una ventanilla con un sello de caucho. |
-| `procesando.svg` | 800 × 800 (1:1) | Mientras la IA genera el test. | Personaje pensativo con un bocadillo de pensamiento (como el último de tu referencia). |
-| `test-listo.svg` | 800 × 800 (1:1) | Cuando el test generado está listo. | Personaje levantando una hoja de examen con un gran visto bueno. |
+| Archivo | Formato | Dónde aparece |
+|---|---|---|
+| `apuntes-vacio` | 16:9 | Cabecera de Apuntes antes de cargar texto. |
+| `bloque-penitenciario` | 1:1 | Carpeta azul · Derecho Penitenciario. |
+| `bloque-penal` | 1:1 | Carpeta roja · Derecho Penal. |
+| `bloque-funcion-publica` | 1:1 | Carpeta verde · Función Pública. |
+| `procesando` | 1:1 | Mientras la IA genera el test. |
+| `test-listo` | 1:1 | Cuando el test generado está listo. |
 
 ## Logros
 
-| Archivo | Tamaño | Dónde aparece | Qué dibujar |
-|---|---|---|---|
-| `medalla-primer-turno.svg` | 800 × 800 (1:1) | Medalla Primer Turno. | Personaje girando una llave gigante en una cerradura: su primer día. |
-| `medalla-celda-castigo.svg` | 800 × 800 (1:1) | Medalla Celda de Castigo. | Personaje asomado entre barrotes con cara de «ups». |
-| `medalla-imbatible.svg` | 800 × 800 (1:1) | Medalla Imbatible. | Personaje con escudo y capa en pose de superhéroe. |
-| `medalla-estudioso-nocturno.svg` | 800 × 800 (1:1) | Medalla Estudioso Nocturno. | Personaje leyendo bajo un flexo, con luna y un búho en la ventana. |
-| `reiniciar.svg` | 800 × 800 (1:1) | Hoja de confirmación «¿Reiniciar progreso?». | Personaje barriendo un montón de papeles con una escoba. |
+| Archivo | Formato | Dónde aparece |
+|---|---|---|
+| `medalla-primer-turno` | 1:1 | Medalla Primer Turno. |
+| `medalla-celda-castigo` | 1:1 | Medalla Celda de Castigo. |
+| `medalla-imbatible` | 1:1 | Medalla Imbatible. |
+| `medalla-estudioso-nocturno` | 1:1 | Medalla Estudioso Nocturno. |
+| `reiniciar` | 1:1 | Hoja de confirmación «¿Reiniciar progreso?». |
 

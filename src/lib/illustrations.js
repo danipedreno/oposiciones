@@ -1,44 +1,53 @@
-/* Registro de ilustraciones. Cada entrada es un hueco de la app.
-   Coloca el archivo en public/illustrations/<name>.svg (o .png) y aparecerá solo;
-   mientras falte, se muestra un marcador con el nombre del archivo.
-   `npm run illustrations-doc` regenera ILUSTRACIONES.md a partir de esta lista. */
+/* Registro de ilustraciones: fuente única para la app, la generación y la documentación.
+   - La app carga public/illustrations/<name>.svg; mientras falte, muestra un marcador.
+   - `npm run illustrations` genera con Gemini las que falten y las vectoriza.
+   - `npm run illustrations-doc` regenera ILUSTRACIONES.md y PROMPTS-NANO-BANANA.md.
+   `fromSheet: true` = la escena ya existe en la hoja de referencia y se pide redibujarla. */
+
+export const STYLE =
+  "Clean black ink line illustration in the same style as the attached reference images: modern editorial line art, simplified but realistic human proportions, people in office clothes or prison-officer uniforms, confident even line weight, solid flat black fills on hair, ties, trousers and shoes, minimal facial features with expressive poses. Strictly black ink only, no gray, no color, no hatching-heavy shading. Plain flat off-white background #FDFAF7. Absolutely no text, letters or numbers anywhere, including on books, signs and papers. One single scene only, one image, no grid, no sheet, centered, with at least 10% empty margin on all sides.";
+
+const redraw = (figure) => `Redraw only the ${figure} from the attached reference sheet as a single high-resolution image. Keep the same pose and design.`;
+
 export const ILLUSTRATIONS = {
   // Inicio
-  bienvenida: { ratio: "wide", screen: "Inicio", where: "Tarjeta de bienvenida mientras no hay ningún test hecho.", brief: "Grupo de 3–4 opositores caminando en fila con carpetas, códigos y una mochila; uno saluda." },
-  "racha-activa": { ratio: "square", screen: "Inicio", where: "Tarjeta de racha cuando ya has estudiado hoy.", brief: "Personaje orgulloso sosteniendo en alto una vela o antorcha encendida." },
-  "racha-pendiente": { ratio: "square", screen: "Inicio", where: "Tarjeta de racha cuando estudiaste ayer pero aún no hoy.", brief: "Personaje bostezando junto a una vela con la llama pequeña, mirando un reloj." },
-  "racha-apagada": { ratio: "square", screen: "Inicio", where: "Tarjeta de racha sin racha o con la racha rota.", brief: "Personaje soplando o mirando una vela apagada con una voluta de humo." },
-  instalar: { ratio: "square", screen: "Inicio", where: "Aviso para instalar la app en el móvil (Android).", brief: "Personaje abrazando o cargando un móvil gigante." },
+  bienvenida: { ratio: "wide", screen: "Inicio", where: "Tarjeta de bienvenida mientras no hay ningún test hecho.", fromSheet: true, prompt: redraw("group of five people walking left to right carrying folders. Wide horizontal composition") },
+  "racha-activa": { ratio: "square", screen: "Inicio", where: "Tarjeta de racha cuando ya has estudiado hoy.", fromSheet: true, prompt: redraw("smiling man in a tie raising a burning torch with one fist up") },
+  "racha-pendiente": { ratio: "square", screen: "Inicio", where: "Tarjeta de racha cuando estudiaste ayer pero aún no hoy.", fromSheet: true, prompt: redraw("man yawning next to a small candle with a tiny flame") },
+  "racha-apagada": { ratio: "square", screen: "Inicio", where: "Tarjeta de racha sin racha o con la racha rota.", fromSheet: true, prompt: redraw("sad man sitting next to a blown-out candle with a curl of smoke") },
+  instalar: { ratio: "square", screen: "Inicio", where: "Aviso para instalar la app en el móvil (Android).", fromSheet: true, prompt: redraw("man pushing a giant smartphone on a hand truck") },
 
   // Rangos (tarjeta de rango en Inicio, Resultado y escalafón en Logros)
-  "rango-1-novato": { ratio: "square", screen: "Rangos", where: "Nivel 1 · Opositor Novato.", brief: "Personaje con mochila enorme y una pila de libros más alta que él." },
-  "rango-2-practicas": { ratio: "square", screen: "Rangos", where: "Nivel 2 · Funcionario en Prácticas.", brief: "Personaje con uniforme que le queda grande, sujetando un llavero gigante." },
-  "rango-3-jefe-servicio": { ratio: "square", screen: "Rangos", where: "Nivel 3 · Jefe de Servicio.", brief: "Personaje con portapapeles y walkie-talkie, pose de mando." },
-  "rango-4-jefe-centro": { ratio: "square", screen: "Rangos", where: "Nivel 4 · Jefe de Centro.", brief: "Personaje tras un escritorio con sello, teléfono y montaña de expedientes." },
-  "rango-5-director": { ratio: "square", screen: "Rangos", where: "Nivel 5 · Director de Centro.", brief: "Personaje de pie, firme, con una bandera (como el de la bandera de tu referencia)." },
-  ascenso: { ratio: "square", screen: "Resultado", where: "Resultado del test cuando subes de rango.", brief: "Personaje recibiendo un galón o medalla en el hombro, con destellos." },
+  "rango-1-novato": { ratio: "square", screen: "Rangos", where: "Nivel 1 · Opositor Novato.", prompt: "A young beginner candidate with an oversized backpack, hugging a pile of thick law books, determined but a bit overwhelmed." },
+  "rango-2-practicas": { ratio: "square", screen: "Rangos", where: "Nivel 2 · Funcionario en Prácticas.", fromSheet: true, prompt: redraw("person holding a giant ring of keys") },
+  "rango-3-jefe-servicio": { ratio: "square", screen: "Rangos", where: "Nivel 3 · Jefe de Servicio.", prompt: "A prison shift supervisor in uniform holding a clipboard in one hand and a walkie-talkie in the other, confident commanding pose." },
+  "rango-4-jefe-centro": { ratio: "square", screen: "Rangos", where: "Nivel 4 · Jefe de Centro.", prompt: "A head of prison center in a suit sitting behind a desk with a rubber stamp, a desk telephone and tall stacks of case folders, busy but in control." },
+  "rango-5-director": { ratio: "square", screen: "Rangos", where: "Nivel 5 · Director de Centro.", prompt: "A prison director in a suit standing firm and tall, holding a flag on a pole, calm and proud like a monument." },
+  ascenso: { ratio: "square", screen: "Resultado", where: "Resultado del test cuando subes de rango.", prompt: "An officer in uniform smiling while a hand from the side pins a rank insignia onto their shoulder, a few small sparkle marks around." },
 
   // Test
-  simulacro: { ratio: "wide", screen: "Test", where: "Cabecera de la configuración del simulacro.", brief: "Personaje sentado en un pupitre con lápiz, y un reloj grande en la pared." },
-  entregar: { ratio: "square", screen: "Test", where: "Hoja de confirmación «¿Entregar el examen?».", brief: "Personaje entregando una carpeta por encima de un mostrador." },
-  abandonar: { ratio: "square", screen: "Test", where: "Hoja de confirmación «¿Abandonar el examen?».", brief: "Personaje saliendo de puntillas por una puerta." },
-  "tiempo-agotado": { ratio: "square", screen: "Resultado", where: "Resultado cuando se acabó el tiempo.", brief: "Personaje huyendo de un despertador o reloj de arena gigante." },
-  "resultado-alto": { ratio: "square", screen: "Resultado", where: "Resultado con nota ≥ 7 sobre 10.", brief: "Personaje saltando de alegría, papeles volando." },
-  "resultado-medio": { ratio: "square", screen: "Resultado", where: "Resultado con nota entre 4 y 7.", brief: "Personaje haciendo equilibrio con una pila de papeles, gesto de «casi»." },
-  "resultado-bajo": { ratio: "square", screen: "Resultado", where: "Resultado con nota < 4.", brief: "Personaje sentado y hundido junto a una pila de papeles, con una nubecilla." },
+  simulacro: { ratio: "wide", screen: "Test", where: "Cabecera de la configuración del simulacro.", fromSheet: true, prompt: redraw("man at a desk with a large wall clock behind him, redrawn as an exam candidate writing an exam at the desk. Wide horizontal composition") },
+  entregar: { ratio: "square", screen: "Test", where: "Hoja de confirmación «¿Entregar el examen?».", fromSheet: true, prompt: redraw("man handing a folder over a counter to a woman behind it") },
+  abandonar: { ratio: "square", screen: "Test", where: "Hoja de confirmación «¿Abandonar el examen?».", prompt: "A person tiptoeing out through a half-open door, looking back over their shoulder sneakily." },
+  "tiempo-agotado": { ratio: "square", screen: "Resultado", where: "Resultado cuando se acabó el tiempo.", fromSheet: true, prompt: redraw("man running away in panic from a ringing alarm clock") },
+  "resultado-alto": { ratio: "square", screen: "Resultado", where: "Resultado con nota ≥ 7 sobre 10.", fromSheet: true, prompt: redraw("man jumping for joy with papers flying around him") },
+  "resultado-medio": { ratio: "square", screen: "Resultado", where: "Resultado con nota entre 4 y 7.", prompt: "A person balancing a tall wobbly pile of papers on one hand and shrugging with the other, 'almost there' expression." },
+  "resultado-bajo": { ratio: "square", screen: "Resultado", where: "Resultado con nota < 4.", fromSheet: true, prompt: redraw("boy sitting cross-legged among scattered papers under a small rain cloud") },
 
   // Apuntes
-  "apuntes-vacio": { ratio: "wide", screen: "Apuntes", where: "Cabecera de Apuntes antes de cargar texto.", brief: "Personaje con una torre de apuntes y PDFs en equilibrio sobre la cabeza." },
-  "bloque-penitenciario": { ratio: "square", screen: "Apuntes", where: "Carpeta azul · Derecho Penitenciario.", brief: "Personaje con un manojo de llaves grande junto a una puerta con mirilla." },
-  "bloque-penal": { ratio: "square", screen: "Apuntes", where: "Carpeta roja · Derecho Penal.", brief: "Personaje sosteniendo una balanza de la justicia o un Código Penal enorme." },
-  "bloque-funcion-publica": { ratio: "square", screen: "Apuntes", where: "Carpeta verde · Función Pública.", brief: "Personaje en una ventanilla con un sello de caucho." },
-  procesando: { ratio: "square", screen: "Apuntes", where: "Mientras la IA genera el test.", brief: "Personaje pensativo con un bocadillo de pensamiento (como el último de tu referencia)." },
-  "test-listo": { ratio: "square", screen: "Apuntes", where: "Cuando el test generado está listo.", brief: "Personaje levantando una hoja de examen con un gran visto bueno." },
+  "apuntes-vacio": { ratio: "wide", screen: "Apuntes", where: "Cabecera de Apuntes antes de cargar texto.", fromSheet: true, prompt: redraw("woman carrying a tall stack of books on her head. Wide horizontal composition, figure centered") },
+  "bloque-penitenciario": { ratio: "square", screen: "Apuntes", where: "Carpeta azul · Derecho Penitenciario.", fromSheet: true, prompt: redraw("heavy cell door with a barred peephole window, adding a prison officer holding keys standing next to it") },
+  "bloque-penal": { ratio: "square", screen: "Apuntes", where: "Carpeta roja · Derecho Penal.", prompt: "A person holding up a large scale of justice in one hand and a thick closed book under the other arm." },
+  "bloque-funcion-publica": { ratio: "square", screen: "Apuntes", where: "Carpeta verde · Función Pública.", fromSheet: true, prompt: redraw("hand holding a rubber stamp, redrawn as a full civil servant behind a service window about to stamp a document") },
+  procesando: { ratio: "square", screen: "Apuntes", where: "Mientras la IA genera el test.", prompt: "A thoughtful woman with her hand on her chin, a thought bubble above her head containing small blank documents and a light bulb." },
+  "test-listo": { ratio: "square", screen: "Apuntes", where: "Cuando el test generado está listo.", prompt: "A person proudly holding up an exam sheet with one big check mark drawn on it." },
 
   // Logros
-  "medalla-primer-turno": { ratio: "square", screen: "Logros", where: "Medalla Primer Turno.", brief: "Personaje girando una llave gigante en una cerradura: su primer día." },
-  "medalla-celda-castigo": { ratio: "square", screen: "Logros", where: "Medalla Celda de Castigo.", brief: "Personaje asomado entre barrotes con cara de «ups»." },
-  "medalla-imbatible": { ratio: "square", screen: "Logros", where: "Medalla Imbatible.", brief: "Personaje con escudo y capa en pose de superhéroe." },
-  "medalla-estudioso-nocturno": { ratio: "square", screen: "Logros", where: "Medalla Estudioso Nocturno.", brief: "Personaje leyendo bajo un flexo, con luna y un búho en la ventana." },
-  reiniciar: { ratio: "square", screen: "Logros", where: "Hoja de confirmación «¿Reiniciar progreso?».", brief: "Personaje barriendo un montón de papeles con una escoba." },
+  "medalla-primer-turno": { ratio: "square", screen: "Logros", where: "Medalla Primer Turno.", prompt: "A new prison officer in uniform turning a giant key in the lock of a heavy door, first day on the job, excited." },
+  "medalla-celda-castigo": { ratio: "square", screen: "Logros", where: "Medalla Celda de Castigo.", fromSheet: true, prompt: redraw("man peeking out from behind prison cell bars") },
+  "medalla-imbatible": { ratio: "square", screen: "Logros", where: "Medalla Imbatible.", prompt: "A person in office clothes striking a superhero pose with a cape flowing behind them and a round shield on one arm." },
+  "medalla-estudioso-nocturno": { ratio: "square", screen: "Logros", where: "Medalla Estudioso Nocturno.", prompt: "A person reading a book at a desk under a desk lamp at night, a crescent moon and a small owl visible through the window behind." },
+  reiniciar: { ratio: "square", screen: "Logros", where: "Hoja de confirmación «¿Reiniciar progreso?».", prompt: "A person sweeping a messy pile of papers with a broom, clearing the floor." },
 };
+
+export const fullPrompt = (name) => `${STYLE}\n\n${ILLUSTRATIONS[name].prompt}`;

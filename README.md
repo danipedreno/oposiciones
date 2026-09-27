@@ -19,6 +19,7 @@ npm install
 npm run dev          # servidor local
 npm run build        # compila en dist/
 npm run icons        # regenera los iconos de la app
+npm run illustrations  # genera con Gemini las ilustraciones que falten y las vectoriza (necesita .env)
 npm run trace        # vectoriza illustrations-src/*.png → public/illustrations/*.svg
 npm run illustrations-doc   # regenera ILUSTRACIONES.md
 ```

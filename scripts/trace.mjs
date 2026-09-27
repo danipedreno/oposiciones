@@ -1,17 +1,18 @@
-// Vectoriza las ilustraciones de Gemini: illustrations-src/<nombre>.(png|jpg|webp) → public/illustrations/<nombre>.svg
+// Vectoriza las ilustraciones: illustrations-src/<nombre>.(png|jpg|webp) → public/illustrations/<nombre>.svg
 // Uso: npm run trace            (todas)
 //      npm run trace bienvenida (solo esa)
 import { readdirSync, writeFileSync, mkdirSync } from "node:fs";
 import { basename, extname, join } from "node:path";
+import { pathToFileURL } from "node:url";
 import sharp from "sharp";
 import potrace from "potrace";
 import { ILLUSTRATIONS } from "../src/lib/illustrations.js";
 
-const SRC = "illustrations-src";
+export const SRC = "illustrations-src";
 const OUT = "public/illustrations";
 const INK = "#191919";
 
-const trace = (buffer) =>
+const potraceAsync = (buffer) =>
   new Promise((resolve, reject) =>
     potrace.trace(
       buffer,
@@ -26,34 +27,39 @@ const trace = (buffer) =>
     )
   );
 
-const only = process.argv[2];
-const files = readdirSync(SRC).filter((f) => /\.(png|jpe?g|webp)$/i.test(f) && (!only || basename(f, extname(f)) === only));
-if (!files.length) {
-  console.log(`No hay imágenes en ${SRC}/${only ? ` con el nombre «${only}»` : ""}.`);
-  process.exit(0);
-}
-mkdirSync(OUT, { recursive: true });
-
-for (const file of files) {
-  const name = basename(file, extname(file));
-  if (!ILLUSTRATIONS[name]) console.warn(`⚠ «${name}» no es un hueco de la app (revisa src/lib/illustrations.js).`);
-
-  const img = sharp(join(SRC, file));
+/** Convierte una imagen de trama en SVG de tinta con fondo transparente. Devuelve el tamaño en KB. */
+export async function traceFile(srcPath, name) {
+  const img = sharp(srcPath);
   const { width, height } = await img.metadata();
-  // Se amplía ×2 antes de trazar para que las curvas salgan más limpias.
+  // Las imágenes pequeñas se amplían ×2 antes de trazar para que las curvas salgan más limpias.
+  const scale = width < 1500 ? 2 : 1;
   const prepared = await img
-    .resize(width * 2, height * 2, { kernel: "lanczos3" })
+    .resize(width * scale, height * scale, { kernel: "lanczos3" })
     .flatten({ background: "#ffffff" })
     .grayscale()
     .png()
     .toBuffer();
-
-  const raw = await trace(prepared);
-  // Solo viewBox: la app decide el tamaño.
-  const svg = raw
-    .replace(/\s(width|height)="\d+"/g, "")
+  const svg = (await potraceAsync(prepared))
+    .replace(/\s(width|height)="\d+"/g, "") // solo viewBox: la app decide el tamaño
     .replace(/\s+/g, " ")
     .replace(/(\d+\.\d)\d+/g, "$1");
+  mkdirSync(OUT, { recursive: true });
   writeFileSync(join(OUT, `${name}.svg`), svg);
-  console.log(`✓ ${name}.svg · ${(svg.length / 1024).toFixed(0)} KB`);
+  return Math.round(svg.length / 1024);
 }
+
+async function main() {
+  const only = process.argv[2];
+  const files = readdirSync(SRC).filter((f) => /\.(png|jpe?g|webp)$/i.test(f) && (!only || basename(f, extname(f)) === only));
+  if (!files.length) {
+    console.log(`No hay imágenes en ${SRC}/${only ? ` con el nombre «${only}»` : ""}.`);
+    return;
+  }
+  for (const file of files) {
+    const name = basename(file, extname(file));
+    if (!ILLUSTRATIONS[name]) console.warn(`⚠ «${name}» no es un hueco de la app (revisa src/lib/illustrations.js).`);
+    console.log(`✓ ${name}.svg · ${await traceFile(join(SRC, file), name)} KB`);
+  }
+}
+
+if (import.meta.url === pathToFileURL(process.argv[1]).href) await main();
