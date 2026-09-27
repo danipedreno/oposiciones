@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowCounterClockwise, CaretDoubleUp, ClipboardText, FileText, House, Key, Moon, ShieldCheck, Trophy, GridFour } from "@phosphor-icons/react";
-import { ACHIEVEMENTS, applyExamResult, createExam, mistakePool } from "./lib/logic.js";
+import { ArrowCounterClockwise, ClipboardText, FileText, House, Trophy } from "@phosphor-icons/react";
+import { applyExamResult, createExam, mistakePool } from "./lib/logic.js";
 import { DEFAULT_STORE, useInstallPrompt, useNow, usePersistentStore } from "./lib/store.js";
 import { AppToaster, notify } from "./ui.jsx";
 import Home from "./screens/Home.jsx";
+import Celebrations from "./screens/Celebration.jsx";
 import Notes from "./screens/Notes.jsx";
 import Achievements from "./screens/Achievements.jsx";
 import { ExamResults, ExamRunner, ExamSetup } from "./screens/Exam.jsx";
@@ -15,8 +16,6 @@ const TABS = [
   { id: "badges", label: "Logros", Icon: Trophy, color: "#581e70", dark: true },
 ];
 
-const ACHIEVEMENT_ICONS = { key: Key, cell: GridFour, shield: ShieldCheck, moon: Moon };
-
 /**
  * Barra de pestañas. La pestaña activa es una capa de color recortada con clip-path que se desliza
  * de una pestaña a otra: el color de carpeta de cada sección cambia exactamente en el borde.
@@ -26,34 +25,34 @@ function TabBar({ tab, onChange }) {
   const n = TABS.length;
   return (
     <nav className="fixed left-4 right-4 tabbar-pos z-40" aria-label="Navegación principal">
-    <div className="relative max-w-md mx-auto rounded-folder bg-ink-2/95 backdrop-blur-md border border-ink-3 p-1.5 shadow-2xl shadow-black/70">
-      <div className="grid grid-cols-4 gap-1">
-        {TABS.map(({ id, label, Icon }) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => onChange(id)}
-            aria-current={tab === id ? "page" : undefined}
-            className="tap press h-14 rounded-[4px] flex flex-col items-center justify-center gap-0.5 text-mute hover:text-paper"
-          >
-            <Icon size={24} />
-            <span className="text-xs font-semibold">{label}</span>
-          </button>
-        ))}
+      <div className="relative max-w-md mx-auto rounded-folder bg-ink-2/95 backdrop-blur-md border border-ink-3 p-1.5 shadow-2xl shadow-black/70">
+        <div className="grid grid-cols-4 gap-1">
+          {TABS.map(({ id, label, Icon }) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => onChange(id)}
+              aria-current={tab === id ? "page" : undefined}
+              className="tap press h-14 rounded-[4px] flex flex-col items-center justify-center gap-0.5 text-mute hover:text-paper"
+            >
+              <Icon size={24} />
+              <span className="text-xs font-semibold">{label}</span>
+            </button>
+          ))}
+        </div>
+        <div
+          aria-hidden="true"
+          className="absolute inset-1.5 grid grid-cols-4 gap-1 pointer-events-none transition-[clip-path] duration-[250ms] ease-in-out"
+          style={{ clipPath: `inset(0 ${((n - 1 - index) / n) * 100}% 0 ${(index / n) * 100}% round 4px)` }}
+        >
+          {TABS.map(({ id, label, Icon, color, dark }) => (
+            <div key={id} className={`h-14 rounded-[4px] flex flex-col items-center justify-center gap-0.5 ${dark ? "text-paper" : "text-ink"}`} style={{ background: color }}>
+              <Icon size={24} weight="fill" />
+              <span className="text-xs font-semibold">{label}</span>
+            </div>
+          ))}
+        </div>
       </div>
-      <div
-        aria-hidden="true"
-        className="absolute inset-1.5 grid grid-cols-4 gap-1 pointer-events-none transition-[clip-path] duration-[250ms] ease-in-out"
-        style={{ clipPath: `inset(0 ${((n - 1 - index) / n) * 100}% 0 ${(index / n) * 100}% round 4px)` }}
-      >
-        {TABS.map(({ id, label, Icon, color, dark }) => (
-          <div key={id} className={`h-14 rounded-[4px] flex flex-col items-center justify-center gap-0.5 ${dark ? "text-paper" : "text-ink"}`} style={{ background: color }}>
-            <Icon size={24} weight="fill" />
-            <span className="text-xs font-semibold">{label}</span>
-          </div>
-        ))}
-      </div>
-    </div>
     </nav>
   );
 }
@@ -62,6 +61,7 @@ export default function App() {
   const [store, setStore] = usePersistentStore();
   const [tab, setTab] = useState(() => (store.activeExam || store.lastResult ? "test" : "home"));
   const install = useInstallPrompt();
+  const [celebration, setCelebration] = useState(null); // { queue, report }
   const storeRef = useRef(store);
   const finishedIds = useRef(new Set());
   const mainRef = useRef(null);
@@ -91,14 +91,8 @@ export default function App() {
       const { store: next, report } = applyExamResult(s, s.activeExam, reason, new Date());
       setStore(next);
       setTab("test");
-      if (report.rankAfter.level > report.rankBefore.level) {
-        notify({ icon: <CaretDoubleUp size={24} weight="bold" />, color: "#581e70", kicker: "Ascenso", text: `Ahora eres ${report.rankAfter.name}` });
-      }
-      report.earned.forEach((id, k) => {
-        const a = ACHIEVEMENTS.find((x) => x.id === id);
-        const Icon = ACHIEVEMENT_ICONS[a.icon];
-        setTimeout(() => notify({ icon: <Icon size={24} weight="fill" />, color: "#0c7866", kicker: "Medalla desbloqueada", text: a.name }), 400 + k * 500);
-      });
+      // Pantallas de «¡Enhorabuena!» encadenadas; debajo queda el resultado.
+      setCelebration({ queue: report.celebrations, report });
     },
     [setStore]
   );
@@ -160,6 +154,7 @@ export default function App() {
   return (
     <div className="fixed inset-0 overflow-hidden bg-ink">
       <AppToaster />
+      {celebration && <Celebrations queue={celebration.queue} report={celebration.report} store={store} onDone={() => setCelebration(null)} />}
       {exam ? (
         <ExamRunner exam={exam} remainingMs={remainingMs} onSelect={onSelect} onBlank={onBlank} onGoto={onGoto} onFinish={() => finishExam("submitted")} onAbandon={onAbandon} />
       ) : (
@@ -174,6 +169,7 @@ export default function App() {
                   onNewExam={onNewExam}
                   onGoNotes={() => setTab("notes")}
                   onReview={onReview}
+                  onPlan={(patch) => setStore((s) => ({ ...s, plan: { ...s.plan, ...patch } }))}
                   onPractice={(block) => {
                     setStore((s) => ({ ...s, lastResult: null, settings: { ...s.settings, source: "bank", block } }));
                     setTab("test");

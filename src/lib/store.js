@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { OFFICIAL_SECONDS_PER_QUESTION, STORAGE_KEY } from "./logic.js";
+import { DEFAULT_DAILY_GOAL, OFFICIAL_SECONDS_PER_QUESTION, STORAGE_KEY } from "./logic.js";
 
 export const DEFAULT_STORE = {
   version: 1,
@@ -12,6 +12,10 @@ export const DEFAULT_STORE = {
   settings: { feedback: "immediate", count: 20, secsPerQ: OFFICIAL_SECONDS_PER_QUESTION, block: "all", source: "bank" },
   customTest: null,
   mistakes: {},
+  plan: { examDate: null, dailyGoal: DEFAULT_DAILY_GOAL },
+  daily: {}, // preguntas hechas por día (YYYY-MM-DD → n)
+  goalDays: [], // días en que se cumplió la meta
+  counters: { marathons: 0, mastered: 0, highScores: 0 },
   notesDraft: { text: "", block: "penitenciario" },
   activeExam: null,
   lastResult: null,
@@ -30,6 +34,8 @@ function loadStore() {
       totals: { ...DEFAULT_STORE.totals, ...s.totals },
       settings: { ...DEFAULT_STORE.settings, ...s.settings },
       notesDraft: { ...DEFAULT_STORE.notesDraft, ...s.notesDraft },
+      plan: { ...DEFAULT_STORE.plan, ...s.plan },
+      counters: { ...DEFAULT_STORE.counters, ...s.counters },
     };
   } catch (e) {
     return DEFAULT_STORE;

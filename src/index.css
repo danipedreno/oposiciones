@@ -141,6 +141,21 @@
   .anim-medal {
     animation: medal 450ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
   }
+  /* Celebraciones: poco frecuentes, así que llevan algo de rebote */
+  .celebrate-pop {
+    animation: celebrate-pop 420ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
+  }
+  .celebrate-in {
+    animation: rise 320ms var(--ease-out) both;
+  }
+  .confetti-piece {
+    position: absolute;
+    top: -24px;
+    border-radius: 2px;
+    animation-name: confetti-fall;
+    animation-timing-function: cubic-bezier(0.33, 0, 0.67, 1);
+    animation-fill-mode: both;
+  }
   .anim-folder {
     animation: folder 360ms var(--ease-out) both;
   }
@@ -188,6 +203,15 @@
   from { transform: scale(0.9); opacity: 0; }
   to { transform: none; opacity: 1; }
 }
+@keyframes celebrate-pop {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes confetti-fall {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: translate3d(var(--drift), 105vh, 0) rotate(var(--spin)); opacity: 0; }
+}
 /* Las carpetas «se deslizan» desde abajo, como al sacarlas del archivador */
 @keyframes folder {
   from { transform: translateY(24px) rotate(-1deg); opacity: 0; }
@@ -195,7 +219,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .anim-rise, .anim-pop, .anim-folder, .anim-toast, .anim-q-next, .anim-q-prev, .anim-medal {
+  .anim-rise, .anim-pop, .anim-folder, .anim-toast, .anim-q-next, .anim-q-prev, .anim-medal, .celebrate-pop, .celebrate-in {
     animation: fade 180ms ease both !important;
   }
   .anim-shake, .anim-flicker {

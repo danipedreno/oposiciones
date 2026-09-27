@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { Check, Lock } from "@phosphor-icons/react";
-import { ACHIEVEMENTS, RANKS, rankInfo } from "../lib/logic.js";
-import { Button, Folder, Illustration, Paper, Sheet } from "../ui.jsx";
+import { ACHIEVEMENTS, MEDAL_FAMILIES, RANKS, ROMAN, medalProgress, rankInfo } from "../lib/logic.js";
+import { Button, Folder, Illustration, MedalBadge, Paper, ProgressBar, Sheet } from "../ui.jsx";
 
 export default function Achievements({ store, onReset }) {
   const [confirm, setConfirm] = useState(false);
-  const unlocked = ACHIEVEMENTS.filter((a) => store.achievements[a.id]).length;
+  const specials = ACHIEVEMENTS.filter((a) => store.achievements[a.id]).length;
+  const tiers = MEDAL_FAMILIES.map((f) => ({ f, p: medalProgress(f, store) }));
+  const unlocked = specials + tiers.reduce((acc, t) => acc + t.p.level, 0);
+  const total = ACHIEVEMENTS.length + MEDAL_FAMILIES.reduce((acc, f) => acc + f.tiers.length, 0);
   const { rank } = rankInfo(store.xp);
 
   return (
@@ -16,9 +19,37 @@ export default function Achievements({ store, onReset }) {
           <h1 className="display text-[52px] mt-1">Logros</h1>
         </div>
         <p className="font-mono text-mute pb-1">
-          <span className="text-paper text-2xl font-semibold">{unlocked}</span>/{ACHIEVEMENTS.length}
+          <span className="text-paper text-2xl font-semibold">{unlocked}</span>/{total}
         </p>
       </header>
+
+      <section aria-labelledby="medallas-title">
+        <h2 id="medallas-title" className="display text-3xl mb-1">Medallas</h2>
+        <p className="text-sm text-mute mb-3">Cada una tiene varios niveles repartidos por el mes. Sube de nivel para desbloquear el siguiente.</p>
+        <ul className="flex flex-col gap-2">
+          {tiers.map(({ f, p }) => (
+            <li key={f.id}>
+              <Paper className="p-3 flex items-center gap-4">
+                <MedalBadge family={f} level={p.level} size={56} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <p className="font-serif text-lg leading-tight">{f.name}</p>
+                    <p className="font-mono text-xs text-mute-paper shrink-0">
+                      {p.level ? `Nivel ${ROMAN[p.level]}` : "Sin empezar"} · {p.level}/{p.max}
+                    </p>
+                  </div>
+                  <ProgressBar pct={p.pct} color={p.next ? "#191919" : "#0c7866"} track="bg-paper-3" className="h-2 mt-2" label={`Progreso de ${f.name}`} />
+                  <p className="text-xs text-mute-paper mt-1.5 leading-snug">
+                    {p.next ? `${Math.min(p.value, p.next)}/${p.next} ${f.unit}` : `¡Nivel máximo! ${p.value} ${f.unit}`}
+                  </p>
+                </div>
+              </Paper>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <h2 className="display text-3xl -mb-3">Especiales</h2>
 
       <ul className="grid grid-cols-2 gap-3">
         {ACHIEVEMENTS.map((a, k) => {

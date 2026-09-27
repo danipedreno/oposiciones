@@ -4,7 +4,12 @@ import { SEED_QUESTIONS } from "../data/questions.js";
    CONFIGURACIÓN
    --------------------------------------------------------------------- */
 export const STORAGE_KEY = "recuento-iipp.v1";
+// XP pensado para un mes de estudio: ~40 preguntas al día dan unos 350 XP diarios.
 export const XP_PER_CORRECT = 10;
+export const XP_TEST_BONUS = 20; // por terminar un test de 10 o más preguntas
+export const XP_GOAL_BONUS = 50; // por cumplir la meta diaria
+export const DAILY_GOALS = [20, 40, 60, 100];
+export const DEFAULT_DAILY_GOAL = 40;
 // 1er ejercicio: 150 preguntas en 135 minutos → 54 s por pregunta.
 // Verifica el dato en la convocatoria vigente (BOE) y ajústalo aquí.
 export const OFFICIAL_SECONDS_PER_QUESTION = 54;
@@ -48,10 +53,11 @@ export const BLOCK_IDS = Object.keys(BLOCKS);
 
 export const RANKS = [
   { level: 1, name: "Opositor Novato", min: 0, illustration: "rango-1-novato" },
-  { level: 2, name: "Funcionario en Prácticas", min: 150, illustration: "rango-2-practicas" },
-  { level: 3, name: "Jefe de Servicio", min: 400, illustration: "rango-3-jefe-servicio" },
-  { level: 4, name: "Jefe de Centro", min: 800, illustration: "rango-4-jefe-centro" },
-  { level: 5, name: "Director de Centro", min: 1500, illustration: "rango-5-director" },
+  // Con la meta de 40 al día: Prácticas ~día 2, Servicio ~día 6, Centro ~día 15, Director ~día 26.
+  { level: 2, name: "Funcionario en Prácticas", min: 600, illustration: "rango-2-practicas" },
+  { level: 3, name: "Jefe de Servicio", min: 2000, illustration: "rango-3-jefe-servicio" },
+  { level: 4, name: "Jefe de Centro", min: 5000, illustration: "rango-4-jefe-centro" },
+  { level: 5, name: "Director de Centro", min: 9000, illustration: "rango-5-director" },
 ];
 
 export const ACHIEVEMENTS = [
@@ -60,6 +66,42 @@ export const ACHIEVEMENTS = [
   { id: "imbatible", name: "Imbatible", desc: "Test de más de 10 preguntas sin fallos ni blancos.", icon: "shield", illustration: "medalla-imbatible" },
   { id: "nocturno", name: "Estudioso Nocturno", desc: "Termina un test entre las 23:00 y las 6:00.", icon: "moon", illustration: "medalla-estudioso-nocturno" },
 ];
+
+/* Medallas por niveles (estilo Duolingo): cada familia tiene umbrales repartidos a lo largo del mes
+   y siempre muestra cuánto falta para el siguiente nivel. `value` lee el progreso del estado guardado. */
+export const MEDAL_FAMILIES = [
+  { id: "racha", name: "En racha", icon: "fire", color: "#ffe927", dark: false, unit: "días seguidos", tiers: [3, 7, 14, 21, 30], value: (s) => s.streak.best || 0 },
+  { id: "meta", name: "Meta cumplida", icon: "target", color: "#0c7866", unit: "días con la meta diaria", tiers: [1, 5, 10, 20, 28], value: (s) => s.goalDays.length },
+  { id: "respondidas", name: "Fondo de armario", icon: "books", color: "#1e4bd7", unit: "preguntas respondidas", tiers: [100, 300, 700, 1200, 2000], value: (s) => s.totals.answered },
+  { id: "maraton", name: "Maratón", icon: "timer", color: "#d71e1e", unit: "tests de 30 o más preguntas", tiers: [1, 5, 10, 20], value: (s) => s.counters.marathons },
+  { id: "repaso", name: "Sin cuentas pendientes", icon: "repeat", color: "#581e70", unit: "fallos dominados", tiers: [5, 20, 50, 100], value: (s) => s.counters.mastered },
+  { id: "matricula", name: "Matrícula", icon: "star", color: "#1e4bd7", unit: "tests de 20+ con nota ≥ 8", tiers: [1, 5, 15], value: (s) => s.counters.highScores },
+  {
+    id: "especialista",
+    name: "Especialista",
+    icon: "scales",
+    color: "#0c7866",
+    unit: "bloques con 75 % de aciertos (mín. 50 preguntas)",
+    tiers: [1, 2, 3],
+    value: (s) => ["penitenciario", "penal", "funcion"].filter((b) => (s.blockStats[b]?.t || 0) >= 50 && s.blockStats[b].c / s.blockStats[b].t >= 0.75).length,
+  },
+];
+
+/** Nivel alcanzado en una familia y progreso hacia el siguiente. */
+export function medalProgress(family, store) {
+  const value = family.value(store);
+  const level = family.tiers.filter((t) => value >= t).length;
+  const next = family.tiers[level] ?? null;
+  // La barra muestra lo mismo que el texto «valor/siguiente umbral».
+  return { value, level, max: family.tiers.length, next, pct: next ? Math.min(100, (value / next) * 100) : 100 };
+}
+
+export const ROMAN = ["", "I", "II", "III", "IV", "V"];
+
+/** Días que faltan hasta el examen (0 = hoy). null si no hay fecha. */
+export function daysUntil(examDate, today = dateKey()) {
+  return examDate ? daysBetween(today, examDate) : null;
+}
 
 /* ---------------------------------------------------------------------
    LÓGICA PURA
@@ -185,7 +227,21 @@ export function gradeExam(exam) {
 export function applyExamResult(store, exam, reason, date) {
   const grade = gradeExam(exam);
   const today = dateKey(date);
-  const xpGained = grade.correct * XP_PER_CORRECT;
+
+  // Meta diaria: cuenta todas las preguntas del test (también las dejadas en blanco).
+  const goal = store.plan.dailyGoal;
+  const doneBefore = store.daily[today] || 0;
+  const doneAfter = doneBefore + grade.n;
+  const goalMet = doneBefore < goal && doneAfter >= goal;
+  const daily = Object.fromEntries(Object.entries({ ...store.daily, [today]: doneAfter }).slice(-60));
+  const goalDays = goalMet ? [...store.goalDays, today] : store.goalDays;
+
+  const xpParts = {
+    correct: grade.correct * XP_PER_CORRECT,
+    test: grade.n >= 10 ? XP_TEST_BONUS : 0,
+    goal: goalMet ? XP_GOAL_BONUS : 0,
+  };
+  const xpGained = xpParts.correct + xpParts.test + xpParts.goal;
   const rankBefore = rankInfo(store.xp).rank;
   const xp = store.xp + xpGained;
   const rankAfter = rankInfo(xp).rank;
@@ -230,10 +286,40 @@ export function applyExamResult(store, exam, reason, date) {
   const achievements = { ...store.achievements };
   earned.forEach((id) => (achievements[id] = date.toISOString()));
 
+  const streak = bumpStreak(store.streak, today);
+  const counters = {
+    marathons: store.counters.marathons + (grade.n >= 30 ? 1 : 0),
+    mastered: store.counters.mastered + mastered,
+    highScores: store.counters.highScores + (grade.n >= 20 && grade.over10 >= 8 ? 1 : 0),
+  };
+  const totals = {
+    tests: store.totals.tests + 1,
+    answered: store.totals.answered + grade.correct + grade.wrong,
+    correct: store.totals.correct + grade.correct,
+  };
+  const nextStore = { ...store, xp, blockStats, achievements, streak, totals, counters, daily, goalDays, mistakes };
+
+  // Cola de celebraciones, en el orden en que se muestran al terminar.
+  const celebrations = [{ type: "test" }];
+  // La racha se celebra con el primer test de cada día (como Duolingo).
+  if (store.streak.last !== today) celebrations.push({ type: "streak", count: streak.count });
+  if (goalMet) celebrations.push({ type: "goal", goal });
+  earned.forEach((id) => celebrations.push({ type: "special", id }));
+  MEDAL_FAMILIES.forEach((f) => {
+    const before = medalProgress(f, store).level;
+    const after = medalProgress(f, nextStore).level;
+    for (let level = before + 1; level <= after; level++) celebrations.push({ type: "tier", family: f.id, level });
+  });
+  if (rankAfter.level > rankBefore.level) celebrations.push({ type: "rank", level: rankAfter.level });
+
   const report = {
     exam,
     grade,
     xpGained,
+    xpParts,
+    celebrations,
+    dailyDone: doneAfter,
+    dailyGoal: goal,
     rankBefore,
     rankAfter,
     earned,
@@ -246,16 +332,7 @@ export function applyExamResult(store, exam, reason, date) {
   return {
     report,
     store: {
-      ...store,
-      xp,
-      blockStats,
-      achievements,
-      streak: bumpStreak(store.streak, today),
-      totals: {
-        tests: store.totals.tests + 1,
-        answered: store.totals.answered + grade.correct + grade.wrong,
-        correct: store.totals.correct + grade.correct,
-      },
+      ...nextStore,
       history: [
         {
           id: exam.id,
@@ -270,7 +347,6 @@ export function applyExamResult(store, exam, reason, date) {
         },
         ...store.history,
       ].slice(0, 30),
-      mistakes,
       activeExam: null,
       lastResult: report,
     },

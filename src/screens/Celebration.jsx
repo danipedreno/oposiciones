@@ -1,0 +1,299 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Fire } from "@phosphor-icons/react";
+import { ACHIEVEMENTS, MEDAL_FAMILIES, RANKS, ROMAN, fmt2, medalProgress } from "../lib/logic.js";
+import { useCountUp, useReducedMotion } from "../lib/motion.js";
+import { Button, Galones, Illustration, MedalBadge, Paper } from "../ui.jsx";
+
+/* Pantallas de celebración a pantalla completa (bucle de Duolingo): al terminar un test se
+   encadenan test completado → racha → meta diaria → medallas → ascenso, cada una con «Continuar».
+   Son poco frecuentes, así que aquí sí hay deleite: confeti, rebote suave y vibración en Android. */
+
+const CONFETTI_COLORS = ["#ffe927", "#1e4bd7", "#d71e1e", "#0c7866", "#581e70", "#fdfaf7"];
+
+function Confetti() {
+  const pieces = useMemo(
+    () =>
+      Array.from({ length: 36 }, (_, k) => ({
+        left: Math.random() * 100,
+        delay: Math.random() * 250,
+        duration: 1600 + Math.random() * 1100,
+        drift: (Math.random() - 0.5) * 120,
+        spin: 360 + Math.random() * 540,
+        color: CONFETTI_COLORS[k % CONFETTI_COLORS.length],
+        w: 6 + Math.random() * 6,
+      })),
+    []
+  );
+  return (
+    <div className="confetti pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+      {pieces.map((p, k) => (
+        <span
+          key={k}
+          className="confetti-piece"
+          style={{
+            left: `${p.left}%`,
+            width: p.w,
+            height: p.w * 1.6,
+            background: p.color,
+            animationDelay: `${p.delay}ms`,
+            animationDuration: `${p.duration}ms`,
+            "--drift": `${p.drift}px`,
+            "--spin": `${p.spin}deg`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/** Anillo de progreso de la meta diaria. */
+export function GoalRing({ done, goal, size = 132, stroke = 12, color = "#fdfaf7", track = "rgba(0,0,0,0.22)", children }) {
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const pct = Math.min(1, goal ? done / goal : 0);
+  return (
+    <div className="relative shrink-0" style={{ width: size, height: size }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90" aria-hidden="true">
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={track} strokeWidth={stroke} />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          stroke={color}
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeDasharray={c}
+          strokeDashoffset={c * (1 - pct)}
+          className="transition-[stroke-dashoffset] duration-700 ease-out"
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">{children}</div>
+    </div>
+  );
+}
+
+function CountUp({ value }) {
+  return useCountUp(value, { duration: 1 });
+}
+
+function testScreen(report) {
+  const { grade, xpParts } = report;
+  const art = grade.over10 >= 7 ? "resultado-alto" : grade.over10 >= 4 ? "resultado-medio" : "resultado-bajo";
+  return {
+    bg: "#1e4bd7",
+    kicker: "Test completado",
+    title: grade.over10 >= 7 ? "¡Muy bien!" : grade.over10 >= 4 ? "¡Buen trabajo!" : "¡A seguir!",
+    confetti: grade.over10 >= 7,
+    visual: (
+      <Paper className="w-40 h-40 p-2">
+        <Illustration name={art} className="w-full" alt="" />
+      </Paper>
+    ),
+    body: (
+      <>
+        <div className="grid grid-cols-3 gap-2 w-full max-w-xs">
+          <div className="rounded-folder bg-folder-yellow text-ink py-3">
+            <p className="font-mono text-2xl font-semibold tabular-nums">
+              +<CountUp value={report.xpGained} />
+            </p>
+            <p className="text-xs font-semibold">XP</p>
+          </div>
+          <div className="rounded-folder bg-black/25 py-3">
+            <p className="font-mono text-2xl font-semibold tabular-nums">
+              {grade.correct}/{grade.n}
+            </p>
+            <p className="text-xs">Aciertos</p>
+          </div>
+          <div className="rounded-folder bg-black/25 py-3">
+            <p className="font-mono text-2xl font-semibold tabular-nums">{fmt2(grade.over10)}</p>
+            <p className="text-xs">Sobre 10</p>
+          </div>
+        </div>
+        <p className="font-mono text-xs text-paper/80 mt-3">
+          {xpParts.correct} por aciertos{xpParts.test ? ` · +${xpParts.test} por terminar` : ""}
+          {xpParts.goal ? ` · +${xpParts.goal} meta diaria` : ""}
+        </p>
+        <p className="text-sm text-paper/85 mt-2">
+          Hoy llevas {report.dailyDone} de {report.dailyGoal} preguntas de tu meta.
+        </p>
+      </>
+    ),
+  };
+}
+
+function screenFor(item, report, store) {
+  if (item.type === "test") return testScreen(report);
+
+  if (item.type === "streak") {
+    const racha = MEDAL_FAMILIES.find((f) => f.id === "racha");
+    const next = medalProgress(racha, store).next;
+    return {
+      bg: "#ffe927",
+      dark: false,
+      kicker: "Racha de estudio",
+      title: `¡${item.count} ${item.count === 1 ? "día" : "días"}!`,
+      confetti: item.count > 1,
+      visual: (
+        <div className="relative">
+          <Paper className="w-40 h-40 p-2">
+            <Illustration name="racha-activa" className="w-full" alt="" />
+          </Paper>
+          <span className="absolute -bottom-3 -right-3 w-14 h-14 rounded-full bg-folder-red text-paper flex items-center justify-center border-4 border-folder-yellow">
+            <Fire size={30} weight="fill" className="anim-flicker" />
+          </span>
+        </div>
+      ),
+      body: (
+        <p className="text-base max-w-xs">
+          {item.count === 1 ? "Has encendido la racha. Vuelve mañana para que crezca." : "Vuelve mañana para mantenerla."}
+          {next && <span className="block font-mono text-sm mt-2">Medalla «En racha» {ROMAN[medalProgress(racha, store).level + 1]} a los {next} días</span>}
+        </p>
+      ),
+    };
+  }
+
+  if (item.type === "goal") {
+    return {
+      bg: "#0c7866",
+      kicker: "Meta diaria",
+      title: "¡Meta cumplida!",
+      confetti: true,
+      visual: (
+        <GoalRing done={item.goal} goal={item.goal} size={160}>
+          <span className="font-mono text-3xl font-semibold">{item.goal}</span>
+          <span className="text-xs">preguntas</span>
+        </GoalRing>
+      ),
+      body: <p className="text-base max-w-xs">+50 XP extra. Mañana, otra vez: así se llega al examen.</p>,
+    };
+  }
+
+  if (item.type === "special") {
+    const a = ACHIEVEMENTS.find((x) => x.id === item.id);
+    return {
+      bg: "#581e70",
+      kicker: "¡Enhorabuena!",
+      title: "Nueva medalla",
+      confetti: true,
+      visual: (
+        <Paper className="w-44 h-44 p-2">
+          <Illustration name={a.illustration} className="w-full" alt="" />
+        </Paper>
+      ),
+      body: (
+        <>
+          <p className="font-serif text-[26px] leading-tight">{a.name}</p>
+          <p className="text-base text-paper/85 mt-1 max-w-xs">{a.desc}</p>
+        </>
+      ),
+    };
+  }
+
+  if (item.type === "tier") {
+    const f = MEDAL_FAMILIES.find((x) => x.id === item.family);
+    const next = f.tiers[item.level];
+    return {
+      bg: f.color,
+      dark: f.dark !== false,
+      kicker: "¡Enhorabuena!",
+      title: `Nivel ${ROMAN[item.level]}`,
+      confetti: true,
+      visual: (
+        <Paper className="w-44 h-44 flex items-center justify-center">
+          <MedalBadge family={f} level={item.level} size={112} />
+        </Paper>
+      ),
+      body: (
+        <>
+          <p className="font-serif text-[26px] leading-tight">{f.name}</p>
+          <p className="text-base mt-1 max-w-xs opacity-85">
+            {f.tiers[item.level - 1]} {f.unit}.
+          </p>
+          <p className="font-mono text-sm mt-2 opacity-85">{next ? `Siguiente nivel: ${next} ${f.unit}` : "¡Nivel máximo!"}</p>
+        </>
+      ),
+    };
+  }
+
+  // rank
+  const rank = RANKS.find((r) => r.level === item.level);
+  return {
+    bg: "#191919",
+    kicker: "¡Ascenso!",
+    title: rank.name,
+    confetti: true,
+    visual: (
+      <Paper className="w-44 h-44 p-2">
+        <Illustration name={rank.illustration} className="w-full" alt="" />
+      </Paper>
+    ),
+    body: (
+      <>
+        <Galones level={rank.level} />
+        <p className="text-base text-paper/85 mt-3 max-w-xs">Nivel {rank.level} de 5. Sigue sumando XP para el siguiente rango.</p>
+      </>
+    ),
+  };
+}
+
+export default function Celebrations({ queue, report, store, onDone }) {
+  const [i, setI] = useState(0);
+  const reduce = useReducedMotion();
+  const dialogRef = useRef(null);
+  const item = queue[i];
+
+  // El foco entra en el diálogo (para lectores de pantalla y teclado) sin marcar ningún botón.
+  useEffect(() => {
+    dialogRef.current?.focus({ preventScroll: true });
+  }, []);
+
+  useEffect(() => {
+    // Vibración corta en Android (en iOS la web no puede vibrar).
+    try {
+      navigator.vibrate?.(item.type === "test" ? 20 : [30, 60, 40]);
+    } catch (e) {
+      /* sin vibración */
+    }
+  }, [i, item.type]);
+
+  const s = screenFor(item, report, store);
+  const dark = s.dark !== false;
+  const next = () => (i + 1 < queue.length ? setI(i + 1) : onDone());
+
+  return (
+    <div
+      ref={dialogRef}
+      tabIndex={-1}
+      className={`fixed inset-0 z-[70] flex flex-col outline-none transition-colors duration-300 ${dark ? "text-paper" : "text-ink"}`}
+      style={{ background: s.bg }}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${s.kicker}: ${s.title}`}
+    >
+      {s.confetti && !reduce && <Confetti key={i} />}
+      <div key={i} className="relative flex-1 flex flex-col items-center justify-center text-center gap-5 px-6 pt-safe">
+        <p className="label celebrate-in opacity-80">{s.kicker}</p>
+        <h2 className="display text-[56px] celebrate-pop max-w-sm">{s.title}</h2>
+        <div className="celebrate-in" style={{ animationDelay: "120ms" }}>
+          {s.visual}
+        </div>
+        <div className="celebrate-in flex flex-col items-center" style={{ animationDelay: "220ms" }}>
+          {s.body}
+        </div>
+      </div>
+      <div className="relative px-6 pb-safe pt-4 w-full max-w-md mx-auto">
+        {queue.length > 1 && (
+          <div className="flex justify-center gap-1.5 mb-4" aria-label={`Pantalla ${i + 1} de ${queue.length}`}>
+            {queue.map((_, k) => (
+              <span key={k} className={`h-1.5 rounded-full transition-[width,opacity] duration-300 ease-out ${k === i ? "w-6 opacity-100" : "w-1.5 opacity-40"} ${dark ? "bg-paper" : "bg-ink"}`} />
+            ))}
+          </div>
+        )}
+        <Button variant={dark ? "paper" : "ink"} onClick={next} className="w-full">
+          {i + 1 < queue.length ? "Continuar" : "Ver resultado"}
+        </Button>
+      </div>
+    </div>
+  );
+}

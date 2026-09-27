@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { CaretDoubleUp, PencilSimpleLine } from "@phosphor-icons/react";
+import { ArrowCounterClockwise, Books, CaretDoubleUp, Fire, PencilSimpleLine, Scales, Star, Target, Timer } from "@phosphor-icons/react";
 import { Drawer } from "vaul";
 import { Toaster, toast } from "sonner";
 import { ILLUSTRATIONS } from "./lib/illustrations.js";
-import { RANKS } from "./lib/logic.js";
+import { RANKS, ROMAN } from "./lib/logic.js";
 
 /* ---------------------------------------------------------------------
    Carpeta con pestaña (motivo de Mosby's Files)
@@ -69,6 +69,7 @@ const BUTTON_VARIANTS = {
   ghost: "bg-transparent text-paper border-2 border-ink-4 hover:border-mute",
   red: "bg-folder-red text-paper hover:brightness-110",
   green: "bg-folder-green text-paper hover:brightness-110",
+  ink: "bg-ink text-paper hover:bg-ink-2",
 };
 
 export function Button({ variant = "yellow", className = "", children, ...rest }) {
@@ -171,6 +172,34 @@ export function Galones({ level, onPaper = false }) {
           className={r.level <= level ? (onPaper ? "text-folder-purple" : "text-folder-yellow") : onPaper ? "text-paper-3" : "text-ink-4"}
         />
       ))}
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------------
+   Distintivo de medalla por niveles: carpeta del color de la familia con su icono y el nivel.
+   --------------------------------------------------------------------- */
+const MEDAL_ICONS = { fire: Fire, target: Target, books: Books, timer: Timer, repeat: ArrowCounterClockwise, star: Star, scales: Scales };
+
+export function MedalBadge({ family, level, size = 64 }) {
+  const Icon = MEDAL_ICONS[family.icon];
+  const locked = level === 0;
+  return (
+    <div className="relative shrink-0" style={{ width: size, height: size }}>
+      <div
+        className={`w-full h-full rounded-folder flex items-center justify-center ${locked ? "bg-ink-3 text-ink-4" : family.dark === false ? "text-ink" : "text-paper"}`}
+        style={locked ? undefined : { background: family.color }}
+      >
+        <Icon size={size * 0.52} weight="fill" />
+      </div>
+      {!locked && (
+        <span
+          className="absolute -bottom-1.5 -right-1.5 min-w-[28px] h-7 px-1.5 rounded-full bg-paper text-ink border-2 border-ink font-mono text-xs font-semibold flex items-center justify-center"
+          aria-label={`Nivel ${level}`}
+        >
+          {ROMAN[level]}
+        </span>
+      )}
     </div>
   );
 }

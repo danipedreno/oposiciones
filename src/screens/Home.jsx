@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowCounterClockwise, CaretDown, Check, DeviceMobile, Fire, Play, Sparkle, Timer, X } from "@phosphor-icons/react";
-import { BLOCKS, BLOCK_IDS, MASTERED_AFTER, dateKey, fmt2, rankInfo, streakView } from "../lib/logic.js";
+import { BLOCKS, BLOCK_IDS, DAILY_GOALS, MASTERED_AFTER, dateKey, daysUntil, fmt2, rankInfo, streakView } from "../lib/logic.js";
 import { SEED_QUESTIONS } from "../data/questions.js";
-import { Button, Folder, FolderTab, Galones, IconButton, Illustration, Paper, ProgressBar } from "../ui.jsx";
+import { Button, Folder, FolderTab, Galones, IconButton, Illustration, Paper, ProgressBar, Segmented, Sheet } from "../ui.jsx";
+import { GoalRing } from "./Celebration.jsx";
 
 const WEEKDAY = ["D", "L", "M", "X", "J", "V", "S"];
 
@@ -162,7 +163,111 @@ function BlockCabinet({ store, intro, onPractice }) {
   );
 }
 
-export default function Home({ store, install, onDismissInstall, onNewExam, onGoNotes, onPractice, onReview }) {
+/** Carpeta «Tu examen»: cuenta atrás y meta de hoy, el gancho diario. */
+function PlanFolder({ store, onPlan }) {
+  const today = dateKey();
+  const done = store.daily[today] || 0;
+  const goal = store.plan.dailyGoal;
+  const left = daysUntil(store.plan.examDate, today);
+  const [editing, setEditing] = useState(false);
+  const [draftDate, setDraftDate] = useState(store.plan.examDate || "");
+  const [draftGoal, setDraftGoal] = useState(goal);
+  const examLabel = store.plan.examDate
+    ? new Date(`${store.plan.examDate}T12:00`).toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" })
+    : null;
+
+  const openEditor = () => {
+    setDraftDate(store.plan.examDate || "");
+    setDraftGoal(goal);
+    setEditing(true);
+  };
+
+  return (
+    <>
+      <Folder color="#ffe927" tab="Tu examen" tabDark={false}>
+        <div className="p-5 pb-4 text-ink flex items-center gap-4">
+          <div className="flex-1 min-w-0">
+            {left === null ? (
+              <>
+                <p className="label text-ink/70">Cuenta atrás</p>
+                <p className="display text-[34px] mt-1">¿Cuándo es tu examen?</p>
+              </>
+            ) : left < 0 ? (
+              <>
+                <p className="label text-ink/70">Examen</p>
+                <p className="display text-[34px] mt-1">Ya pasó</p>
+              </>
+            ) : (
+              <>
+                <p className="display text-[72px]">{left === 0 ? "Hoy" : left}</p>
+                <p className="label text-ink/80 mt-1">{left === 0 ? "¡Mucha suerte!" : `${left === 1 ? "día" : "días"} para el examen`}</p>
+                <p className="text-sm text-ink/70 mt-1 first-letter:uppercase">{examLabel}</p>
+              </>
+            )}
+          </div>
+          <GoalRing done={done} goal={goal} size={112} stroke={10} color="#191919" track="rgba(25,25,25,0.15)">
+            <span className="font-mono text-xl font-semibold tabular-nums">
+              {Math.min(done, 999)}/{goal}
+            </span>
+            <span className="text-[11px] font-semibold">{done >= goal ? "¡meta!" : "hoy"}</span>
+          </GoalRing>
+        </div>
+        <div className="px-5 pb-5">
+          <button type="button" onClick={openEditor} className="tap press h-11 px-3 -ml-3 rounded-folder text-ink text-sm font-semibold underline underline-offset-4 decoration-2">
+            {left === null ? "Poner fecha y meta diaria" : "Cambiar fecha o meta"}
+          </button>
+        </div>
+      </Folder>
+
+      <Sheet
+        open={editing}
+        title="Tu plan"
+        onClose={() => setEditing(false)}
+        body={
+          <div className="flex flex-col gap-4 text-ink pt-1">
+            <div>
+              <label htmlFor="exam-date" className="label text-mute-paper block mb-2">
+                Fecha del examen
+              </label>
+              <input
+                id="exam-date"
+                type="date"
+                min={today}
+                value={draftDate}
+                onChange={(e) => setDraftDate(e.target.value)}
+                className="w-full h-12 rounded-folder bg-paper-2 border-2 border-paper-3 px-3 font-mono text-ink outline-none focus:border-ink"
+              />
+            </div>
+            <Segmented
+              label="Meta diaria (preguntas)"
+              value={draftGoal}
+              onChange={setDraftGoal}
+              options={DAILY_GOALS.map((g) => ({ value: g, label: String(g), sub: g === 40 ? "recomendada" : g === 20 ? "suave" : g === 60 ? "intensa" : "máxima" }))}
+            />
+          </div>
+        }
+        actions={
+          <>
+            <Button
+              variant="blue"
+              onClick={() => {
+                onPlan({ examDate: draftDate || null, dailyGoal: draftGoal });
+                setEditing(false);
+              }}
+            >
+              Guardar plan
+            </Button>
+            <Button variant="paper" className="border-2 border-paper-3" onClick={() => setEditing(false)}>
+              Cancelar
+            </Button>
+          </>
+        }
+      />
+    </>
+  );
+}
+
+export default function Home({ store, install, onDismissInstall, onNewExam, onGoNotes, onPractice, onReview, onPlan }) {
   const intro = useRef(!introPlayed).current;
   useEffect(() => {
     introPlayed = true;
@@ -203,8 +308,9 @@ export default function Home({ store, install, onDismissInstall, onNewExam, onGo
         </Paper>
       )}
 
-      <RankFolder xp={store.xp} intro={intro} />
+      <PlanFolder store={store} onPlan={onPlan} />
       <StreakCard streak={store.streak} />
+      <RankFolder xp={store.xp} intro={intro} />
 
       {store.history.length === 0 && (
         <Paper className="p-4">
