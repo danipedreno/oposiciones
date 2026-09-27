@@ -12,7 +12,7 @@ const WEEKDAY = ["D", "L", "M", "X", "J", "V", "S"];
 // volver a la pestaña es frecuente y repetir la animación la haría pesada.
 let introPlayed = false;
 
-export function RankFolder({ xp, tab = "Hoja de opositor", intro = false }) {
+export function RankFolder({ xp, tab = "Nivel", intro = false }) {
   return (
     <Folder color={PAL.lilac} tab={tab} className={intro ? "anim-folder" : ""}>
       <RankContent xp={xp} />
@@ -203,7 +203,7 @@ function PlanContent({ store, onPlan }) {
 const HOME_FOLDERS = [
   { id: "examen", label: "Tu examen", color: PAL.sun },
   { id: "racha", label: "Racha", color: PAL.peach },
-  { id: "hoja", label: "Hoja de opositor", color: PAL.lilac },
+  { id: "hoja", label: "Nivel", color: PAL.lilac },
 ];
 let lastFolder = "examen";
 
