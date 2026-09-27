@@ -1,15 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowCounterClockwise, CaretDown, Cards as CardsIcon, Check, DeviceMobile, Fire, Play, Sparkle, Timer, X } from "@phosphor-icons/react";
-import { BLOCKS, BLOCK_IDS, DAILY_GOALS, MASTERED_AFTER, dateKey, daysUntil, fmt2, rankInfo, streakView } from "../lib/logic.js";
-import { SEED_QUESTIONS } from "../data/questions.js";
-import { bankCards, bankQuestions } from "../lib/bank.js";
-import { cardsForSession } from "../lib/logic.js";
-import { Button, Folder, FolderTab, Galones, IconButton, Illustration, Paper, ProgressBar, Segmented, Sheet } from "../ui.jsx";
+import { ArrowCounterClockwise, Books, CaretRight, Check, DeviceMobile, Fire, X } from "@phosphor-icons/react";
+import { DAILY_GOALS, MASTERED_AFTER, dateKey, daysUntil, rankInfo, streakView } from "../lib/logic.js";
+import { Button, Folder, Galones, IconButton, Illustration, Paper, ProgressBar, Segmented, Sheet } from "../ui.jsx";
 import { GoalRing } from "./Celebration.jsx";
+import { ImportBank } from "./Cards.jsx";
 
 const WEEKDAY = ["D", "L", "M", "X", "J", "V", "S"];
 
-// Las carpetas «salen del archivador» solo la primera vez que se abre Inicio en la sesión:
+// La hoja de opositor «sale del archivador» solo la primera vez que se abre Inicio en la sesión:
 // volver a la pestaña es frecuente y repetir la animación la haría pesada.
 let introPlayed = false;
 
@@ -91,80 +89,6 @@ function StreakCard({ streak }) {
       </ol>
       <p className="font-mono text-xs text-mute-paper mt-3">Mejor racha: {streak.best || 0} días</p>
     </Paper>
-  );
-}
-
-/**
- * Archivador de bloques: las carpetas están cerradas y solo se ven sus pestañas (con el dato clave).
- * Al tocar una pestaña se «saca» esa carpeta y se guarda la que estuviera abierta.
- * Cada franja mide lo mismo que una pestaña (44 px), así la pestaña siguiente asienta sobre ella sin huecos.
- */
-const TAB_OFFSETS = ["ml-2", "ml-9", "ml-16", "ml-24"];
-
-function BlockCabinet({ store, bank, intro, onPractice }) {
-  const [open, setOpen] = useState(null);
-  const sizeOf = (id) => (bank ? bankQuestions(bank, id).length : SEED_QUESTIONS.filter((q) => q.block === id).length);
-  // Solo los bloques con preguntas (o ya estudiados): un cajón vacío no aporta nada.
-  const visible = BLOCK_IDS.filter((id) => sizeOf(id) || store.blockStats[id]);
-  return (
-    <div className="pt-1">
-      {visible.map((id, k) => {
-        const b = BLOCKS[id];
-        const s = store.blockStats[id] || { c: 0, t: 0 };
-        const pct = s.t ? Math.round((s.c / s.t) * 100) : null;
-        const isOpen = open === id;
-        const last = k === visible.length - 1;
-        const bankSize = sizeOf(id);
-        return (
-          <section
-            key={id}
-            className={`relative ${k ? "-mt-11" : ""} ${intro ? "anim-folder" : ""}`}
-            style={intro ? { animationDelay: `${120 + k * 50}ms` } : undefined}
-          >
-            <div className="flex items-end">
-              <button
-                type="button"
-                onClick={() => setOpen(isOpen ? null : id)}
-                aria-expanded={isOpen}
-                aria-controls={`carpeta-${id}`}
-                className={`tap press relative z-[1] -mb-px ${TAB_OFFSETS[k]}`}
-              >
-                <FolderTab color={b.hex}>
-                  {b.label}
-                  <span className="font-mono text-sm text-paper/80">{pct === null ? "—" : `${pct}%`}</span>
-                  <CaretDown size={16} weight="bold" className={`transition-transform duration-200 ease-out ${isOpen ? "rotate-180" : ""}`} />
-                </FolderTab>
-              </button>
-            </div>
-            <div className="rounded-folder folder-shadow" style={{ background: b.hex }}>
-              {/* Abre/cierra con grid-template-rows 0fr↔1fr: se desplaza en pantalla, así que ease-in-out. */}
-              <div
-                id={`carpeta-${id}`}
-                role="region"
-                aria-label={b.label}
-                className="grid transition-[grid-template-rows] duration-[280ms] ease-in-out motion-reduce:transition-none"
-                style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
-              >
-                <div className="overflow-hidden" inert={isOpen ? undefined : ""}>
-                  <div className="px-5 pt-5 pb-2">
-                    <div className="flex items-end justify-between gap-4">
-                      <p className="display text-5xl">{pct === null ? "—" : `${pct}%`}</p>
-                      <p className="font-mono text-sm text-paper/80 text-right">{s.t ? `${s.c} de ${s.t} aciertos` : "Sin datos todavía"}</p>
-                    </div>
-                    <ProgressBar pct={pct ?? 0} color="#fdfaf7" track="bg-black/25" className="h-2 mt-4" label={`Aciertos en ${b.label}`} />
-                    <Button variant="paper" onClick={() => onPractice(id)} className="w-full mt-5">
-                      <Play size={18} weight="fill" /> Practicar · {bankSize} preguntas
-                    </Button>
-                  </div>
-                </div>
-              </div>
-              {/* Franja visible con la carpeta cerrada; la última solo muestra el canto. */}
-              <div className={last ? "h-3" : "h-11"} aria-hidden="true" />
-            </div>
-          </section>
-        );
-      })}
-    </div>
   );
 }
 
@@ -272,7 +196,39 @@ function PlanFolder({ store, onPlan }) {
   );
 }
 
-export default function Home({ store, bank, install, onDismissInstall, onNewExam, onGoNotes, onGoCards, onPractice, onReview, onPlan }) {
+/** Estado del temario cargado: grande mientras no hay nada, una línea discreta después. */
+function TemarioCard({ bank, onImport, onGoTemario }) {
+  if (!bank) {
+    return (
+      <Paper className="p-4">
+        <Illustration name="bienvenida" className="w-full" alt="" />
+        <p className="label text-mute-paper mt-3">Paso 1</p>
+        <p className="display text-[34px] mt-1">Carga tu temario</p>
+        <p className="text-[15px] text-mute-paper mt-2">
+          Importa el archivo <span className="font-mono text-ink">mi-banco.json</span> con las preguntas y tarjetas de todos tus temas. Se guarda solo en este móvil.
+        </p>
+        <div className="mt-4">
+          <ImportBank onImport={onImport} variant="blue" />
+        </div>
+      </Paper>
+    );
+  }
+  const fecha = new Date(bank.generado).toLocaleDateString("es-ES", { day: "numeric", month: "short" });
+  return (
+    <button type="button" onClick={onGoTemario} className="tap press w-full text-left flex items-center gap-3 rounded-folder bg-ink-2 border border-ink-3 px-4 py-3">
+      <Books size={24} weight="fill" className="text-folder-green shrink-0" />
+      <span className="flex-1 min-w-0">
+        <span className="block font-semibold">Temario cargado</span>
+        <span className="block text-sm text-mute">
+          {bank.temas.length} temas · {bank.preguntas.length} preguntas · actualizado el {fecha}
+        </span>
+      </span>
+      <CaretRight size={20} weight="bold" className="text-mute shrink-0" />
+    </button>
+  );
+}
+
+export default function Home({ store, bank, install, onDismissInstall, onImport, onGoTemario, onReview, onPlan }) {
   const intro = useRef(!introPlayed).current;
   useEffect(() => {
     introPlayed = true;
@@ -280,7 +236,6 @@ export default function Home({ store, bank, install, onDismissInstall, onNewExam
   const streakCount = streakView(store.streak).count;
   const pendingMistakes = Object.keys(store.mistakes).length;
   const dateLabel = new Date().toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
-  const accuracy = store.totals.answered ? Math.round((store.totals.correct / store.totals.answered) * 100) : null;
 
   return (
     <div className="flex flex-col gap-6">
@@ -302,66 +257,26 @@ export default function Home({ store, bank, install, onDismissInstall, onNewExam
             <p className="font-semibold leading-tight">Instala Recuento</p>
             <p className="text-sm text-mute-paper leading-snug">Ábrela desde tu pantalla de inicio, también sin conexión.</p>
           </div>
-          <div className="flex flex-col gap-1">
-            <button type="button" onClick={install.install} className="tap press h-11 px-3 rounded-folder bg-ink text-paper text-sm font-semibold flex items-center gap-1.5">
-              <DeviceMobile size={18} weight="bold" /> Instalar
-            </button>
-          </div>
+          <button type="button" onClick={install.install} className="tap press h-11 px-3 rounded-folder bg-ink text-paper text-sm font-semibold flex items-center gap-1.5">
+            <DeviceMobile size={18} weight="bold" /> Instalar
+          </button>
           <IconButton label="Ocultar aviso" onClick={onDismissInstall} className="text-mute-paper -mr-1">
             <X size={20} weight="bold" />
           </IconButton>
         </Paper>
       )}
 
+      {!bank && <TemarioCard bank={bank} onImport={onImport} onGoTemario={onGoTemario} />}
       <PlanFolder store={store} onPlan={onPlan} />
       <StreakCard streak={store.streak} />
-      <RankFolder xp={store.xp} intro={intro} />
-
-      {store.history.length === 0 && (
-        <Paper className="p-4">
-          <Illustration name="bienvenida" className="w-full" alt="" />
-          <p className="font-serif text-xl leading-snug mt-3">Tu primer turno empieza aquí.</p>
-          <p className="text-[15px] text-mute-paper mt-1">
-            Haz un simulacro corto para estrenar la racha y conseguir la medalla Primer Turno.
-          </p>
-        </Paper>
-      )}
-
-      <div className="grid grid-cols-2 gap-3">
-        <button type="button" onClick={onNewExam} className="tap press text-left rounded-folder p-4 bg-folder-yellow text-ink min-h-[132px] flex flex-col justify-between">
-          <Timer size={30} weight="bold" />
-          <span>
-            <span className="display text-[26px] block">Simulacro</span>
-            <span className="text-sm leading-snug block mt-1">Cronometrado, −⅓ por fallo</span>
-          </span>
-        </button>
-        {bank ? (
-          <button type="button" onClick={onGoCards} className="tap press text-left rounded-folder p-4 bg-folder-red text-paper min-h-[132px] flex flex-col justify-between">
-            <CardsIcon size={30} weight="fill" />
-            <span>
-              <span className="display text-[26px] block">Tarjetas</span>
-              <span className="text-sm text-paper/85 leading-snug block mt-1">
-                {cardsForSession(bankCards(bank), store.cards, dateKey()).length} para repasar hoy
-              </span>
-            </span>
-          </button>
-        ) : (
-          <button type="button" onClick={onGoNotes} className="tap press text-left rounded-folder p-4 bg-ink-2 border-2 border-ink-3 min-h-[132px] flex flex-col justify-between">
-            <Sparkle size={30} weight="bold" className="text-folder-yellow" />
-            <span>
-              <span className="display text-[26px] block">Tus apuntes</span>
-              <span className="text-sm text-mute leading-snug block mt-1">Pega texto o sube un PDF</span>
-            </span>
-          </button>
-        )}
-      </div>
+      <RankFolder xp={store.xp} intro={intro} tab="Hoja de opositor" />
 
       {pendingMistakes > 0 && (
-        <button type="button" onClick={onReview} className="tap press -mt-3 text-left rounded-folder bg-folder-red text-paper p-4 flex items-center gap-4">
+        <button type="button" onClick={onReview} className="tap press text-left rounded-folder bg-folder-red text-paper p-4 flex items-center gap-4">
           <ArrowCounterClockwise size={30} weight="bold" className="shrink-0" />
           <span className="flex-1 min-w-0">
             <span className="display text-[26px] block">Repasar fallos</span>
-            <span className="text-sm text-paper/85 leading-snug block mt-1">Salen del repaso cuando las aciertas {MASTERED_AFTER} veces seguidas</span>
+            <span className="text-sm leading-snug block mt-1">Salen del repaso cuando las aciertas {MASTERED_AFTER} veces seguidas</span>
           </span>
           <span className="font-mono text-3xl font-semibold tabular-nums" aria-label={`${pendingMistakes} pendientes`}>
             {pendingMistakes}
@@ -369,33 +284,7 @@ export default function Home({ store, bank, install, onDismissInstall, onNewExam
         </button>
       )}
 
-      <section aria-labelledby="bloques-title">
-        <div className="flex items-end justify-between mb-2">
-          <h2 id="bloques-title" className="display text-3xl">Por bloques</h2>
-          {accuracy !== null && <span className="font-mono text-sm text-mute">Global {accuracy}%</span>}
-        </div>
-        <BlockCabinet store={store} bank={bank} intro={intro} onPractice={onPractice} />
-      </section>
-
-      {store.history.length > 0 && (
-        <section aria-labelledby="historial-title">
-          <h2 id="historial-title" className="display text-3xl mb-3">Últimos tests</h2>
-          <ul className="flex flex-col divide-y divide-ink-3 border-y border-ink-3">
-            {store.history.slice(0, 5).map((h) => (
-              <li key={h.id} className="py-3 flex items-center gap-3">
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium truncate">{h.title}</p>
-                  <p className="font-mono text-xs text-mute mt-0.5">
-                    {new Date(h.date).toLocaleDateString("es-ES", { day: "numeric", month: "short" })} · {h.correct} A · {h.wrong} E · {h.blank} B
-                  </p>
-                </div>
-                <p className="font-mono text-lg font-semibold tabular-nums">{fmt2(h.over10)}</p>
-              </li>
-            ))}
-          </ul>
-          <p className="font-mono text-xs text-mute mt-2">A aciertos · E errores · B en blanco · nota sobre 10</p>
-        </section>
-      )}
+      {bank && <TemarioCard bank={bank} onImport={onImport} onGoTemario={onGoTemario} />}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowCounterClockwise, Cards, CheckCircle, ClipboardText, FileText, House, Trophy, WarningCircle } from "@phosphor-icons/react";
+import { ArrowCounterClockwise, Books, Cards, CheckCircle, ClipboardText, House, Trophy, WarningCircle } from "@phosphor-icons/react";
 import { applyCardsResult, applyExamResult, createExam, mistakePool } from "./lib/logic.js";
 import { useBank } from "./lib/bank.js";
 import CardsScreen from "./screens/Cards.jsx";
@@ -7,7 +7,7 @@ import { DEFAULT_STORE, useInstallPrompt, useNow, usePersistentStore } from "./l
 import { AppToaster, notify } from "./ui.jsx";
 import Home from "./screens/Home.jsx";
 import Celebrations from "./screens/Celebration.jsx";
-import Notes from "./screens/Notes.jsx";
+import Temario from "./screens/Temario.jsx";
 import Achievements from "./screens/Achievements.jsx";
 import { ExamResults, ExamRunner, ExamSetup } from "./screens/Exam.jsx";
 
@@ -15,7 +15,7 @@ const TABS = [
   { id: "home", label: "Inicio", Icon: House, color: "#ffe927", dark: false },
   { id: "test", label: "Test", Icon: ClipboardText, color: "#1e4bd7", dark: true },
   { id: "cards", label: "Tarjetas", Icon: Cards, color: "#d71e1e", dark: true },
-  { id: "notes", label: "Apuntes", Icon: FileText, color: "#0c7866", dark: true },
+  { id: "temario", label: "Temario", Icon: Books, color: "#0c7866", dark: true },
   { id: "badges", label: "Logros", Icon: Trophy, color: "#581e70", dark: true },
 ];
 
@@ -124,20 +124,6 @@ export default function App() {
   const onAbandon = () => setStore((s) => ({ ...s, activeExam: null }));
 
   const onSettings = useCallback((patch) => setStore((s) => ({ ...s, settings: { ...s.settings, ...patch } })), [setStore]);
-  const onSaveDraft = useCallback((draft) => setStore((s) => ({ ...s, notesDraft: draft })), [setStore]);
-  const onSaveCustom = useCallback((custom) => setStore((s) => ({ ...s, customTest: custom, settings: { ...s.settings, source: "notes" } })), [setStore]);
-  const onStartCustom = () => {
-    const s = storeRef.current;
-    if (!s.customTest) return;
-    startExam({
-      pool: s.customTest.questions,
-      count: s.customTest.questions.length,
-      feedback: s.settings.feedback,
-      secsPerQ: s.settings.secsPerQ,
-      source: "notes",
-      title: s.customTest.title,
-    });
-  };
   const onReview = () => {
     const s = storeRef.current;
     const pool = mistakePool(s.mistakes);
@@ -147,7 +133,7 @@ export default function App() {
   const onImport = async (file) => {
     const r = await importFile(file);
     if (r.ok) {
-      setStore((s) => ({ ...s, settings: { ...s.settings, source: "temario", block: "all", tema: "all" } }));
+      setStore((s) => ({ ...s, settings: { ...s.settings, blocks: [], tema: "all" } }));
       notify({
         icon: <CheckCircle size={24} weight="fill" />,
         color: "#0c7866",
@@ -188,18 +174,13 @@ export default function App() {
               {tab === "home" && (
                 <Home
                   store={store}
+                  bank={bank}
                   install={install}
                   onDismissInstall={() => setStore((s) => ({ ...s, installDismissed: true }))}
-                  onNewExam={onNewExam}
-                  onGoNotes={() => setTab("notes")}
+                  onImport={onImport}
+                  onGoTemario={() => setTab("temario")}
                   onReview={onReview}
                   onPlan={(patch) => setStore((s) => ({ ...s, plan: { ...s.plan, ...patch } }))}
-                  bank={bank}
-                  onGoCards={() => setTab("cards")}
-                  onPractice={(block) => {
-                    setStore((s) => ({ ...s, lastResult: null, settings: { ...s.settings, source: bank ? "temario" : "bank", block, tema: "all" } }));
-                    setTab("test");
-                  }}
                 />
               )}
               {tab === "test" &&
@@ -216,7 +197,7 @@ export default function App() {
                   <ExamSetup store={store} bank={bank} onSettings={onSettings} onStart={startExam} />
                 ))}
               {tab === "cards" && <CardsScreen store={store} bank={bank} onImport={onImport} onFinish={onCardsFinish} />}
-              {tab === "notes" && <Notes store={store} bank={bank} onImport={onImport} onSaveDraft={onSaveDraft} onSaveCustom={onSaveCustom} onStartCustom={onStartCustom} />}
+              {tab === "temario" && <Temario bank={bank} onImport={onImport} />}
               {tab === "badges" && <Achievements store={store} onReset={onReset} />}
             </div>
           </main>

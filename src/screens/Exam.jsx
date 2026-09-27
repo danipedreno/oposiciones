@@ -11,158 +11,161 @@ import {
   formatMinutes,
 } from "../lib/logic.js";
 import { SEED_QUESTIONS } from "../data/questions.js";
-import { Button, Folder, IconButton, Illustration, Paper, ProgressBar, Segmented, Sheet } from "../ui.jsx";
+import { Button, Folder, FolderTab, IconButton, Illustration, Paper, ProgressBar, Segmented, Sheet } from "../ui.jsx";
 import { RankFolder } from "./Home.jsx";
-import { bankQuestions, temaLabel, temasOf } from "../lib/bank.js";
+import { temaLabel, temasOf } from "../lib/bank.js";
 import { useCountUp } from "../lib/motion.js";
 
 /* ---------------------------------------------------------------------
-   Configuración del simulacro
+   Crear el test: pasos numerados (la numeración es el orden real de decisión)
    --------------------------------------------------------------------- */
-const BLOCK_CHOICES = [
-  { id: "all", label: "Todo el temario", hex: "#fdfaf7", dark: false },
-  ...BLOCK_IDS.map((id) => ({ id, label: BLOCKS[id].short, hex: BLOCKS[id].hex, dark: true })),
+const COUNTS = [
+  { value: 10, label: "10" },
+  { value: 20, label: "20" },
+  { value: 50, label: "50" },
+  { value: 150, label: "150", sub: "examen real" },
 ];
+
+function Step({ n, title, hint, children }) {
+  return (
+    <section className="flex flex-col gap-3" aria-labelledby={`paso-${n}`}>
+      <div className="flex items-baseline gap-3">
+        <span className="font-mono text-sm font-semibold text-folder-yellow">{n}</span>
+        <div>
+          <h2 id={`paso-${n}`} className="font-semibold text-lg leading-tight">
+            {title}
+          </h2>
+          {hint && <p className="text-sm text-mute mt-0.5">{hint}</p>}
+        </div>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+/** Carpeta seleccionable: el color del bloque aparece al elegirla. */
+function BlockToggle({ id, selected, onToggle }) {
+  const b = BLOCKS[id];
+  return (
+    <button type="button" onClick={onToggle} aria-pressed={selected} className="tap press text-left w-full">
+      <div className="flex items-end">
+        <FolderTab color={selected ? b.hex : "#2e2e2e"} className="-mb-px relative z-[1]">
+          <span className={`text-[15px] ${selected ? "" : "text-mute"}`}>{b.short}</span>
+          {selected && <Check size={16} weight="bold" />}
+        </FolderTab>
+      </div>
+      <div className="h-3 rounded-folder rounded-tl-none transition-colors duration-200" style={{ background: selected ? b.hex : "#2e2e2e" }} />
+    </button>
+  );
+}
 
 export function ExamSetup({ store, bank, onSettings, onStart }) {
   const s = store.settings;
-  const custom = store.customTest;
-  const pending = Object.keys(store.mistakes).length;
-  const source =
-    s.source === "notes" && custom ? "notes" : s.source === "mistakes" && pending ? "mistakes" : s.source === "temario" && bank ? "temario" : "bank";
-  const blockPool = (b) => (source === "temario" ? bankQuestions(bank, b) : b === "all" ? SEED_QUESTIONS : SEED_QUESTIONS.filter((q) => q.block === b));
-  const pool =
-    source === "notes"
-      ? custom.questions
-      : source === "mistakes"
-        ? mistakePool(store.mistakes)
-        : source === "temario"
-          ? bankQuestions(bank, s.block, s.block === "all" ? "all" : s.tema || "all")
-          : blockPool(s.block);
-  const count = s.count === "all" ? pool.length : Math.min(s.count, pool.length);
+  const base = bank ? bank.preguntas : SEED_QUESTIONS;
+  const available = BLOCK_IDS.filter((id) => base.some((q) => q.block === id));
+  const blocks = (s.blocks || []).filter((b) => available.includes(b));
+  const all = blocks.length === 0;
+  const tema = blocks.length === 1 && s.tema && s.tema !== "all" ? s.tema : "all";
+  const pendingAll = Object.keys(store.mistakes).length;
+  const onlyMistakes = !!s.onlyMistakes && pendingAll > 0;
 
-  const start = () => {
-    const temaTitle = source === "temario" && s.block !== "all" && s.tema && s.tema !== "all" ? temaLabel(bank, s.tema).split(" · ")[0] : "";
-    const title =
-      source === "temario"
-        ? `Temario · ${s.block === "all" ? "Todo" : BLOCKS[s.block].short}${temaTitle ? ` · ${temaTitle}` : ""}`
-        : source === "notes" ? custom.title : source === "mistakes" ? "Repaso de fallos" : s.block === "all" ? "Simulacro · Temario completo" : `Simulacro · ${BLOCKS[s.block].short}`;
-    onStart({ pool, count, feedback: s.feedback, secsPerQ: s.secsPerQ, source, title });
+  const matches = (q) => (all || blocks.includes(q.block)) && (tema === "all" || q.tema === tema);
+  const pool = onlyMistakes ? mistakePool(store.mistakes, Infinity).filter(matches) : base.filter(matches);
+  const count = Math.min(s.count === "all" ? pool.length : s.count || 20, pool.length);
+
+  const toggleBlock = (id) => {
+    const next = blocks.includes(id) ? blocks.filter((b) => b !== id) : [...blocks, id];
+    onSettings({ blocks: next, tema: "all" });
   };
 
+  const scope = all
+    ? "todo el temario"
+    : tema !== "all"
+      ? temaLabel(bank, tema)
+      : blocks.map((b) => BLOCKS[b].short).join(" + ");
+  const title = `${onlyMistakes ? "Fallos" : "Test"} · ${all ? "Todo el temario" : tema !== "all" ? temaLabel(bank, tema).split(" · ")[0] + " " + BLOCKS[blocks[0]].short : blocks.map((b) => BLOCKS[b].short).join(" + ")}`;
+
+  const start = () => onStart({ pool, count, feedback: s.feedback, secsPerQ: s.secsPerQ, source: onlyMistakes ? "mistakes" : bank ? "temario" : "bank", title });
+
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
       <header>
         <p className="label text-mute">Modo examen</p>
-        <h1 className="display text-[52px] mt-1">Simulacro</h1>
+        <h1 className="display text-[52px] mt-1">Crea tu test</h1>
+        {!bank && <p className="text-sm text-mute mt-2">Aún no has cargado tu temario: de momento se usan 40 preguntas de muestra.</p>}
       </header>
 
-      <Paper className="p-4 anim-rise">
-        <Illustration name="simulacro" className="w-full" alt="" />
-        <p className="label text-mute-paper mt-3">Corrección oficial IIPP</p>
-        <div className="grid grid-cols-3 gap-2 mt-2 text-center">
-          <div className="rounded-[4px] bg-folder-green text-paper py-2.5">
-            <p className="font-mono text-2xl font-semibold">+1</p>
-            <p className="text-xs">Acierto</p>
-          </div>
-          <div className="rounded-[4px] bg-paper-2 py-2.5">
-            <p className="font-mono text-2xl font-semibold">0</p>
-            <p className="text-xs">En blanco</p>
-          </div>
-          <div className="rounded-[4px] bg-folder-red text-paper py-2.5">
-            <p className="font-mono text-2xl font-semibold">−⅓</p>
-            <p className="text-xs">Fallo</p>
-          </div>
+      <Step n="1" title="¿Qué quieres repasar?" hint="Todo el temario o las carpetas que elijas.">
+        <button
+          type="button"
+          onClick={() => onSettings({ blocks: [], tema: "all" })}
+          aria-pressed={all}
+          className={`tap press h-14 px-4 rounded-folder flex items-center justify-between font-semibold ${all ? "bg-paper text-ink" : "bg-ink-2 border border-ink-3 text-mute"}`}
+        >
+          Todo el temario
+          {all && <Check size={20} weight="bold" />}
+        </button>
+        <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+          {available.map((id) => (
+            <BlockToggle key={id} id={id} selected={blocks.includes(id)} onToggle={() => toggleBlock(id)} />
+          ))}
         </div>
-        <p className="font-serif text-[17px] leading-snug mt-3">
-          Nota = Aciertos − Errores ÷ 3. Si dudas entre varias opciones, dejarla en blanco puede salir a cuenta.
-        </p>
-      </Paper>
-
-      <Segmented
-        label="Origen de las preguntas"
-        value={source}
-        onChange={(v) => onSettings({ source: v })}
-        disabledValues={[...(custom ? [] : ["notes"]), ...(pending ? [] : ["mistakes"])]}
-        options={[
-          ...(bank ? [{ value: "temario", label: "Temario", sub: `${bank.preguntas.length} preg.` }] : []),
-          { value: "bank", label: bank ? "Demo" : "Banco IIPP", sub: `${SEED_QUESTIONS.length} preg.` },
-          { value: "notes", label: bank ? "Apuntes" : "Mis apuntes", sub: custom ? `${custom.questions.length} preg.` : "Sin generar" },
-          { value: "mistakes", label: bank ? "Fallos" : "Mis fallos", sub: pending ? `${pending} pend.` : "Ninguno" },
-        ]}
-      />
-
-      {(source === "bank" || source === "temario") && (
-        <fieldset>
-          <legend className="label text-mute mb-1">Bloque</legend>
-          <div className="grid grid-cols-2 gap-x-3 gap-y-1">
-            {BLOCK_CHOICES.filter((b) => b.id === "all" || blockPool(b.id).length).map((b) => {
-              const active = s.block === b.id;
-              const n = blockPool(b.id).length;
-              const color = active ? b.hex : "#2e2e2e";
-              return (
-                <button key={b.id} type="button" onClick={() => onSettings({ block: b.id, tema: "all" })} aria-pressed={active} className="tap press text-left">
-                  <Folder color={color} tab={<span className="text-[15px]">{b.label}</span>} tabDark={!active || b.dark} tabOffset="ml-0">
-                    <p className={`px-3 py-3 font-mono text-sm ${active ? (b.dark ? "text-paper" : "text-ink") : "text-mute"}`}>{n} preguntas</p>
-                  </Folder>
-                </button>
-              );
-            })}
+        {bank && blocks.length === 1 && (
+          <div>
+            <label htmlFor="exam-tema" className="sr-only">
+              Tema
+            </label>
+            <select
+              id="exam-tema"
+              value={tema}
+              onChange={(e) => onSettings({ tema: e.target.value })}
+              className="tap w-full h-12 rounded-folder bg-ink-2 border border-ink-3 px-3 text-paper font-semibold text-sm"
+            >
+              <option value="all">Todos los temas de {BLOCKS[blocks[0]].short}</option>
+              {temasOf(bank, blocks[0]).map((t) => (
+                <option key={t.id} value={t.id}>
+                  Tema {t.numero} · {t.titulo}
+                </option>
+              ))}
+            </select>
           </div>
-        </fieldset>
-      )}
+        )}
+        <button
+          type="button"
+          role="switch"
+          aria-checked={onlyMistakes}
+          disabled={!pendingAll}
+          onClick={() => onSettings({ onlyMistakes: !onlyMistakes })}
+          className="tap press flex items-center justify-between gap-3 h-14 px-4 rounded-folder bg-ink-2 border border-ink-3 disabled:opacity-40"
+        >
+          <span className="text-left">
+            <span className="block font-semibold text-sm">Solo mis fallos</span>
+            <span className="block text-xs text-mute">{pendingAll ? `${pendingAll} preguntas falladas pendientes` : "Aún no tienes fallos guardados"}</span>
+          </span>
+          <span className={`w-12 h-7 rounded-full p-1 transition-colors duration-200 ${onlyMistakes ? "bg-folder-red" : "bg-ink-4"}`} aria-hidden="true">
+            <span className={`block w-5 h-5 rounded-full bg-paper transition-transform duration-200 ease-out ${onlyMistakes ? "translate-x-5" : ""}`} />
+          </span>
+        </button>
+      </Step>
 
-      {source === "temario" && s.block !== "all" && (
-        <div>
-          <label htmlFor="exam-tema" className="label text-mute block mb-2">
-            Tema
-          </label>
-          <select
-            id="exam-tema"
-            value={s.tema || "all"}
-            onChange={(e) => onSettings({ tema: e.target.value })}
-            className="tap w-full h-12 rounded-folder bg-ink-2 border border-ink-3 px-3 text-paper font-semibold text-sm appearance-none"
-          >
-            <option value="all">Todos los temas del bloque</option>
-            {temasOf(bank, s.block).map((t) => (
-              <option key={t.id} value={t.id}>
-                Tema {t.numero} · {t.titulo} ({bankQuestions(bank, s.block, t.id).length})
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
+      <Step n="2" title="¿Cuántas preguntas?">
+        <Segmented hideLabel label="Número de preguntas" value={s.count} onChange={(v) => onSettings({ count: v })} options={COUNTS} />
+      </Step>
 
-      <div>
+      <Step n="3" title="¿Cuándo ves las respuestas?">
         <Segmented
-          label="Número de preguntas"
-          value={s.count}
-          onChange={(v) => onSettings({ count: v })}
+          hideLabel
+          label="Corrección"
+          value={s.feedback}
+          onChange={(v) => onSettings({ feedback: v })}
           options={[
-            { value: 10, label: "10" },
-            { value: 20, label: "20" },
-            { value: 30, label: "30" },
-            { value: "all", label: "Todas" },
+            { value: "immediate", label: "Al momento", sub: "tras cada pregunta" },
+            { value: "final", label: "Al entregar", sub: "como el examen real" },
           ]}
         />
-        <p className="text-sm text-mute mt-2">
-          Este test tendrá <span className="font-mono text-paper">{count}</span> preguntas.
-          {count <= 10 && " La medalla Imbatible exige más de 10."}
-        </p>
-      </div>
+      </Step>
 
-      <Segmented
-        label="Corrección"
-        value={s.feedback}
-        onChange={(v) => onSettings({ feedback: v })}
-        options={[
-          { value: "immediate", label: "Inmediata", sub: "tras cada respuesta" },
-          { value: "final", label: "Al entregar", sub: "como el examen real" },
-        ]}
-      />
-
-      <div>
-        <p className="label text-mute mb-2">Tiempo por pregunta</p>
+      <Step n="4" title="Tiempo por pregunta">
         <div className="flex items-center gap-3 rounded-folder bg-ink-2 border border-ink-3 p-2">
           <IconButton label="Menos tiempo" onClick={() => onSettings({ secsPerQ: Math.max(30, s.secsPerQ - 6) })} className="bg-ink-3">
             <Minus size={22} weight="bold" />
@@ -175,12 +178,62 @@ export function ExamSetup({ store, bank, onSettings, onStart }) {
             <Plus size={22} weight="bold" />
           </IconButton>
         </div>
-      </div>
+      </Step>
 
-      <Button onClick={start} disabled={count === 0} className="w-full">
-        <Timer size={22} weight="bold" />
-        Empezar · {formatMinutes(count * s.secsPerQ)}
-      </Button>
+      <Paper className="p-4">
+        <Illustration name="simulacro" className="w-full" alt="" />
+        <p className="label text-mute-paper mt-3">Tu test</p>
+        <p className="font-serif text-xl leading-snug mt-1">
+          {count} preguntas {onlyMistakes ? "falladas " : ""}de {scope} · {formatMinutes(count * s.secsPerQ)}
+        </p>
+        {pool.length < (s.count || 0) && pool.length > 0 && (
+          <p className="text-sm text-mute-paper mt-1">Con esta selección solo hay {pool.length} preguntas.</p>
+        )}
+        {!pool.length && <p className="text-sm text-folder-red font-semibold mt-1">No hay preguntas con esta selección. Prueba con otra carpeta.</p>}
+        <p className="label text-mute-paper mt-4">Corrección oficial IIPP</p>
+        <div className="grid grid-cols-3 gap-2 mt-2 text-center">
+          <div className="rounded-[4px] bg-folder-green text-paper py-2">
+            <p className="font-mono text-xl font-semibold">+1</p>
+            <p className="text-xs">Acierto</p>
+          </div>
+          <div className="rounded-[4px] bg-paper-2 py-2">
+            <p className="font-mono text-xl font-semibold">0</p>
+            <p className="text-xs">En blanco</p>
+          </div>
+          <div className="rounded-[4px] bg-folder-red text-paper py-2">
+            <p className="font-mono text-xl font-semibold">−⅓</p>
+            <p className="text-xs">Fallo</p>
+          </div>
+        </div>
+        <p className="text-sm text-mute-paper mt-2">Nota = aciertos − errores ÷ 3. Si dudas, dejarla en blanco puede salir a cuenta.</p>
+        <Button onClick={start} disabled={!count} className="w-full mt-4">
+          <Timer size={22} weight="bold" />
+          Empezar test
+        </Button>
+      </Paper>
+
+      {store.history.length > 0 && (
+        <section aria-labelledby="historial-title">
+          <h2 id="historial-title" className="display text-3xl mb-3">
+            Últimos tests
+          </h2>
+          <ul className="flex flex-col divide-y divide-ink-3 border-y border-ink-3">
+            {store.history.slice(0, 5).map((h) => (
+              <li key={h.id} className="py-3 flex items-center gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium truncate">{h.title}</p>
+                  <p className="font-mono text-xs text-mute mt-0.5">
+                    {new Date(h.date).toLocaleDateString("es-ES", { day: "numeric", month: "short" })} · {h.correct} aciertos · {h.wrong} fallos · {h.blank} en blanco
+                  </p>
+                </div>
+                <p className="font-mono text-lg font-semibold tabular-nums" aria-label={`Nota ${fmt2(h.over10)} sobre 10`}>
+                  {fmt2(h.over10)}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   );
 }

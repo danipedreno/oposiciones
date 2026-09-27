@@ -9,15 +9,13 @@ export const DEFAULT_STORE = {
   history: [],
   blockStats: {},
   totals: { tests: 0, answered: 0, correct: 0 },
-  settings: { feedback: "immediate", count: 20, secsPerQ: OFFICIAL_SECONDS_PER_QUESTION, block: "all", source: "bank", tema: "all" },
-  customTest: null,
+  settings: { feedback: "immediate", count: 20, secsPerQ: OFFICIAL_SECONDS_PER_QUESTION, blocks: [], tema: "all", onlyMistakes: false },
   mistakes: {},
   plan: { examDate: null, dailyGoal: DEFAULT_DAILY_GOAL },
   daily: {}, // preguntas hechas por día (YYYY-MM-DD → n)
   goalDays: [], // días en que se cumplió la meta
   counters: { marathons: 0, mastered: 0, highScores: 0 },
   cards: {}, // estado de cada tarjeta: { box, due, seen }
-  notesDraft: { text: "", block: "penitenciario" },
   activeExam: null,
   lastResult: null,
   installDismissed: false,
@@ -34,7 +32,6 @@ function loadStore() {
       streak: { ...DEFAULT_STORE.streak, ...s.streak },
       totals: { ...DEFAULT_STORE.totals, ...s.totals },
       settings: { ...DEFAULT_STORE.settings, ...s.settings },
-      notesDraft: { ...DEFAULT_STORE.notesDraft, ...s.notesDraft },
       plan: { ...DEFAULT_STORE.plan, ...s.plan },
       counters: { ...DEFAULT_STORE.counters, ...s.counters },
     };

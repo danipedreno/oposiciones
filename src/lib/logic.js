@@ -205,6 +205,7 @@ export function createExam({ pool, count, feedback, secsPerQ, source, title }) {
 /** Corrección oficial IIPP: Nota = Aciertos − Errores / 3. Los blancos no puntúan. */
 /** Preguntas del repaso: primero las más falladas y, a igualdad, las falladas más recientemente. */
 export function mistakePool(mistakes, limit = REVIEW_SIZE) {
+  // limit puede ser Infinity (el creador de tests filtra y recorta después)
   return Object.values(mistakes || {})
     .sort((a, b) => b.wrong - a.wrong || b.last.localeCompare(a.last))
     .slice(0, limit)
@@ -362,8 +363,8 @@ export function applyExamResult(store, exam, reason, date) {
     const a = exam.answers[i];
     const prev = mistakes[q.id];
     if (a !== null && a !== q.answer) {
-      const { id, block, q: text, options, answer, exp, origin } = q;
-      mistakes[q.id] = { q: { id, block, q: text, options, answer, exp, origin }, wrong: (prev?.wrong || 0) + 1, right: 0, last: date.toISOString() };
+      const { id, block, tema, q: text, options, answer, exp, origin } = q;
+      mistakes[q.id] = { q: { id, block, tema, q: text, options, answer, exp, origin }, wrong: (prev?.wrong || 0) + 1, right: 0, last: date.toISOString() };
     } else if (a === q.answer && prev) {
       if (prev.right + 1 >= MASTERED_AFTER) {
         delete mistakes[q.id];
@@ -443,126 +444,4 @@ export function applyExamResult(store, exam, reason, date) {
   };
 }
 
-/* --- Generador de preguntas desde apuntes (simula la IA) ---
-   Punto de integración real: sustituir analyzeNotes() por una llamada a un
-   LLM con el texto extraído (en PasaElTest, lectura local de PDF + IA). */
-export const STOPWORDS = new Set(
-  "para como sobre entre desde hasta según cuando donde también será serán podrá podrán tendrá deberá dicha dicho estas estos este esta cada todos todas otros otras mismo misma ellos ellas tiene tienen puede pueden través además solo sólo debe deben durante mediante contra aquellos aquellas corresponde conforme carácter general".split(" ")
-);
-
-export const TERM_FAMILIES = [
-  ["régimen cerrado", "régimen ordinario", "régimen abierto", "régimen preventivo"],
-  ["Juez de Vigilancia Penitenciaria", "Junta de Tratamiento", "Centro Directivo", "Comisión Disciplinaria"],
-  ["la cuarta parte", "la mitad", "las dos terceras partes", "las tres cuartas partes"],
-  ["funcionarios de carrera", "funcionarios interinos", "personal laboral", "personal eventual"],
-  ["recurso de alzada", "recurso potestativo de reposición", "recurso extraordinario de revisión", "recurso contencioso-administrativo"],
-];
-export const LEGAL_RE = /\b(Ley Orgánica|Real Decreto Legislativo|Real Decreto|Ley)\s+(\d{1,4})\/(\d{4})/;
-export const NUM_RE = /\b(\d{1,3})\s+(días|meses|años|horas|minutos|semanas)\b/i;
-export const WORD_NUM_RE = /\b(dos|tres|cuatro|cinco|seis|siete|diez|catorce|quince|veinte|treinta)\s+(días|meses|años|horas|minutos|semanas)\b/i;
-export const ART_RE = /\bartículo\s+(\d{1,3})\b/i;
-export const WORD_NUMS = ["dos", "tres", "cuatro", "cinco", "seis", "siete", "diez", "catorce", "quince", "veinte", "treinta"];
-export const SINGULAR = { días: "día", meses: "mes", años: "año", horas: "hora", minutos: "minuto", semanas: "semana" };
-
-export function clozeAt(sentence, index, found, distractors) {
-  const d = uniq(distractors).filter((x) => x.toLowerCase() !== found.toLowerCase());
-  if (d.length < 3) return null;
-  return {
-    stem: `${sentence.slice(0, index)}______${sentence.slice(index + found.length)}`,
-    correct: found,
-    distractors: shuffle(d).slice(0, 3),
-  };
-}
-
-export function clozeFrom(sentence) {
-  const lower = sentence.toLowerCase();
-  for (const fam of TERM_FAMILIES) {
-    const hits = fam.filter((t) => lower.includes(t.toLowerCase()));
-    if (hits.length > 1) return null; // varias respuestas válidas: se descarta
-    if (hits.length === 1) {
-      const idx = lower.indexOf(hits[0].toLowerCase());
-      const found = sentence.slice(idx, idx + hits[0].length);
-      return clozeAt(sentence, idx, found, fam.filter((x) => x !== hits[0]));
-    }
-  }
-  let m = sentence.match(LEGAL_RE);
-  if (m) {
-    const [full, type, num, year] = m;
-    const n = Number(num), y = Number(year);
-    return clozeAt(sentence, m.index, full, [
-      `${type} ${n + 1}/${y}`,
-      `${type} ${n}/${y + 2}`,
-      `${type} ${Math.max(1, n * 2 + 3)}/${y - 3}`,
-    ]);
-  }
-  m = sentence.match(NUM_RE);
-  if (m) {
-    const n = Number(m[1]);
-    const unit = m[2].toLowerCase();
-    const cands = uniq([n * 2, n + 7, Math.max(1, Math.round(n / 2)), n + 1, n * 3]).filter((x) => x > 0 && x !== n);
-    return clozeAt(sentence, m.index, m[0], cands.map((x) => `${x} ${x === 1 ? SINGULAR[unit] : unit}`));
-  }
-  m = sentence.match(WORD_NUM_RE);
-  if (m) {
-    const unit = m[2].toLowerCase();
-    return clozeAt(sentence, m.index, m[0], WORD_NUMS.filter((w) => w !== m[1].toLowerCase()).map((w) => `${w} ${unit}`));
-  }
-  m = sentence.match(ART_RE);
-  if (m) {
-    const n = Number(m[1]);
-    return clozeAt(sentence, m.index, m[0], [n + 1, n + 10, Math.max(1, n - 3), n * 2].map((x) => `artículo ${x}`));
-  }
-  return null;
-}
-
-export function extractKeywords(text, max = 8) {
-  const counts = {};
-  (text.toLowerCase().match(/[a-záéíóúñü]{7,}/g) || []).forEach((w) => {
-    if (!STOPWORDS.has(w)) counts[w] = (counts[w] || 0) + 1;
-  });
-  return Object.entries(counts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, max)
-    .map(([w]) => w);
-}
-
-export function analyzeNotes(text, block, target = 15) {
-  const clean = text.replace(/\bart\.\s/gi, "artículo ").replace(/\s+/g, " ").trim();
-  const sentences = (clean.match(/[^.;]+[.;]?/g) || [])
-    .map((s) => s.trim())
-    .filter((s) => s.length >= 40 && s.length <= 280);
-
-  const stamp = Date.now();
-  const cloze = [];
-  const seen = new Set();
-  for (const s of sentences) {
-    if (cloze.length >= 8) break;
-    const c = clozeFrom(s);
-    if (!c || seen.has(c.stem)) continue;
-    seen.add(c.stem);
-    cloze.push({
-      id: `nota-${stamp}-${cloze.length}`,
-      block,
-      q: `Completa según tus apuntes: «${c.stem}»`,
-      options: [c.correct, ...c.distractors],
-      answer: 0,
-      exp: `Frase original de tus apuntes: «${s}»`,
-      origin: "notes",
-    });
-  }
-
-  const lower = clean.toLowerCase();
-  const scored = SEED_QUESTIONS.filter((q) => q.block === block)
-    .map((q) => ({ q, score: q.tags.reduce((acc, t) => acc + (lower.includes(t) ? 1 : 0), 0) }))
-    .sort((a, b) => b.score - a.score);
-  const matched = scored.filter((x) => x.score > 0).map((x) => x.q);
-  const rest = shuffle(scored.filter((x) => x.score === 0).map((x) => x.q));
-  const fromBank = [...matched, ...rest].slice(0, Math.max(5, target - cloze.length));
-
-  return {
-    keywords: extractKeywords(clean),
-    questions: [...cloze, ...fromBank],
-    stats: { cloze: cloze.length, matched: Math.min(matched.length, fromBank.length), bank: fromBank.length },
-  };
-}
 

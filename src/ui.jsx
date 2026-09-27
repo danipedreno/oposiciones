@@ -103,7 +103,7 @@ export function IconButton({ label, className = "", children, ...rest }) {
  * al cambiar, el recorte se desliza y el color cambia justo en el borde (técnica de Emil Kowalski).
  * Es CSS puro: va en el hilo del compositor y se puede interrumpir a mitad.
  */
-export function Segmented({ label, options, value, onChange, disabledValues = [] }) {
+export function Segmented({ label, options, value, onChange, disabledValues = [], hideLabel = false }) {
   const n = options.length;
   const index = Math.max(0, options.findIndex((o) => o.value === value));
   const cols = { gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` };
@@ -115,7 +115,7 @@ export function Segmented({ label, options, value, onChange, disabledValues = []
   );
   return (
     <fieldset>
-      <legend className="label text-mute mb-2">{label}</legend>
+      <legend className={hideLabel ? "sr-only" : "label text-mute mb-2"}>{label}</legend>
       <div className="relative rounded-folder bg-ink-2 border border-ink-3 p-1">
         <div className="grid gap-1" style={cols}>
           {options.map((o) => (

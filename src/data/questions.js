@@ -168,36 +168,3 @@ export const SEED_QUESTIONS = [
     "La LO 1/2004 trata la violencia de género, la LO 3/2018 la protección de datos y la Ley 19/2013 la transparencia.",
     ["igualdad efectiva", "3/2007", "mujeres y hombres"]),
 ];
-
-/* Extractos de ejemplo que se cargan al simular la lectura de un PDF. */
-export const SAMPLE_NOTES = {
-  penitenciario: `TEMA 7. CLASIFICACIÓN Y TRATAMIENTO PENITENCIARIO.
-Las penas privativas de libertad se ejecutan según el sistema de individualización científica, separado en grados.
-El primer grado determina la aplicación del régimen cerrado, reservado a internos de peligrosidad extrema o inadaptación manifiesta.
-El segundo grado se corresponde con el régimen ordinario, que se aplica a la mayoría de los penados.
-La propuesta de clasificación inicial la formula la Junta de Tratamiento del establecimiento.
-La resolución sobre la clasificación inicial corresponde al Centro Directivo.
-La clasificación de cada penado debe revisarse como máximo cada 6 meses.
-Los permisos ordinarios de salida tienen una duración máxima de 7 días por permiso.
-Los penados en segundo grado pueden disfrutar hasta 36 días de permiso ordinario al año.
-La sanción de aislamiento en celda por falta muy grave no puede superar 14 días.
-Contra las sanciones disciplinarias el interno puede recurrir ante el Juez de Vigilancia Penitenciaria.`,
-  penal: `TEMA 2. LAS PENAS EN EL CÓDIGO PENAL.
-El Código Penal vigente fue aprobado por la Ley Orgánica 10/1995, de 23 de noviembre.
-Son delitos las acciones y omisiones dolosas o imprudentes penadas por la ley.
-Por su naturaleza y duración, las penas se clasifican en graves, menos graves y leves.
-La pena de prisión tiene una duración mínima de 3 meses y máxima de veinte años, salvo lo que excepcionalmente dispongan otros preceptos.
-La prisión permanente revisable se incorporó mediante la Ley Orgánica 1/2015, de 30 de marzo.
-Con carácter general, solo puede suspenderse la ejecución de penas privativas de libertad no superiores a 2 años.
-Los menores de 18 años no son responsables criminalmente con arreglo al Código Penal.
-La alevosía es una circunstancia agravante de la responsabilidad criminal.`,
-  funcion: `TEMA 12. EL ESTATUTO BÁSICO DEL EMPLEADO PÚBLICO.
-El texto refundido del Estatuto Básico del Empleado Público se aprobó por el Real Decreto Legislativo 5/2015, de 30 de octubre.
-Los empleados públicos se clasifican en funcionarios de carrera, funcionarios interinos, personal laboral y personal eventual.
-El personal eventual solo realiza funciones expresamente calificadas como de confianza o asesoramiento especial.
-Las faltas muy graves prescriben a los 3 años, las graves a los dos años y las leves a los seis meses.
-La sanción de suspensión firme de funciones no puede superar 6 años.
-Cuando la norma no fije plazo máximo, la Administración debe resolver y notificar en 3 meses.
-Los actos que no ponen fin a la vía administrativa pueden impugnarse mediante recurso de alzada ante el órgano superior jerárquico.
-El acceso al empleo público se rige por los principios de igualdad, mérito y capacidad.`,
-};
