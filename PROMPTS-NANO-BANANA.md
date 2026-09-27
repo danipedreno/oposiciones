@@ -9,7 +9,9 @@ Guarda esa hoja como **referencia** (por ejemplo `hoja-referencia.webp`) y adjú
 2. Adjunta la hoja de referencia en el primer mensaje de cada chat.
 3. Elige el formato **antes** de generar: **1:1** para todas, salvo las marcadas **16:9**.
 4. Cada prompt = **bloque ESTILO + escena**.
-5. Descarga en PNG y guárdala como `public/illustrations/<nombre>.png`. La app la detecta sola.
+5. Descarga en PNG y guárdala como `illustrations-src/<nombre>.png`.
+6. Ejecuta `npm run trace`: la vectoriza a `public/illustrations/<nombre>.svg` (tinta `#191919`, fondo transparente) y la app la muestra sola.
+   Para una sola: `npm run trace <nombre>`.
 
 ---
 

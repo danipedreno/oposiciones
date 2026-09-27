@@ -4,13 +4,13 @@ Total: **29 ilustraciones**, en line art editorial de tinta negra (ver la hoja d
 
 ## Especificaciones
 
-- **Formato**: SVG (preferido) o PNG. Si es PNG, expórtalo a 2× del tamaño indicado.
+- **Formato**: PNG de Gemini guardado en `illustrations-src/<nombre>.png`; `npm run trace` lo convierte a SVG.
 - **Fondo transparente**. En la app siempre se colocan sobre papel crema `#fdfaf7`.
 - **Color**: tinta `#191919`. Si quieres un toque de color, usa uno solo de la paleta:
   azul `#1e4bd7`, rojo `#d71e1e`, verde `#0c7866`, morado `#581e70` o amarillo `#ffe927`.
 - **Encuadre**: deja un 6–8 % de margen para que el personaje no toque los bordes.
 - **Grosor de línea**: pensado para verse bien a 96 px de ancho (tamaño mínimo en la app).
-- **Dónde van**: `public/illustrations/<nombre>.svg` (o `.png`). La app los detecta sola;
+- **Dónde acaban**: `public/illustrations/<nombre>.svg`. La app los detecta sola;
   mientras falten se ve un marcador con el nombre.
 - **Medallas bloqueadas y rangos no alcanzados** reutilizan la misma ilustración en gris: no hace falta dibujar versión bloqueada.
 
