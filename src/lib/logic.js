@@ -289,26 +289,58 @@ export function scheduleCard(prev, rating, today) {
   const box = prev?.box || 0;
   const nextBox = rating === "good" ? Math.min(5, box + 1) : rating === "hard" ? Math.max(1, box) : 1;
   const days = rating === "again" ? 0 : CARD_INTERVALS[nextBox];
-  return { box: nextBox, due: addDays(today, days), seen: (prev?.seen || 0) + 1 };
+  return { box: nextBox, due: addDays(today, days), seen: (prev?.seen || 0) + 1, last: rating };
 }
 
-/** Tarjetas para hoy: primero las vencidas (las más atrasadas antes) y después las nuevas. */
+/** Tarjetas para hoy: primero las vencidas (las más atrasadas antes) y después nuevas al azar. */
 export function cardsForSession(cards, state, today, limit = 20, newLimit = 10) {
   const due = cards.filter((c) => state[c.id] && state[c.id].due <= today).sort((a, b) => state[a.id].due.localeCompare(state[b.id].due));
-  const fresh = cards.filter((c) => !state[c.id]).slice(0, newLimit);
+  // Nuevas al azar entre todo lo elegido (no en el orden del temario).
+  const fresh = shuffle(cards.filter((c) => !state[c.id])).slice(0, newLimit);
   return [...due, ...fresh].slice(0, limit);
 }
 
-export function applyCardsResult(store, results, date) {
+/** Cajas según la última respuesta: «Las sé» (Lo sé) y «No las sé» (Otra vez o Difícil). */
+export function cardPiles(cards, state) {
+  const known = [];
+  const unknown = [];
+  for (const c of cards) {
+    const last = state[c.id]?.last;
+    if (last === "good") known.push(c);
+    else if (last === "again" || last === "hard") unknown.push(c);
+  }
+  return { known, unknown };
+}
+
+/** Bonus por racha dentro de una sesión: +5 XP por cada 5 «Lo sé» seguidos. */
+export const COMBO_STEP = 5;
+export const COMBO_BONUS = 5;
+function comboBonus(results) {
+  let run = 0;
+  let bonus = 0;
+  let best = 0;
+  for (const r of results) {
+    run = r.rating === "good" ? run + 1 : 0;
+    best = Math.max(best, run);
+    if (run && run % COMBO_STEP === 0) bonus += COMBO_BONUS;
+  }
+  return { bonus, best };
+}
+
+export function applyCardsResult(store, results, date, live = null) {
   const today = dateKey(date);
   const cards = { ...store.cards };
   results.forEach((r) => (cards[r.id] = scheduleCard(cards[r.id], r.rating, today)));
   const { goal, doneAfter, goalMet, daily, goalDays, streak } = studyProgress(store, results.length, today);
+  // Si la sesión trae su racha en vivo (incluye tarjetas repetidas), se usa esa para que cuadre con lo que se vio.
+  const combo = live || comboBonus(results);
   const xpParts = {
     cards: results.reduce((acc, r) => acc + XP_PER_CARD[r.rating], 0),
+    combo: combo.bonus,
     goal: goalMet ? XP_GOAL_BONUS : 0,
   };
-  const xpGained = xpParts.cards + xpParts.goal;
+  const xpGained = xpParts.cards + xpParts.combo + xpParts.goal;
+  const known = results.filter((r) => r.rating === "good").length;
   const nextStore = {
     ...store,
     cards,
@@ -317,11 +349,16 @@ export function applyCardsResult(store, results, date) {
     streak,
     xp: store.xp + xpGained,
     totals: { ...store.totals, cards: (store.totals.cards || 0) + results.length },
+    cardsHistory: [
+      { id: uid(), date: date.toISOString(), n: results.length, known, xp: xpGained, bestCombo: combo.best },
+      ...(store.cardsHistory || []),
+    ].slice(0, 30),
   };
   const report = {
     kind: "cards",
     n: results.length,
-    known: results.filter((r) => r.rating === "good").length,
+    known,
+    bestCombo: combo.best,
     xpGained,
     xpParts,
     dailyDone: doneAfter,

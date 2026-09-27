@@ -150,7 +150,12 @@ function cardsScreen(report) {
             <p className="text-xs">Te las sabías</p>
           </div>
         </div>
-        <p className="text-sm text-paper/85 mt-3">
+        <p className="font-mono text-xs text-paper mt-3">
+          {report.xpParts.cards} por tarjetas{report.xpParts.combo ? ` · +${report.xpParts.combo} por rachas` : ""}
+          {report.xpParts.goal ? ` · +${report.xpParts.goal} meta diaria` : ""}
+          {report.bestCombo >= 2 ? ` · mejor racha ×${report.bestCombo}` : ""}
+        </p>
+        <p className="text-sm text-paper mt-2">
           Hoy llevas {report.dailyDone} de {report.dailyGoal} de tu meta.
         </p>
       </>

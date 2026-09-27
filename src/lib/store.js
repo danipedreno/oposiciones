@@ -15,7 +15,8 @@ export const DEFAULT_STORE = {
   daily: {}, // preguntas hechas por día (YYYY-MM-DD → n)
   goalDays: [], // días en que se cumplió la meta
   counters: { marathons: 0, mastered: 0, highScores: 0 },
-  cards: {}, // estado de cada tarjeta: { box, due, seen }
+  cards: {}, // estado de cada tarjeta: { box, due, seen, last }
+  cardsHistory: [], // repasos de tarjetas terminados
   activeExam: null,
   lastResult: null,
   installDismissed: false,

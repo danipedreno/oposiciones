@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Cards as CardsIcon, UploadSimple, X } from "@phosphor-icons/react";
-import { BLOCKS, BLOCK_IDS, MASTERED_BOX, cardsForSession, dateKey } from "../lib/logic.js";
+import { Cards as CardsIcon, CheckCircle, Fire, UploadSimple, X, XCircle } from "@phosphor-icons/react";
+import { BLOCKS, BLOCK_IDS, COMBO_BONUS, COMBO_STEP, MASTERED_BOX, XP_PER_CARD, cardPiles, cardsForSession, dateKey, shuffle } from "../lib/logic.js";
 import { bankCards, temaLabel, temasOf } from "../lib/bank.js";
 import { Button, Folder, IconButton, Illustration, Paper, ProgressBar } from "../ui.jsx";
 
@@ -35,6 +35,10 @@ function Session({ bank, queue: initial, onExit, onFinish }) {
   const [queue, setQueue] = useState(initial);
   const [i, setI] = useState(0);
   const [flipped, setFlipped] = useState(false);
+  // Gamificación en vivo: racha de «Lo sé» seguidos y XP acumulado en la sesión.
+  const [combo, setCombo] = useState(0);
+  const [xp, setXp] = useState(0);
+  const live = useRef({ bonus: 0, best: 0 });
   const results = useRef(new Map());
   const requeued = useRef(new Set());
   const card = queue[i];
@@ -42,6 +46,18 @@ function Session({ bank, queue: initial, onExit, onFinish }) {
 
   const rate = (rating) => {
     results.current.set(card.id, rating);
+    const nextCombo = rating === "good" ? combo + 1 : 0;
+    const milestone = nextCombo > 0 && nextCombo % COMBO_STEP === 0;
+    live.current = { bonus: live.current.bonus + (milestone ? COMBO_BONUS : 0), best: Math.max(live.current.best, nextCombo) };
+    setCombo(nextCombo);
+    setXp((v) => v + XP_PER_CARD[rating] + (milestone ? COMBO_BONUS : 0));
+    if (milestone) {
+      try {
+        navigator.vibrate?.(25);
+      } catch (e) {
+        /* sin vibración */
+      }
+    }
     let next = queue;
     // «Otra vez» la repite al final de esta misma sesión (una vez).
     if (rating === "again" && !requeued.current.has(card.id)) {
@@ -50,7 +66,7 @@ function Session({ bank, queue: initial, onExit, onFinish }) {
       setQueue(next);
     }
     if (i + 1 >= next.length) {
-      onFinish([...results.current].map(([id, r]) => ({ id, rating: r })));
+      onFinish([...results.current].map(([id, r]) => ({ id, rating: r })), live.current);
       return;
     }
     setFlipped(false);
@@ -66,10 +82,21 @@ function Session({ bank, queue: initial, onExit, onFinish }) {
           </IconButton>
           <div className="flex-1">
             <ProgressBar pct={(i / queue.length) * 100} className="h-2" label="Progreso del repaso" />
+            <p className="font-mono text-xs text-mute tabular-nums mt-1.5">
+              {i + 1} de {queue.length}
+            </p>
           </div>
-          <span className="font-mono text-sm text-mute tabular-nums">
-            {i + 1}/{queue.length}
+          <span key={xp} className="anim-pop font-mono text-sm font-semibold tabular-nums rounded-full bg-folder-yellow text-ink px-3 h-8 flex items-center" aria-label={`${xp} XP en esta sesión`}>
+            +{xp} XP
           </span>
+        </div>
+        <div className="max-w-md mx-auto h-8 mt-2 flex items-center" aria-live="polite">
+          {combo >= 2 && (
+            <span key={combo} className="anim-pop inline-flex items-center gap-1.5 rounded-full bg-folder-red text-paper px-3 h-8 text-sm font-semibold">
+              <Fire size={16} weight="fill" className="anim-flicker" /> Racha ×{combo}
+              {combo % COMBO_STEP === 0 && <span className="font-mono">· +{COMBO_BONUS} XP</span>}
+            </span>
+          )}
         </div>
       </div>
 
@@ -138,6 +165,28 @@ function Session({ bank, queue: initial, onExit, onFinish }) {
   );
 }
 
+/** Caja de tarjetas («Las sé» / «No las sé») con su contador y botón de repaso. */
+function Pile({ title, color, cards, icon, onReview }) {
+  return (
+    <Folder color={color} tab={<span className="text-[15px]">{title}</span>} tabOffset="ml-1" className="min-w-0">
+      <div className="p-3 flex flex-col gap-3 text-paper">
+        <div className="flex items-center justify-between">
+          <span className="font-mono text-3xl font-semibold tabular-nums">{cards.length}</span>
+          {icon}
+        </div>
+        <button
+          type="button"
+          onClick={onReview}
+          disabled={!cards.length}
+          className="tap press h-11 rounded-folder bg-paper text-ink text-sm font-semibold disabled:opacity-40"
+        >
+          Repasar
+        </button>
+      </div>
+    </Folder>
+  );
+}
+
 export default function CardsScreen({ store, bank, onImport, onFinish }) {
   const [block, setBlock] = useState("all");
   const [tema, setTema] = useState("all");
@@ -161,6 +210,8 @@ export default function CardsScreen({ store, bank, onImport, onFinish }) {
     return { due, fresh, mastered };
   }, [cards, state, today]);
   const queue = useMemo(() => cardsForSession(cards, state, today), [cards, state, today]);
+  const piles = useMemo(() => cardPiles(cards, state), [cards, state]);
+  const startPile = (list) => setSession(shuffle(list).slice(0, 20));
 
   if (!bank) {
     return (
@@ -190,9 +241,9 @@ export default function CardsScreen({ store, bank, onImport, onFinish }) {
         bank={bank}
         queue={session}
         onExit={() => setSession(null)}
-        onFinish={(results) => {
+        onFinish={(results, live) => {
           setSession(null);
-          onFinish(results);
+          onFinish(results, live);
         }}
       />,
       document.body
@@ -273,6 +324,39 @@ export default function CardsScreen({ store, bank, onImport, onFinish }) {
       <Button onClick={() => setSession(queue)} disabled={!queue.length} className="w-full">
         <CardsIcon size={20} weight="bold" /> Empezar repaso
       </Button>
+
+      <section aria-labelledby="cajas-title">
+        <h2 id="cajas-title" className="display text-3xl">Tus cajas</h2>
+        <p className="text-sm text-mute mt-1 mb-3">Cada tarjeta va a una caja según tu última respuesta. Repásalas cuando quieras.</p>
+        <div className="grid grid-cols-2 gap-3">
+          <Pile title="Las sé" color="#0c7866" cards={piles.known} icon={<CheckCircle size={28} weight="fill" />} onReview={() => startPile(piles.known)} />
+          <Pile title="No las sé" color="#d71e1e" cards={piles.unknown} icon={<XCircle size={28} weight="fill" />} onReview={() => startPile(piles.unknown)} />
+        </div>
+      </section>
+
+      {(store.cardsHistory || []).length > 0 && (
+        <section aria-labelledby="repasos-title">
+          <h2 id="repasos-title" className="display text-3xl mb-3">
+            Tus repasos
+          </h2>
+          <ul className="flex flex-col divide-y divide-ink-3 border-y border-ink-3">
+            {store.cardsHistory.slice(0, 8).map((h) => (
+              <li key={h.id} className="py-3 flex items-center gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium">
+                    {h.known} de {h.n} te las sabías
+                  </p>
+                  <p className="font-mono text-xs text-mute mt-0.5">
+                    {new Date(h.date).toLocaleDateString("es-ES", { day: "numeric", month: "short" })}
+                    {h.bestCombo >= 2 ? ` · mejor racha ×${h.bestCombo}` : ""}
+                  </p>
+                </div>
+                <p className="font-mono text-sm font-semibold text-folder-yellow">+{h.xp} XP</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <p className="text-sm text-mute">
         Cada tarjeta que te sabes vuelve más tarde: 1, 3, 7, 14 y 30 días. Las que fallas vuelven hoy. Cuentan para tu meta diaria y tu racha.

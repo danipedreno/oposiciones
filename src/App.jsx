@@ -153,9 +153,9 @@ export default function App() {
       notify({ icon: <WarningCircle size={24} weight="fill" />, color: "#d71e1e", kicker: "No se pudo importar", text: r.error, duration: 6000 });
     }
   };
-  const onCardsFinish = (results) => {
+  const onCardsFinish = (results, live) => {
     if (!results.length) return;
-    const { store: next, report } = applyCardsResult(storeRef.current, results, new Date());
+    const { store: next, report } = applyCardsResult(storeRef.current, results, new Date(), live);
     setStore(next);
     setCelebration({ queue: report.celebrations, report });
   };
