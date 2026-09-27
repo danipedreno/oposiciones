@@ -167,6 +167,10 @@ export default function App() {
                   onDismissInstall={() => setStore((s) => ({ ...s, installDismissed: true }))}
                   onNewExam={onNewExam}
                   onGoNotes={() => setTab("notes")}
+                  onPractice={(block) => {
+                    setStore((s) => ({ ...s, lastResult: null, settings: { ...s.settings, source: "bank", block } }));
+                    setTab("test");
+                  }}
                 />
               )}
               {tab === "test" &&

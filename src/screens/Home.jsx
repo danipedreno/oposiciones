@@ -1,7 +1,8 @@
-import { useEffect, useRef } from "react";
-import { Check, DeviceMobile, Fire, Sparkle, Timer, X } from "@phosphor-icons/react";
+import { useEffect, useRef, useState } from "react";
+import { CaretDown, Check, DeviceMobile, Fire, Play, Sparkle, Timer, X } from "@phosphor-icons/react";
 import { BLOCKS, BLOCK_IDS, dateKey, fmt2, rankInfo, streakView } from "../lib/logic.js";
-import { Button, Folder, Galones, IconButton, Illustration, Paper, ProgressBar } from "../ui.jsx";
+import { SEED_QUESTIONS } from "../data/questions.js";
+import { Button, Folder, FolderTab, Galones, IconButton, Illustration, Paper, ProgressBar } from "../ui.jsx";
 
 const WEEKDAY = ["D", "L", "M", "X", "J", "V", "S"];
 
@@ -90,7 +91,78 @@ function StreakCard({ streak }) {
   );
 }
 
-export default function Home({ store, install, onDismissInstall, onNewExam, onGoNotes }) {
+/**
+ * Archivador de bloques: las carpetas están cerradas y solo se ven sus pestañas (con el dato clave).
+ * Al tocar una pestaña se «saca» esa carpeta y se guarda la que estuviera abierta.
+ * Cada franja mide lo mismo que una pestaña (44 px), así la pestaña siguiente asienta sobre ella sin huecos.
+ */
+const TAB_OFFSETS = ["ml-2", "ml-12", "ml-24"];
+
+function BlockCabinet({ store, intro, onPractice }) {
+  const [open, setOpen] = useState(null);
+  return (
+    <div className="pt-1">
+      {BLOCK_IDS.map((id, k) => {
+        const b = BLOCKS[id];
+        const s = store.blockStats[id] || { c: 0, t: 0 };
+        const pct = s.t ? Math.round((s.c / s.t) * 100) : null;
+        const isOpen = open === id;
+        const last = k === BLOCK_IDS.length - 1;
+        const bankSize = SEED_QUESTIONS.filter((q) => q.block === id).length;
+        return (
+          <section
+            key={id}
+            className={`relative ${k ? "-mt-11" : ""} ${intro ? "anim-folder" : ""}`}
+            style={intro ? { animationDelay: `${120 + k * 50}ms` } : undefined}
+          >
+            <div className="flex items-end">
+              <button
+                type="button"
+                onClick={() => setOpen(isOpen ? null : id)}
+                aria-expanded={isOpen}
+                aria-controls={`carpeta-${id}`}
+                className={`tap press relative z-[1] -mb-px ${TAB_OFFSETS[k]}`}
+              >
+                <FolderTab color={b.hex}>
+                  {b.label}
+                  <span className="font-mono text-sm text-paper/80">{pct === null ? "—" : `${pct}%`}</span>
+                  <CaretDown size={16} weight="bold" className={`transition-transform duration-200 ease-out ${isOpen ? "rotate-180" : ""}`} />
+                </FolderTab>
+              </button>
+            </div>
+            <div className="rounded-folder folder-shadow" style={{ background: b.hex }}>
+              {/* Abre/cierra con grid-template-rows 0fr↔1fr: se desplaza en pantalla, así que ease-in-out. */}
+              <div
+                id={`carpeta-${id}`}
+                role="region"
+                aria-label={b.label}
+                className="grid transition-[grid-template-rows] duration-[280ms] ease-in-out motion-reduce:transition-none"
+                style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
+              >
+                <div className="overflow-hidden" inert={isOpen ? undefined : ""}>
+                  <div className="px-5 pt-5 pb-2">
+                    <div className="flex items-end justify-between gap-4">
+                      <p className="display text-5xl">{pct === null ? "—" : `${pct}%`}</p>
+                      <p className="font-mono text-sm text-paper/80 text-right">{s.t ? `${s.c} de ${s.t} aciertos` : "Sin datos todavía"}</p>
+                    </div>
+                    <ProgressBar pct={pct ?? 0} color="#fdfaf7" track="bg-black/25" className="h-2 mt-4" label={`Aciertos en ${b.label}`} />
+                    <Button variant="paper" onClick={() => onPractice(id)} className="w-full mt-5">
+                      <Play size={18} weight="fill" /> Practicar · {bankSize} preguntas
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              {/* Franja visible con la carpeta cerrada; la última solo muestra el canto. */}
+              <div className={last ? "h-3" : "h-11"} aria-hidden="true" />
+            </div>
+          </section>
+        );
+      })}
+    </div>
+  );
+}
+
+export default function Home({ store, install, onDismissInstall, onNewExam, onGoNotes, onPractice }) {
   const intro = useRef(!introPlayed).current;
   useEffect(() => {
     introPlayed = true;
@@ -165,24 +237,7 @@ export default function Home({ store, install, onDismissInstall, onNewExam, onGo
           <h2 id="bloques-title" className="display text-3xl">Por bloques</h2>
           {accuracy !== null && <span className="font-mono text-sm text-mute">Global {accuracy}%</span>}
         </div>
-        <div className="pt-1">
-          {BLOCK_IDS.map((id, k) => {
-            const b = BLOCKS[id];
-            const s = store.blockStats[id] || { c: 0, t: 0 };
-            const pct = s.t ? (s.c / s.t) * 100 : 0;
-            return (
-              <Folder key={id} color={b.hex} tab={b.label} stacked={k < BLOCK_IDS.length - 1} tabOffset={["ml-2", "ml-10", "ml-20"][k]} className={`${intro ? "anim-folder" : ""} ${k ? "-mt-12" : ""}`} style={intro ? { animationDelay: `${120 + k * 50}ms` } : undefined}>
-                <div className="p-5 flex items-end justify-between gap-4">
-                  <p className="display text-5xl">{s.t ? `${Math.round(pct)}%` : "—"}</p>
-                  <p className="font-mono text-sm text-paper/80 text-right">{s.t ? `${s.c} de ${s.t} aciertos` : "Sin datos todavía"}</p>
-                </div>
-                <div className="px-5 pb-5">
-                  <ProgressBar pct={pct} color="#fdfaf7" track="bg-black/25" label={`Aciertos en ${b.label}`} />
-                </div>
-              </Folder>
-            );
-          })}
-        </div>
+        <BlockCabinet store={store} intro={intro} onPractice={onPractice} />
       </section>
 
       {store.history.length > 0 && (
