@@ -1,6 +1,6 @@
 # Ilustraciones de Recuento
 
-Total: **29 ilustraciones**, en el estilo de tu referencia: personajes de trazo negro, formas simples y algún relleno negro plano.
+Total: **29 ilustraciones**, en line art editorial de tinta negra (ver la hoja de referencia y PROMPTS-NANO-BANANA.md).
 
 ## Especificaciones
 

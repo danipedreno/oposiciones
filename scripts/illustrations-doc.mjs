@@ -8,7 +8,7 @@ const size = (r) => (r === "wide" ? "1600 × 900 (16:9)" : "800 × 800 (1:1)");
 
 let md = `# Ilustraciones de Recuento
 
-Total: **${entries.length} ilustraciones**, en el estilo de tu referencia: personajes de trazo negro, formas simples y algún relleno negro plano.
+Total: **${entries.length} ilustraciones**, en line art editorial de tinta negra (ver la hoja de referencia y PROMPTS-NANO-BANANA.md).
 
 ## Especificaciones
 
