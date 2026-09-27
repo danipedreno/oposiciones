@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowCounterClockwise, Books, Cards, CheckCircle, ClipboardText, House, Trophy, WarningCircle } from "@phosphor-icons/react";
+import { ArrowCounterClockwise, Cards, CheckCircle, ClipboardText, House, Trophy, WarningCircle } from "@phosphor-icons/react";
 import { applyCardsResult, applyExamResult, createExam, mistakePool } from "./lib/logic.js";
 import { useBank } from "./lib/bank.js";
 import CardsScreen from "./screens/Cards.jsx";
@@ -15,7 +15,6 @@ const TABS = [
   { id: "home", label: "Inicio", Icon: House, color: "#ffe927", dark: false },
   { id: "test", label: "Test", Icon: ClipboardText, color: "#1e4bd7", dark: true },
   { id: "cards", label: "Tarjetas", Icon: Cards, color: "#d71e1e", dark: true },
-  { id: "temario", label: "Temario", Icon: Books, color: "#0c7866", dark: true },
   { id: "badges", label: "Logros", Icon: Trophy, color: "#581e70", dark: true },
 ];
 
@@ -45,6 +44,7 @@ function TabBar({ tab, onChange }) {
         </div>
         <div
           aria-hidden="true"
+          hidden={index < 0}
           className="absolute inset-1.5 grid gap-1 pointer-events-none transition-[clip-path] duration-[250ms] ease-in-out"
           style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))`, clipPath: `inset(0 ${((n - 1 - index) / n) * 100}% 0 ${(index / n) * 100}% round 4px)` }}
         >
@@ -197,7 +197,7 @@ export default function App() {
                   <ExamSetup store={store} bank={bank} onSettings={onSettings} onStart={startExam} />
                 ))}
               {tab === "cards" && <CardsScreen store={store} bank={bank} onImport={onImport} onFinish={onCardsFinish} />}
-              {tab === "temario" && <Temario bank={bank} onImport={onImport} />}
+              {tab === "temario" && <Temario bank={bank} onImport={onImport} onBack={() => setTab("home")} />}
               {tab === "badges" && <Achievements store={store} onReset={onReset} />}
             </div>
           </main>

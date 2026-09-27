@@ -1,14 +1,21 @@
+import { CaretLeft } from "@phosphor-icons/react";
 import { BLOCKS, BLOCK_IDS } from "../lib/logic.js";
 import { bankCards, bankQuestions, temasOf } from "../lib/bank.js";
 import { FolderTab, Illustration, Paper } from "../ui.jsx";
 import { ImportBank } from "./Cards.jsx";
 
 /** Pestaña Temario: cargar o actualizar el banco y ver qué hay en cada carpeta. */
-export default function Temario({ bank, onImport }) {
+export default function Temario({ bank, onImport, onBack }) {
+  const back = (
+    <button type="button" onClick={onBack} className="tap press -ml-2 mb-2 h-11 px-2 rounded-folder text-mute hover:text-paper flex items-center gap-1 text-sm font-semibold">
+      <CaretLeft size={18} weight="bold" /> Inicio
+    </button>
+  );
   if (!bank) {
     return (
       <div className="flex flex-col gap-6">
         <header>
+          {back}
           <p className="label text-mute">Tu material</p>
           <h1 className="display text-[52px] mt-1">Temario</h1>
         </header>
@@ -35,6 +42,7 @@ export default function Temario({ bank, onImport }) {
   return (
     <div className="flex flex-col gap-6">
       <header>
+        {back}
         <p className="label text-mute">Tu material</p>
         <h1 className="display text-[52px] mt-1">Temario</h1>
       </header>
