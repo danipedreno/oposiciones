@@ -23,6 +23,7 @@ const out = [
   ["icon-192.png", 192, 56],
   ["icon-512.png", 512, 56],
   ["apple-touch-icon.png", 180, 56],
+  ["icon-maskable-192.png", 192, 104],
   ["icon-maskable-512.png", 512, 104],
 ];
 for (const [file, size, pad] of out) {
