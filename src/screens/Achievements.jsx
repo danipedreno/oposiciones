@@ -15,8 +15,7 @@ export default function Achievements({ store, onReset }) {
     <div className="flex flex-col gap-6">
       <header className="flex items-end justify-between gap-3">
         <div>
-          <p className="label text-mute">Hoja de servicios</p>
-          <h1 className="display text-[52px] mt-1">Logros</h1>
+          <h1 className="display text-[52px]">Logros</h1>
         </div>
         <p className="font-mono text-mute pb-1">
           <span className="text-paper text-2xl font-semibold">{unlocked}</span>/{total}
@@ -67,7 +66,7 @@ export default function Achievements({ store, onReset }) {
                 </div>
                 <p className="font-serif text-lg leading-tight">{a.name}</p>
                 <p className="text-sm text-mute-paper leading-snug flex-1">{a.desc}</p>
-                <p className={`label ${date ? "text-folder-green" : "text-mute-paper/70"}`}>
+                <p className={`label ${date ? "text-folder-green" : "text-mute-paper"}`}>
                   {date ? `Conseguida ${new Date(date).toLocaleDateString("es-ES", { day: "numeric", month: "short" })}` : "Bloqueada"}
                 </p>
               </Paper>
@@ -88,7 +87,7 @@ export default function Achievements({ store, onReset }) {
                 </span>
                 <span className="flex-1 min-w-0">
                   <span className="block font-semibold leading-tight">{r.name}</span>
-                  <span className={`block font-mono text-xs ${current ? "text-mute-paper" : "text-paper/70"}`}>Nivel {r.level} · {r.min} XP</span>
+                  <span className={`block font-mono text-xs ${current ? "text-mute-paper" : "text-mute"}`}>Nivel {r.level} · {r.min} XP</span>
                 </span>
                 {reached && <Check size={20} weight="bold" className={current ? "text-folder-green" : "text-folder-yellow"} aria-label="Alcanzado" />}
               </li>

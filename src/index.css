@@ -31,6 +31,14 @@
     -webkit-tap-highlight-color: transparent;
     -webkit-text-size-adjust: 100%;
   }
+  ::selection {
+    background: #ffe927;
+    color: #191919;
+  }
+  html {
+    scrollbar-color: #3a3a3a transparent;
+    caret-color: #ffe927;
+  }
   input,
   textarea,
   select {

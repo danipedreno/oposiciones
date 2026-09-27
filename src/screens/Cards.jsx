@@ -124,7 +124,7 @@ function Session({ bank, queue: initial, onExit, onFinish }) {
                     <p className="font-serif text-[23px] leading-snug mt-4 flex-1" style={{ textWrap: "pretty" }}>
                       {card.front}
                     </p>
-                    <p className="label text-mute-paper/80 mt-4">Toca para ver la respuesta</p>
+                    <p className="label text-mute-paper mt-4">Toca para ver la respuesta</p>
                   </Paper>
                   <Paper className="flip-face flip-back p-5 min-h-[260px] flex flex-col" aria-hidden={!flipped}>
                     <p className="label text-mute-paper">Respuesta</p>
@@ -217,8 +217,7 @@ export default function CardsScreen({ store, bank, onImport, onFinish }) {
     return (
       <div className="flex flex-col gap-6">
         <header>
-          <p className="label text-mute">Repaso rápido</p>
-          <h1 className="display text-[52px] mt-1">Tarjetas</h1>
+          <h1 className="display text-[52px]">Tarjetas</h1>
         </header>
         <Paper className="p-5">
           <Illustration name="test-listo" className="w-40 mx-auto" alt="" />
@@ -253,8 +252,7 @@ export default function CardsScreen({ store, bank, onImport, onFinish }) {
   return (
     <div className="flex flex-col gap-6">
       <header>
-        <p className="label text-mute">Repaso espaciado</p>
-        <h1 className="display text-[52px] mt-1">Tarjetas</h1>
+        <h1 className="display text-[52px]">Tarjetas</h1>
       </header>
 
       <div className="grid grid-cols-3 border-y border-ink-3 divide-x divide-ink-3 text-center">

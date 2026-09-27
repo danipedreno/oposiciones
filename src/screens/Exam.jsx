@@ -99,8 +99,7 @@ export function ExamSetup({ store, bank, onSettings, onStart }) {
   return (
     <div className="flex flex-col gap-8">
       <header>
-        <p className="label text-mute">Modo examen</p>
-        <h1 className="display text-[52px] mt-1">Crea tu test</h1>
+        <h1 className="display text-[52px]">Crea tu test</h1>
         {!bank && <p className="text-sm text-mute mt-2">Aún no has cargado tu temario: de momento se usan 40 preguntas de muestra.</p>}
       </header>
 
@@ -346,7 +345,7 @@ export function ExamRunner({ exam, remainingMs, onSelect, onBlank, onGoto, onFin
             role="timer"
             aria-label={`Tiempo restante ${formatClock(remainingMs)}`}
             className={`flex items-center gap-2 px-4 h-12 rounded-full font-mono text-xl font-semibold tabular-nums transition-colors duration-500 ${
-              critical ? "bg-folder-red text-paper animate-pulse" : warning ? "bg-folder-yellow text-ink" : "bg-paper text-ink"
+              critical ? "bg-folder-red text-paper animate-pulse motion-reduce:animate-none" : warning ? "bg-folder-yellow text-ink" : "bg-paper text-ink"
             }`}
           >
             <Timer size={22} weight="bold" />
@@ -393,13 +392,12 @@ export function ExamRunner({ exam, remainingMs, onSelect, onBlank, onGoto, onFin
             </div>
           </Folder>
 
-          <div className="flex flex-col gap-2.5 mt-4" role="radiogroup" aria-label="Respuestas">
+          <div className="flex flex-col gap-2.5 mt-4" role="group" aria-label="Respuestas">
             {q.options.map((opt, idx) => (
               <button
                 key={`${i}-${idx}`}
                 type="button"
-                role="radio"
-                aria-checked={chosen === idx}
+                aria-pressed={chosen === idx}
                 onClick={() => onSelect(idx)}
                 disabled={revealed}
                 className={`tap press min-h-[60px] w-full rounded-folder border-2 px-3 py-3 flex items-center gap-3 text-left ${optionClass(idx)}`}
@@ -499,8 +497,8 @@ export function ExamResults({ result, xp, pendingMistakes, onNew, onHome, onRevi
   return (
     <div className="flex flex-col gap-6">
       <header>
-        <p className="label text-mute">{exam.title}</p>
-        <h1 className="display text-[52px] mt-1">Resultado</h1>
+        <h1 className="display text-[52px]">Resultado</h1>
+        <p className="text-sm text-mute mt-1">{exam.title}</p>
         {reason === "timeout" && (
           <p className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-ink bg-folder-yellow rounded-[4px] px-3 py-2">
             <Timer size={18} weight="bold" /> Tiempo agotado: se entregó solo.

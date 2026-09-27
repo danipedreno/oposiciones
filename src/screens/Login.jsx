@@ -23,7 +23,7 @@ export default function Login({ onLogin }) {
     if (!r.ok) setError(r.error);
   };
 
-  const field = "w-full h-14 rounded-folder bg-paper-2 border-2 border-paper-3 px-4 text-ink font-semibold outline-none focus:border-ink transition-colors";
+  const field = "w-full h-14 rounded-folder bg-paper-2 border-2 border-paper-3 px-4 text-ink caret-ink font-semibold outline-none focus:border-ink transition-colors";
 
   return (
     <div className="fixed inset-0 bg-ink scroll-area">

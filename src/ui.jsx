@@ -110,7 +110,7 @@ export function Segmented({ label, options, value, onChange, disabledValues = []
   const cell = (o, active) => (
     <>
       {o.label}
-      {o.sub && <span className={`block font-mono text-[11px] font-medium ${active ? "text-mute-paper" : "text-mute/70"}`}>{o.sub}</span>}
+      {o.sub && <span className={`block font-mono text-[11px] font-medium ${active ? "text-mute-paper" : "text-mute"}`}>{o.sub}</span>}
     </>
   );
   return (
@@ -221,7 +221,7 @@ export function Illustration({ name, className = "", alt = "" }) {
         role="img"
         aria-label={alt || `Ilustración pendiente: ${name}`}
       >
-        <PencilSimpleLine size={22} weight="bold" className="text-mute-paper/70" />
+        <PencilSimpleLine size={22} weight="bold" className="text-mute-paper" />
         <span className="font-mono text-[10px] leading-tight text-mute-paper break-all">{name}</span>
       </div>
     );

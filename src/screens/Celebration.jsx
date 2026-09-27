@@ -110,11 +110,11 @@ function testScreen(report) {
             <p className="text-xs">Sobre 10</p>
           </div>
         </div>
-        <p className="font-mono text-xs text-paper/80 mt-3">
+        <p className="font-mono text-xs text-paper mt-3">
           {xpParts.correct} por aciertos{xpParts.test ? ` · +${xpParts.test} por terminar` : ""}
           {xpParts.goal ? ` · +${xpParts.goal} meta diaria` : ""}
         </p>
-        <p className="text-sm text-paper/85 mt-2">
+        <p className="text-sm text-paper mt-2">
           Hoy llevas {report.dailyDone} de {report.dailyGoal} preguntas de tu meta.
         </p>
       </>
@@ -226,7 +226,7 @@ function screenFor(item, report, store) {
       body: (
         <>
           <p className="font-serif text-[26px] leading-tight">{a.name}</p>
-          <p className="text-base text-paper/85 mt-1 max-w-xs">{a.desc}</p>
+          <p className="text-base text-paper mt-1 max-w-xs">{a.desc}</p>
         </>
       ),
     };
@@ -273,7 +273,7 @@ function screenFor(item, report, store) {
     body: (
       <>
         <Galones level={rank.level} />
-        <p className="text-base text-paper/85 mt-3 max-w-xs">Nivel {rank.level} de 5. Sigue sumando XP para el siguiente rango.</p>
+        <p className="text-base text-paper mt-3 max-w-xs">Nivel {rank.level} de 5. Sigue sumando XP para el siguiente rango.</p>
       </>
     ),
   };

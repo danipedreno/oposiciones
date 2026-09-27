@@ -25,7 +25,7 @@ function RankContent({ xp }) {
     <div>
       <div className="p-5 flex gap-4">
         <div className="min-w-0 flex-1">
-          <p className="label text-paper/70">
+          <p className="label text-paper">
             Rango · Nivel {rank.level}/5
           </p>
           <p className="display text-[40px] mt-2">{rank.name}</p>
@@ -40,7 +40,7 @@ function RankContent({ xp }) {
       <div className="px-5 pb-5">
         <div className="flex items-baseline justify-between gap-2 mb-2">
           <span className="font-mono font-semibold">{xp} XP</span>
-          <span className="text-sm text-paper/75 text-right">{next ? `${toNext} XP para ${next.name}` : "Rango máximo"}</span>
+          <span className="text-sm text-paper text-right">{next ? `${toNext} XP para ${next.name}` : "Rango máximo"}</span>
         </div>
         <ProgressBar pct={pct} track="bg-black/30" className="h-2.5" label="Progreso hasta el siguiente rango" />
       </div>
@@ -126,19 +126,19 @@ function PlanContent({ store, onPlan }) {
           <div className="flex-1 min-w-0">
             {left === null ? (
               <>
-                <p className="label text-ink/70">Cuenta atrás</p>
+                <p className="label text-ink">Cuenta atrás</p>
                 <p className="display text-[34px] mt-1">¿Cuándo es tu examen?</p>
               </>
             ) : left < 0 ? (
               <>
-                <p className="label text-ink/70">Examen</p>
+                <p className="label text-ink">Examen</p>
                 <p className="display text-[34px] mt-1">Ya pasó</p>
               </>
             ) : (
               <>
                 <p className="display text-[72px]">{left === 0 ? "Hoy" : left}</p>
-                <p className="label text-ink/80 mt-1">{left === 0 ? "¡Mucha suerte!" : `${left === 1 ? "día" : "días"} para el examen`}</p>
-                <p className="text-sm text-ink/70 mt-1 first-letter:uppercase">{examLabel}</p>
+                <p className="label text-ink mt-1">{left === 0 ? "¡Mucha suerte!" : `${left === 1 ? "día" : "días"} para el examen`}</p>
+                <p className="text-sm text-ink mt-1 first-letter:uppercase">{examLabel}</p>
               </>
             )}
           </div>

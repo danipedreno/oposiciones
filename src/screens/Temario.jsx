@@ -18,8 +18,7 @@ export default function Temario({ bank, onImport, onBack, onLogout }) {
       <div className="flex flex-col gap-6">
         <header>
           {back}
-          <p className="label text-mute">Tu material</p>
-          <h1 className="display text-[52px] mt-1">Temario</h1>
+          <h1 className="display text-[52px]">Temario</h1>
         </header>
         <Paper className="p-4">
           <Illustration name="apuntes-vacio" className="w-full" alt="" />
@@ -45,8 +44,7 @@ export default function Temario({ bank, onImport, onBack, onLogout }) {
     <div className="flex flex-col gap-6">
       <header>
         {back}
-        <p className="label text-mute">Tu material</p>
-        <h1 className="display text-[52px] mt-1">Temario</h1>
+        <h1 className="display text-[52px]">Temario</h1>
       </header>
 
       <div className="grid grid-cols-3 border-y border-ink-3 divide-x divide-ink-3 text-center">
