@@ -15,6 +15,7 @@ import { Button, Folder, IconButton, Illustration, Paper, ProgressBar, Segmented
 import { RankFolder } from "./Home.jsx";
 import { temaLabel, temasOf } from "../lib/bank.js";
 import { useCountUp } from "../lib/motion.js";
+import { PAL } from "../lib/palette.js";
 
 /* ---------------------------------------------------------------------
    Crear el test: pasos numerados (la numeración es el orden real de decisión)
@@ -29,13 +30,13 @@ const COUNTS = [
 function Step({ n, title, hint, children }) {
   return (
     <section className="flex flex-col gap-3" aria-labelledby={`paso-${n}`}>
-      <div className="flex items-baseline gap-3">
-        <span className="font-mono text-sm font-semibold text-folder-yellow">{n}</span>
+      <div className="flex items-center gap-3">
+        <span className="w-8 h-8 rounded-full bg-sun font-mono text-sm font-semibold flex items-center justify-center shrink-0">{n}</span>
         <div>
           <h2 id={`paso-${n}`} className="font-semibold text-lg leading-tight">
             {title}
           </h2>
-          {hint && <p className="text-sm text-mute mt-0.5">{hint}</p>}
+          {hint && <p className="text-sm text-ink-soft mt-0.5">{hint}</p>}
         </div>
       </div>
       {children}
@@ -51,18 +52,18 @@ function ChoiceRow({ label, color, checked, onToggle, note }) {
       role="checkbox"
       aria-checked={checked}
       onClick={onToggle}
-      className={`tap press w-full min-h-14 px-4 py-2 flex items-center gap-3 text-left transition-colors duration-150 ${checked ? "bg-ink-3" : "hover:bg-ink-3/60"}`}
+      className={`tap press w-full min-h-14 px-4 py-2 flex items-center gap-3 text-left transition-colors duration-150 ${checked ? "bg-mist" : "hover:bg-ground/70"}`}
     >
       <span
-        className={`w-6 h-6 rounded-[5px] border-2 flex items-center justify-center shrink-0 transition-colors duration-150 ${checked ? "bg-paper border-paper text-ink" : "border-ink-4"}`}
+        className={`w-6 h-6 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors duration-150 ${checked ? "bg-ink border-ink text-ground" : "border-line-strong"}`}
         aria-hidden="true"
       >
         {checked && <Check size={16} weight="bold" />}
       </span>
-      {color && <span className="w-3 h-3 rounded-full shrink-0" style={{ background: color }} aria-hidden="true" />}
+      {color && <span className="w-4 h-4 blob shrink-0" style={{ background: color }} aria-hidden="true" />}
       <span className="flex-1 min-w-0">
         <span className="block font-semibold leading-tight">{label}</span>
-        {note && <span className="block text-xs text-mute mt-0.5">{note}</span>}
+        {note && <span className="block text-xs text-ink-soft mt-0.5">{note}</span>}
       </span>
     </button>
   );
@@ -99,12 +100,12 @@ export function ExamSetup({ store, bank, onSettings, onStart }) {
   return (
     <div className="flex flex-col gap-8">
       <header>
-        <h1 className="display text-[52px]">Crea tu test</h1>
-        {!bank && <p className="text-sm text-mute mt-2">Aún no has cargado tu temario: de momento se usan 40 preguntas de muestra.</p>}
+        <h1 className="display text-[48px]">Crea tu test</h1>
+        {!bank && <p className="text-sm text-ink-soft mt-2">Aún no has cargado tu temario: de momento se usan 40 preguntas de muestra.</p>}
       </header>
 
       <Step n="1" title="¿Qué quieres repasar?" hint="Marca todo el temario o uno o varios bloques.">
-        <div className="rounded-folder bg-ink-2 border border-ink-3 overflow-hidden divide-y divide-ink-3" role="group" aria-label="Qué quieres repasar">
+        <div className="rounded-folder bg-card paper-shadow overflow-hidden divide-y divide-line" role="group" aria-label="Qué quieres repasar">
           <ChoiceRow label="Todo el temario" checked={all} onToggle={() => onSettings({ blocks: [], tema: "all" })} />
           {BLOCK_IDS.map((id) => {
             const hasQuestions = base.some((q) => q.block === id);
@@ -129,7 +130,7 @@ export function ExamSetup({ store, bank, onSettings, onStart }) {
               id="exam-tema"
               value={tema}
               onChange={(e) => onSettings({ tema: e.target.value })}
-              className="tap w-full h-12 rounded-folder bg-ink-2 border border-ink-3 px-3 text-paper font-semibold text-sm"
+              className="tap w-full h-12 rounded-full bg-card paper-shadow px-4 text-ink font-semibold text-sm"
             >
               <option value="all">Todos los temas de {BLOCKS[blocks[0]].short}</option>
               {temasOf(bank, blocks[0]).map((t) => (
@@ -146,14 +147,14 @@ export function ExamSetup({ store, bank, onSettings, onStart }) {
           aria-checked={onlyMistakes}
           disabled={!pendingAll}
           onClick={() => onSettings({ onlyMistakes: !onlyMistakes })}
-          className="tap press flex items-center justify-between gap-3 h-14 px-4 rounded-folder bg-ink-2 border border-ink-3 disabled:opacity-40"
+          className="tap press flex items-center justify-between gap-3 h-16 px-4 rounded-folder bg-card paper-shadow disabled:opacity-40"
         >
           <span className="text-left">
             <span className="block font-semibold text-sm">Solo mis fallos</span>
-            <span className="block text-xs text-mute">{pendingAll ? `${pendingAll} preguntas falladas pendientes` : "Aún no tienes fallos guardados"}</span>
+            <span className="block text-xs text-ink-soft">{pendingAll ? `${pendingAll} preguntas falladas pendientes` : "Aún no tienes fallos guardados"}</span>
           </span>
-          <span className={`w-12 h-7 rounded-full p-1 transition-colors duration-200 ${onlyMistakes ? "bg-folder-red" : "bg-ink-4"}`} aria-hidden="true">
-            <span className={`block w-5 h-5 rounded-full bg-paper transition-transform duration-200 ease-out ${onlyMistakes ? "translate-x-5" : ""}`} />
+          <span className={`w-12 h-7 rounded-full p-1 transition-colors duration-200 ${onlyMistakes ? "bg-plum" : "bg-line-strong"}`} aria-hidden="true">
+            <span className={`block w-5 h-5 rounded-full bg-card transition-transform duration-200 ease-out ${onlyMistakes ? "translate-x-5" : ""}`} />
           </span>
         </button>
       </Step>
@@ -176,67 +177,68 @@ export function ExamSetup({ store, bank, onSettings, onStart }) {
       </Step>
 
       <Step n="4" title="Tiempo por pregunta">
-        <div className="flex items-center gap-3 rounded-folder bg-ink-2 border border-ink-3 p-2">
-          <IconButton label="Menos tiempo" onClick={() => onSettings({ secsPerQ: Math.max(30, s.secsPerQ - 6) })} className="bg-ink-3">
+        <div className="flex items-center gap-3 rounded-full bg-card paper-shadow p-2">
+          <IconButton label="Menos tiempo" onClick={() => onSettings({ secsPerQ: Math.max(30, s.secsPerQ - 6) })} className="bg-ground">
             <Minus size={22} weight="bold" />
           </IconButton>
           <div className="flex-1 text-center">
             <p className="font-mono text-2xl font-semibold">{s.secsPerQ} s</p>
-            <p className="text-xs text-mute">{s.secsPerQ === OFFICIAL_SECONDS_PER_QUESTION ? "Ritmo oficial · 150 en 135 min" : "Ritmo personalizado"}</p>
+            <p className="text-xs text-ink-soft">{s.secsPerQ === OFFICIAL_SECONDS_PER_QUESTION ? "Ritmo oficial · 150 en 135 min" : "Ritmo personalizado"}</p>
           </div>
-          <IconButton label="Más tiempo" onClick={() => onSettings({ secsPerQ: Math.min(120, s.secsPerQ + 6) })} className="bg-ink-3">
+          <IconButton label="Más tiempo" onClick={() => onSettings({ secsPerQ: Math.min(120, s.secsPerQ + 6) })} className="bg-ground">
             <Plus size={22} weight="bold" />
           </IconButton>
         </div>
       </Step>
 
-      <Paper className="p-4">
-        <Illustration name="simulacro" className="w-full" alt="" />
-        <p className="label text-mute-paper mt-3">Tu test</p>
-        <p className="font-serif text-xl leading-snug mt-1">
+      <div className="rounded-folder bg-sky p-5">
+        <div className="bg-card blob p-3 w-2/3 mx-auto">
+          <Illustration name="simulacro" className="w-full" alt="" />
+        </div>
+        <p className="display text-[28px] leading-tight mt-4">
           {count} preguntas {onlyMistakes ? "falladas " : ""}de {scope} · {formatMinutes(count * s.secsPerQ)}
         </p>
         {pool.length < (s.count || 0) && pool.length > 0 && (
-          <p className="text-sm text-mute-paper mt-1">Con esta selección solo hay {pool.length} preguntas.</p>
+          <p className="text-sm mt-1">Con esta selección solo hay {pool.length} preguntas.</p>
         )}
-        {!pool.length && <p className="text-sm text-folder-red font-semibold mt-1">No hay preguntas con esta selección. Prueba con otra carpeta.</p>}
-        <p className="label text-mute-paper mt-4">Corrección oficial IIPP</p>
+        {!pool.length && <p className="text-sm text-plum font-semibold mt-1">No hay preguntas con esta selección. Prueba con otra carpeta.</p>}
+        <p className="label mt-5">Corrección oficial IIPP</p>
         <div className="grid grid-cols-3 gap-2 mt-2 text-center">
-          <div className="rounded-[4px] bg-folder-green text-paper py-2">
+          <div className="rounded-xl bg-mint py-2">
             <p className="font-mono text-xl font-semibold">+1</p>
             <p className="text-xs">Acierto</p>
           </div>
-          <div className="rounded-[4px] bg-paper-2 py-2">
+          <div className="rounded-xl bg-card py-2">
             <p className="font-mono text-xl font-semibold">0</p>
             <p className="text-xs">En blanco</p>
           </div>
-          <div className="rounded-[4px] bg-folder-red text-paper py-2">
+          <div className="rounded-xl bg-peach py-2">
             <p className="font-mono text-xl font-semibold">−⅓</p>
             <p className="text-xs">Fallo</p>
           </div>
         </div>
-        <p className="text-sm text-mute-paper mt-2">Nota = aciertos − errores ÷ 3. Si dudas, dejarla en blanco puede salir a cuenta.</p>
-        <Button onClick={start} disabled={!count} className="w-full mt-4">
+        <p className="text-sm mt-3">Nota = aciertos − errores ÷ 3. Si dudas, dejarla en blanco puede salir a cuenta.</p>
+        <Button variant="blue" onClick={start} disabled={!count} className="w-full mt-5">
           <Timer size={22} weight="bold" />
           Empezar test
         </Button>
-      </Paper>
+      </div>
 
       {store.history.length > 0 && (
         <section aria-labelledby="historial-title">
-          <h2 id="historial-title" className="display text-3xl mb-3">
+          <h2 id="historial-title" className="display text-[30px] mb-3">
             Últimos tests
           </h2>
-          <ul className="flex flex-col divide-y divide-ink-3 border-y border-ink-3">
+          <ul className="flex flex-col divide-y divide-line border-y border-line">
             {store.history.slice(0, 5).map((h) => (
               <li key={h.id} className="py-3 flex items-center gap-3">
                 <div className="min-w-0 flex-1">
                   <p className="font-medium truncate">{h.title}</p>
-                  <p className="font-mono text-xs text-mute mt-0.5">
+                  <p className="font-mono text-xs text-ink-soft mt-0.5">
                     {new Date(h.date).toLocaleDateString("es-ES", { day: "numeric", month: "short" })} · {h.correct} aciertos · {h.wrong} fallos · {h.blank} en blanco
                   </p>
                 </div>
-                <p className="font-mono text-lg font-semibold tabular-nums" aria-label={`Nota ${fmt2(h.over10)} sobre 10`}>
+                <p className="font-mono text-lg font-semibold" aria-label={`Nota ${fmt2(h.over10)} sobre 10`}>
                   {fmt2(h.over10)}
                 </p>
               </li>
@@ -281,25 +283,25 @@ export function ExamRunner({ exam, remainingMs, onSelect, onBlank, onGoto, onFin
 
   const chipClass = (idx) => {
     const a = exam.answers[idx];
-    const ring = idx === i ? "ring-2 ring-paper ring-offset-2 ring-offset-ink " : "";
+    const ring = idx === i ? "ring-2 ring-ink ring-offset-2 ring-offset-card " : "";
     if (immediate && exam.revealed[idx]) {
-      if (a === null) return ring + "bg-ink-4 text-paper";
-      return ring + (a === exam.questions[idx].answer ? "bg-folder-green text-paper" : "bg-folder-red text-paper");
+      if (a === null) return ring + "bg-line text-ink";
+      return ring + (a === exam.questions[idx].answer ? "bg-mint text-ink" : "bg-peach text-ink");
     }
-    return ring + (a !== null ? "bg-folder-blue text-paper" : "bg-ink-2 text-mute border border-ink-3");
+    return ring + (a !== null ? "bg-ink text-ground" : "bg-ground text-ink-soft");
   };
 
   const optionClass = (idx) => {
     if (revealed) {
-      if (idx === q.answer) return "bg-folder-green border-folder-green text-paper";
-      if (idx === chosen) return "bg-folder-red border-folder-red text-paper anim-shake";
-      return "bg-ink-2 border-ink-3 text-mute opacity-60";
+      if (idx === q.answer) return "bg-mint border-olive text-ink";
+      if (idx === chosen) return "bg-peach border-plum text-ink anim-shake";
+      return "bg-card border-line text-ink-soft opacity-70";
     }
-    if (idx === chosen) return "bg-folder-blue border-folder-blue text-paper";
-    return "bg-ink-2 border-ink-3 text-paper hover:border-ink-4";
+    if (idx === chosen) return "bg-sky border-ink text-ink";
+    return "bg-card border-line text-ink hover:border-ink/40";
   };
 
-  const verdict = chosen === q.answer ? { label: "Correcta · +1", cls: "text-folder-green" } : chosen === null ? { label: "En blanco · 0", cls: "text-mute-paper" } : { label: "Incorrecta · −0,33", cls: "text-folder-red" };
+  const verdict = chosen === q.answer ? { label: "Correcta · +1", cls: "text-olive" } : chosen === null ? { label: "En blanco · 0", cls: "text-ink-soft" } : { label: "Incorrecta · −0,33", cls: "text-plum" };
 
   let center;
   if (immediate && !revealed) {
@@ -335,28 +337,28 @@ export function ExamRunner({ exam, remainingMs, onSelect, onBlank, onGoto, onFin
   }
 
   return (
-    <div className="fixed inset-0 z-30 flex flex-col bg-ink">
-      <div className="pt-safe px-4 pb-3 border-b border-ink-3">
+    <div className="fixed inset-0 z-30 flex flex-col bg-ground">
+      <div className="pt-safe px-4 pb-3 bg-card rounded-b-[28px] paper-shadow">
         <div className="flex items-center justify-between gap-2 max-w-md mx-auto">
-          <IconButton label="Abandonar examen" onClick={() => setSheet("abandon")} className="bg-ink-2 border border-ink-3">
+          <IconButton label="Abandonar examen" onClick={() => setSheet("abandon")} className="bg-ground">
             <X size={22} weight="bold" />
           </IconButton>
           <div
             role="timer"
             aria-label={`Tiempo restante ${formatClock(remainingMs)}`}
             className={`flex items-center gap-2 px-4 h-12 rounded-full font-mono text-xl font-semibold tabular-nums transition-colors duration-500 ${
-              critical ? "bg-folder-red text-paper animate-pulse motion-reduce:animate-none" : warning ? "bg-folder-yellow text-ink" : "bg-paper text-ink"
+              critical ? "bg-plum text-ground animate-pulse motion-reduce:animate-none" : warning ? "bg-sun text-ink" : "bg-ground text-ink"
             }`}
           >
             <Timer size={22} weight="bold" />
             {formatClock(remainingMs)}
           </div>
-          <button type="button" onClick={() => setSheet("finish")} className="tap press h-12 px-4 rounded-folder border-2 border-folder-yellow text-folder-yellow font-semibold text-sm">
+          <button type="button" onClick={() => setSheet("finish")} className="tap press h-12 px-5 rounded-full bg-ink text-ground font-semibold text-sm">
             Entregar
           </button>
         </div>
         <div className="max-w-md mx-auto mt-3">
-          <ProgressBar pct={timePct} color={critical ? "#d71e1e" : "#ffe927"} className="h-1" label="Tiempo restante" />
+          <ProgressBar pct={timePct} color={critical ? PAL.plum : PAL.ink} track="bg-ground-2" className="h-1.5" label="Tiempo restante" />
           <div className="flex gap-2 overflow-x-auto no-scrollbar mt-3 px-1 py-1.5 -mx-1">
             {exam.questions.map((_, idx) => (
               <button
@@ -366,7 +368,7 @@ export function ExamRunner({ exam, remainingMs, onSelect, onBlank, onGoto, onFin
                 onClick={() => onGoto(idx)}
                 aria-label={`Ir a la pregunta ${idx + 1}`}
                 aria-current={idx === i ? "step" : undefined}
-                className={`tap press w-11 h-11 shrink-0 rounded-[4px] font-mono text-sm font-semibold ${chipClass(idx)}`}
+                className={`tap press w-11 h-11 shrink-0 rounded-full font-mono text-sm font-semibold ${chipClass(idx)}`}
               >
                 {idx + 1}
               </button>
@@ -379,13 +381,13 @@ export function ExamRunner({ exam, remainingMs, onSelect, onBlank, onGoto, onFin
         {/* La pregunta nueva entra desde el lado hacia el que avanzas. Se ve decenas de veces por
             examen: 180 ms, 16 px y sin animación de salida. */}
         <div key={i} className={`max-w-md mx-auto ${dir > 0 ? "anim-q-next" : "anim-q-prev"}`}>
-          <Folder color={block.hex} tab={block.short} tabOffset="ml-2">
+          <Folder color={block.hex} tab={block.short}>
             <div className="p-2.5">
               <Paper className="p-5">
-                <p className="label text-mute-paper">
+                <p className="label text-ink-soft">
                   Pregunta {i + 1} de {n}
                 </p>
-                <h2 className="font-serif text-[22px] leading-snug mt-2" style={{ textWrap: "pretty" }}>
+                <h2 className="font-serif text-[21px] leading-snug mt-2" style={{ textWrap: "pretty" }}>
                   {q.q}
                 </h2>
               </Paper>
@@ -400,9 +402,9 @@ export function ExamRunner({ exam, remainingMs, onSelect, onBlank, onGoto, onFin
                 aria-pressed={chosen === idx}
                 onClick={() => onSelect(idx)}
                 disabled={revealed}
-                className={`tap press min-h-[60px] w-full rounded-folder border-2 px-3 py-3 flex items-center gap-3 text-left ${optionClass(idx)}`}
+                className={`tap press min-h-[60px] w-full rounded-[22px] border-2 px-3 py-3 flex items-center gap-3 text-left ${optionClass(idx)}`}
               >
-                <span className="w-9 h-9 rounded-[4px] bg-black/25 flex items-center justify-center font-mono font-semibold shrink-0">
+                <span className="w-9 h-9 rounded-full bg-ground/80 flex items-center justify-center font-mono font-semibold shrink-0">
                   {revealed && idx === q.answer ? <Check size={20} weight="bold" /> : revealed && idx === chosen ? <X size={20} weight="bold" /> : "ABCD"[idx]}
                 </span>
                 <span className="text-base leading-snug">{opt}</span>
@@ -410,7 +412,7 @@ export function ExamRunner({ exam, remainingMs, onSelect, onBlank, onGoto, onFin
             ))}
           </div>
 
-          {!immediate && chosen !== null && <p className="text-sm text-mute mt-3">Toca de nuevo tu respuesta para dejarla en blanco.</p>}
+          {!immediate && chosen !== null && <p className="text-sm text-ink-soft mt-3">Toca de nuevo tu respuesta para dejarla en blanco.</p>}
 
           {revealed && (
             <Paper className="mt-4 p-4 anim-pop" aria-live="polite">
@@ -421,13 +423,13 @@ export function ExamRunner({ exam, remainingMs, onSelect, onBlank, onGoto, onFin
         </div>
       </div>
 
-      <div className="border-t border-ink-3 px-4 pt-3 pb-safe bg-ink">
+      <div className="px-4 pt-3 pb-safe bg-ground">
         <div className="max-w-md mx-auto flex items-center gap-2">
-          <IconButton label="Pregunta anterior" disabled={i === 0} onClick={() => onGoto(i - 1)} className="w-14 h-14 bg-ink-2 border border-ink-3">
+          <IconButton label="Pregunta anterior" disabled={i === 0} onClick={() => onGoto(i - 1)} className="w-14 h-14 bg-card paper-shadow">
             <CaretLeft size={24} weight="bold" />
           </IconButton>
           {center}
-          <IconButton label="Pregunta siguiente" disabled={i === n - 1} onClick={() => onGoto(i + 1)} className="w-14 h-14 bg-ink-2 border border-ink-3">
+          <IconButton label="Pregunta siguiente" disabled={i === n - 1} onClick={() => onGoto(i + 1)} className="w-14 h-14 bg-card paper-shadow">
             <CaretRight size={24} weight="bold" />
           </IconButton>
         </div>
@@ -449,7 +451,7 @@ export function ExamRunner({ exam, remainingMs, onSelect, onBlank, onGoto, onFin
             <Button variant="blue" onClick={() => { setSheet(null); onFinish(); }}>
               Entregar y corregir
             </Button>
-            <Button variant="paper" className="border-2 border-paper-3" onClick={() => setSheet(null)}>
+            <Button variant="paper" onClick={() => setSheet(null)}>
               Seguir respondiendo
             </Button>
           </>
@@ -466,7 +468,7 @@ export function ExamRunner({ exam, remainingMs, onSelect, onBlank, onGoto, onFin
             <Button variant="red" onClick={() => { setSheet(null); onAbandon(); }}>
               Abandonar examen
             </Button>
-            <Button variant="paper" className="border-2 border-paper-3" onClick={() => setSheet(null)}>
+            <Button variant="paper" onClick={() => setSheet(null)}>
               Volver al examen
             </Button>
           </>
@@ -497,55 +499,57 @@ export function ExamResults({ result, xp, pendingMistakes, onNew, onHome, onRevi
   return (
     <div className="flex flex-col gap-6">
       <header>
-        <h1 className="display text-[52px]">Resultado</h1>
-        <p className="text-sm text-mute mt-1">{exam.title}</p>
+        <h1 className="display text-[48px]">Resultado</h1>
+        <p className="text-sm text-ink-soft mt-1">{exam.title}</p>
         {reason === "timeout" && (
-          <p className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-ink bg-folder-yellow rounded-[4px] px-3 py-2">
+          <p className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-ink bg-sun rounded-full px-4 py-2">
             <Timer size={18} weight="bold" /> Tiempo agotado: se entregó solo.
           </p>
         )}
       </header>
 
-      <Paper className="p-5 anim-pop">
+      <div className="rounded-folder bg-sun p-5 anim-pop">
         <div className="flex items-start gap-4">
           <div className="min-w-0 flex-1">
-            <p className="label text-mute-paper">Acta de corrección</p>
-            <p className="font-mono text-[56px] leading-none font-semibold tracking-tight tabular-nums mt-2" aria-label={`Nota ${fmt2(grade.net)}`}>
+            <p className="label">Acta de corrección</p>
+            <p className="brand text-[64px] leading-none mt-2" aria-label={`Nota ${fmt2(grade.net)}`}>
               {fmt2(netShown)}
             </p>
-            <p className="font-mono text-sm text-mute-paper mt-1">
+            <p className="font-mono text-sm mt-1">
               sobre {grade.n} · {grade.correct} − {grade.wrong} ÷ 3
             </p>
           </div>
-          <Illustration name={art} className="w-28 shrink-0" alt="" />
+          <div className="w-28 h-28 p-2 shrink-0 bg-card blob">
+            <Illustration name={art} className="w-full" alt="" />
+          </div>
         </div>
         <div className="mt-4">
           <div className="flex justify-between text-sm mb-1.5">
-            <span className="text-mute-paper">Nota sobre 10</span>
-            <span className="font-mono font-semibold tabular-nums">{fmt2(over10Shown)}</span>
+            <span>Nota sobre 10</span>
+            <span className="font-mono font-semibold">{fmt2(over10Shown)}</span>
           </div>
-          <ProgressBar pct={grade.over10 * 10} color="#191919" track="bg-paper-3" className="h-2.5" label="Nota sobre 10" />
+          <ProgressBar pct={grade.over10 * 10} color={PAL.ink} track="bg-card/70" className="h-3" label="Nota sobre 10" />
         </div>
         <div className="grid grid-cols-3 gap-2 mt-5 text-center">
-          <div className="rounded-[4px] bg-folder-green text-paper py-3">
+          <div className="rounded-xl bg-card py-3">
             <p className="font-mono text-2xl font-semibold">{grade.correct}</p>
             <p className="text-xs">Aciertos</p>
           </div>
-          <div className="rounded-[4px] bg-folder-red text-paper py-3">
+          <div className="rounded-xl bg-card py-3">
             <p className="font-mono text-2xl font-semibold">{grade.wrong}</p>
             <p className="text-xs">Fallos</p>
           </div>
-          <div className="rounded-[4px] bg-paper-2 py-3">
+          <div className="rounded-xl bg-card py-3">
             <p className="font-mono text-2xl font-semibold">{grade.blank}</p>
             <p className="text-xs">En blanco</p>
           </div>
         </div>
-      </Paper>
+      </div>
 
       <div>
         {promoted && (
           <p className="font-serif text-xl mb-3">
-            ¡Ascenso! Ahora eres <span className="text-folder-yellow">{rankAfter.name}</span>.
+            ¡Ascenso! Ahora eres <span className="font-semibold text-plum">{rankAfter.name}</span>.
           </p>
         )}
         <RankFolder xp={xp} tab={`+${xpGained} XP en este test`} />
@@ -553,17 +557,19 @@ export function ExamResults({ result, xp, pendingMistakes, onNew, onHome, onRevi
 
       {earned.length > 0 && (
         <section aria-labelledby="medallas-nuevas">
-          <h2 id="medallas-nuevas" className="display text-3xl mb-3">Medallas nuevas</h2>
+          <h2 id="medallas-nuevas" className="display text-[30px] mb-3">Medallas nuevas</h2>
           <div className="flex flex-col gap-2">
             {earned.map((id, k) => {
               const a = ACHIEVEMENTS.find((x) => x.id === id);
               return (
                 <div key={id} className="anim-medal" style={{ animationDelay: `${350 + k * 80}ms` }}>
                   <Paper className="p-3 flex items-center gap-3">
-                    <Illustration name={a.illustration} className="w-16 shrink-0" alt="" />
+                    <div className="w-16 h-16 p-1 shrink-0 bg-lilac blob">
+                      <Illustration name={a.illustration} className="w-full" alt="" />
+                    </div>
                     <div>
                       <p className="font-serif text-lg leading-tight">{a.name}</p>
-                      <p className="text-sm text-mute-paper">{a.desc}</p>
+                      <p className="text-sm text-ink-soft">{a.desc}</p>
                     </div>
                   </Paper>
                 </div>
@@ -574,11 +580,11 @@ export function ExamResults({ result, xp, pendingMistakes, onNew, onHome, onRevi
       )}
 
       {(grade.wrong > 0 || result.mastered > 0) && (
-        <p className="text-[15px] text-mute -mb-3">
+        <p className="text-[15px] text-ink-soft -mb-3">
           {grade.wrong > 0 && <>Tus {grade.wrong} {grade.wrong === 1 ? "fallo se ha guardado" : "fallos se han guardado"} para repasar. </>}
           {result.mastered > 0 && (
             <>
-              <span className="text-paper">{result.mastered} {result.mastered === 1 ? "pregunta dominada" : "preguntas dominadas"}</span>: salen del repaso.
+              <span className="font-semibold text-ink">{result.mastered} {result.mastered === 1 ? "pregunta dominada" : "preguntas dominadas"}</span>: salen del repaso.
             </>
           )}
         </p>
@@ -589,7 +595,7 @@ export function ExamResults({ result, xp, pendingMistakes, onNew, onHome, onRevi
         </Button>
       )}
       <div className="grid grid-cols-2 gap-2 -mt-4">
-        <Button onClick={onNew}>
+        <Button variant="blue" onClick={onNew}>
           <ArrowCounterClockwise size={20} weight="bold" /> Nuevo test
         </Button>
         <Button variant="ghost" onClick={onHome}>
@@ -598,38 +604,38 @@ export function ExamResults({ result, xp, pendingMistakes, onNew, onHome, onRevi
       </div>
 
       <section aria-labelledby="revision-title">
-        <h2 id="revision-title" className="display text-3xl mb-3">Revisión</h2>
+        <h2 id="revision-title" className="display text-[30px] mb-3">Revisión</h2>
         <ul className="flex flex-col gap-2">
           {exam.questions.map((q, idx) => {
             const a = exam.answers[idx];
             const status = a === null ? "blank" : a === q.answer ? "ok" : "ko";
             const isOpen = open.has(idx);
             return (
-              <li key={q.id + idx} className="rounded-folder bg-ink-2 border border-ink-3 overflow-hidden">
+              <li key={q.id + idx} className="rounded-folder bg-card paper-shadow overflow-hidden">
                 <button type="button" onClick={() => toggle(idx)} className="tap w-full px-3 py-3 flex items-center gap-3 text-left" aria-expanded={isOpen}>
                   <span
-                    className={`w-9 h-9 rounded-[4px] flex items-center justify-center shrink-0 ${
-                      status === "ok" ? "bg-folder-green" : status === "ko" ? "bg-folder-red" : "bg-ink-4"
+                    className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
+                      status === "ok" ? "bg-mint text-olive" : status === "ko" ? "bg-peach text-plum" : "bg-ground-2"
                     }`}
                     aria-label={status === "ok" ? "Acierto" : status === "ko" ? "Fallo" : "En blanco"}
                   >
                     {status === "ok" ? <Check size={18} weight="bold" /> : status === "ko" ? <X size={18} weight="bold" /> : <Minus size={18} weight="bold" />}
                   </span>
                   <span className="flex-1 text-[15px] leading-snug">
-                    <span className="font-mono text-mute mr-1">{idx + 1}.</span>
+                    <span className="font-mono text-ink-soft mr-1">{idx + 1}.</span>
                     {q.q}
                   </span>
-                  <CaretDown size={20} weight="bold" className={`text-mute shrink-0 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
+                  <CaretDown size={20} weight="bold" className={`text-ink-soft shrink-0 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
                 </button>
                 {isOpen && (
                   <div className="px-3 pb-3 anim-fade">
-                    <Paper className="p-3 shadow-none">
+                    <div className="rounded-xl bg-ground p-3">
                       <ul className="flex flex-col gap-1">
                         {q.options.map((opt, oi) => (
                           <li
                             key={oi}
-                            className={`text-sm rounded-[4px] px-2.5 py-2 ${
-                              oi === q.answer ? "bg-folder-green text-paper" : oi === a ? "bg-folder-red text-paper" : "text-mute-paper"
+                            className={`text-sm rounded-xl px-2.5 py-2 ${
+                              oi === q.answer ? "bg-mint text-ink" : oi === a ? "bg-peach text-ink" : "text-ink-soft"
                             }`}
                           >
                             <span className="font-mono font-semibold mr-2">{"ABCD"[oi]}</span>
@@ -638,7 +644,7 @@ export function ExamResults({ result, xp, pendingMistakes, onNew, onHome, onRevi
                         ))}
                       </ul>
                       <p className="font-serif text-[16px] leading-relaxed mt-3">{q.exp}</p>
-                    </Paper>
+                    </div>
                   </div>
                 )}
               </li>

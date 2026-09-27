@@ -2,13 +2,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Fire } from "@phosphor-icons/react";
 import { ACHIEVEMENTS, MEDAL_FAMILIES, RANKS, ROMAN, fmt2, medalProgress } from "../lib/logic.js";
 import { useCountUp, useReducedMotion } from "../lib/motion.js";
-import { Button, Galones, Illustration, MedalBadge, Paper } from "../ui.jsx";
+import { Button, Galones, Illustration, MedalBadge } from "../ui.jsx";
+import { PAL } from "../lib/palette.js";
 
 /* Pantallas de celebración a pantalla completa (bucle de Duolingo): al terminar un test se
    encadenan test completado → racha → meta diaria → medallas → ascenso, cada una con «Continuar».
    Son poco frecuentes, así que aquí sí hay deleite: confeti, rebote suave y vibración en Android. */
 
-const CONFETTI_COLORS = ["#ffe927", "#1e4bd7", "#d71e1e", "#0c7866", "#581e70", "#fdfaf7"];
+const CONFETTI_COLORS = [PAL.sun, PAL.sky, PAL.peach, PAL.mint, PAL.lilac, PAL.plum, PAL.ink];
 
 function Confetti() {
   const pieces = useMemo(
@@ -47,7 +48,7 @@ function Confetti() {
 }
 
 /** Anillo de progreso de la meta diaria. */
-export function GoalRing({ done, goal, size = 132, stroke = 12, color = "#fdfaf7", track = "rgba(0,0,0,0.22)", children }) {
+export function GoalRing({ done, goal, size = 132, stroke = 12, color = PAL.ink, track = "rgba(34,34,34,0.12)", children }) {
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const pct = Math.min(1, goal ? done / goal : 0);
@@ -81,40 +82,40 @@ function testScreen(report) {
   const { grade, xpParts } = report;
   const art = grade.over10 >= 7 ? "resultado-alto" : grade.over10 >= 4 ? "resultado-medio" : "resultado-bajo";
   return {
-    bg: "#1e4bd7",
+    bg: PAL.sky,
     kicker: "Test completado",
     title: grade.over10 >= 7 ? "¡Muy bien!" : grade.over10 >= 4 ? "¡Buen trabajo!" : "¡A seguir!",
     confetti: grade.over10 >= 7,
     visual: (
-      <Paper className="w-40 h-40 p-2">
+      <div className="w-40 h-40 p-4 bg-card blob">
         <Illustration name={art} className="w-full" alt="" />
-      </Paper>
+      </div>
     ),
     body: (
       <>
         <div className="grid grid-cols-3 gap-2 w-full max-w-xs">
-          <div className="rounded-folder bg-folder-yellow text-ink py-3">
-            <p className="font-mono text-2xl font-semibold tabular-nums">
+          <div className="rounded-folder bg-sun text-ink py-3">
+            <p className="font-mono text-2xl font-semibold">
               +<CountUp value={report.xpGained} />
             </p>
             <p className="text-xs font-semibold">XP</p>
           </div>
-          <div className="rounded-folder bg-black/25 py-3">
-            <p className="font-mono text-2xl font-semibold tabular-nums">
+          <div className="rounded-folder bg-card py-3">
+            <p className="font-mono text-2xl font-semibold">
               {grade.correct}/{grade.n}
             </p>
             <p className="text-xs">Aciertos</p>
           </div>
-          <div className="rounded-folder bg-black/25 py-3">
-            <p className="font-mono text-2xl font-semibold tabular-nums">{fmt2(grade.over10)}</p>
+          <div className="rounded-folder bg-card py-3">
+            <p className="font-mono text-2xl font-semibold">{fmt2(grade.over10)}</p>
             <p className="text-xs">Sobre 10</p>
           </div>
         </div>
-        <p className="font-mono text-xs text-paper mt-3">
+        <p className="font-mono text-xs text-ink mt-3">
           {xpParts.correct} por aciertos{xpParts.test ? ` · +${xpParts.test} por terminar` : ""}
           {xpParts.goal ? ` · +${xpParts.goal} meta diaria` : ""}
         </p>
-        <p className="text-sm text-paper mt-2">
+        <p className="text-sm text-ink mt-2">
           Hoy llevas {report.dailyDone} de {report.dailyGoal} preguntas de tu meta.
         </p>
       </>
@@ -125,37 +126,37 @@ function testScreen(report) {
 function cardsScreen(report) {
   const ratio = report.n ? report.known / report.n : 0;
   return {
-    bg: "#d71e1e",
+    bg: PAL.peach,
     kicker: "Repaso completado",
     title: ratio >= 0.7 ? "¡Muy bien!" : "¡Buen repaso!",
     confetti: ratio >= 0.9,
     visual: (
-      <Paper className="w-40 h-40 p-2">
+      <div className="w-40 h-40 p-4 bg-card blob">
         <Illustration name="test-listo" className="w-full" alt="" />
-      </Paper>
+      </div>
     ),
     body: (
       <>
         <div className="grid grid-cols-2 gap-2 w-full max-w-[16rem]">
-          <div className="rounded-folder bg-folder-yellow text-ink py-3">
-            <p className="font-mono text-2xl font-semibold tabular-nums">
+          <div className="rounded-folder bg-sun text-ink py-3">
+            <p className="font-mono text-2xl font-semibold">
               +<CountUp value={report.xpGained} />
             </p>
             <p className="text-xs font-semibold">XP</p>
           </div>
-          <div className="rounded-folder bg-black/25 py-3">
-            <p className="font-mono text-2xl font-semibold tabular-nums">
+          <div className="rounded-folder bg-card py-3">
+            <p className="font-mono text-2xl font-semibold">
               {report.known}/{report.n}
             </p>
             <p className="text-xs">Te las sabías</p>
           </div>
         </div>
-        <p className="font-mono text-xs text-paper mt-3">
+        <p className="font-mono text-xs text-ink mt-3">
           {report.xpParts.cards} por tarjetas{report.xpParts.combo ? ` · +${report.xpParts.combo} por rachas` : ""}
           {report.xpParts.goal ? ` · +${report.xpParts.goal} meta diaria` : ""}
           {report.bestCombo >= 2 ? ` · mejor racha ×${report.bestCombo}` : ""}
         </p>
-        <p className="text-sm text-paper mt-2">
+        <p className="text-sm text-ink mt-2">
           Hoy llevas {report.dailyDone} de {report.dailyGoal} de tu meta.
         </p>
       </>
@@ -171,17 +172,16 @@ function screenFor(item, report, store) {
     const racha = MEDAL_FAMILIES.find((f) => f.id === "racha");
     const next = medalProgress(racha, store).next;
     return {
-      bg: "#ffe927",
-      dark: false,
+      bg: PAL.sun,
       kicker: "Racha de estudio",
       title: `¡${item.count} ${item.count === 1 ? "día" : "días"}!`,
       confetti: item.count > 1,
       visual: (
         <div className="relative">
-          <Paper className="w-40 h-40 p-2">
+          <div className="w-40 h-40 p-4 bg-card blob">
             <Illustration name="racha-activa" className="w-full" alt="" />
-          </Paper>
-          <span className="absolute -bottom-3 -right-3 w-14 h-14 rounded-full bg-folder-red text-paper flex items-center justify-center border-4 border-folder-yellow">
+          </div>
+          <span className="absolute -bottom-2 -right-2 w-14 h-14 blob-2 bg-ink text-sun flex items-center justify-center">
             <Fire size={30} weight="fill" className="anim-flicker" />
           </span>
         </div>
@@ -197,7 +197,7 @@ function screenFor(item, report, store) {
 
   if (item.type === "goal") {
     return {
-      bg: "#0c7866",
+      bg: PAL.mint,
       kicker: "Meta diaria",
       title: "¡Meta cumplida!",
       confetti: true,
@@ -214,19 +214,19 @@ function screenFor(item, report, store) {
   if (item.type === "special") {
     const a = ACHIEVEMENTS.find((x) => x.id === item.id);
     return {
-      bg: "#581e70",
+      bg: PAL.lilac,
       kicker: "¡Enhorabuena!",
       title: "Nueva medalla",
       confetti: true,
       visual: (
-        <Paper className="w-44 h-44 p-2">
+        <div className="w-44 h-44 p-4 bg-card blob">
           <Illustration name={a.illustration} className="w-full" alt="" />
-        </Paper>
+        </div>
       ),
       body: (
         <>
           <p className="font-serif text-[26px] leading-tight">{a.name}</p>
-          <p className="text-base text-paper mt-1 max-w-xs">{a.desc}</p>
+          <p className="text-base text-ink mt-1 max-w-xs">{a.desc}</p>
         </>
       ),
     };
@@ -237,22 +237,21 @@ function screenFor(item, report, store) {
     const next = f.tiers[item.level];
     return {
       bg: f.color,
-      dark: f.dark !== false,
       kicker: "¡Enhorabuena!",
       title: `Nivel ${ROMAN[item.level]}`,
       confetti: true,
       visual: (
-        <Paper className="w-44 h-44 flex items-center justify-center">
-          <MedalBadge family={f} level={item.level} size={112} />
-        </Paper>
+        <div className="w-44 h-44 blob bg-card flex items-center justify-center">
+          <MedalBadge family={f} level={item.level} size={104} />
+        </div>
       ),
       body: (
         <>
           <p className="font-serif text-[26px] leading-tight">{f.name}</p>
-          <p className="text-base mt-1 max-w-xs opacity-85">
+          <p className="text-base mt-1 max-w-xs">
             {f.tiers[item.level - 1]} {f.unit}.
           </p>
-          <p className="font-mono text-sm mt-2 opacity-85">{next ? `Siguiente nivel: ${next} ${f.unit}` : "¡Nivel máximo!"}</p>
+          <p className="font-mono text-sm mt-2">{next ? `Siguiente nivel: ${next} ${f.unit}` : "¡Nivel máximo!"}</p>
         </>
       ),
     };
@@ -261,19 +260,20 @@ function screenFor(item, report, store) {
   // rank
   const rank = RANKS.find((r) => r.level === item.level);
   return {
-    bg: "#191919",
+    bg: PAL.plum,
+    dark: true,
     kicker: "¡Ascenso!",
     title: rank.name,
     confetti: true,
     visual: (
-      <Paper className="w-44 h-44 p-2">
+      <div className="w-44 h-44 p-4 bg-card blob">
         <Illustration name={rank.illustration} className="w-full" alt="" />
-      </Paper>
+      </div>
     ),
     body: (
       <>
-        <Galones level={rank.level} />
-        <p className="text-base text-paper mt-3 max-w-xs">Nivel {rank.level} de 5. Sigue sumando XP para el siguiente rango.</p>
+        <Galones level={rank.level} onDark />
+        <p className="text-base mt-3 max-w-xs">Nivel {rank.level} de 5. Sigue sumando XP para el siguiente rango.</p>
       </>
     ),
   };
@@ -300,14 +300,14 @@ export default function Celebrations({ queue, report, store, onDone }) {
   }, [i, item.type]);
 
   const s = screenFor(item, report, store);
-  const dark = s.dark !== false;
+  const dark = s.dark === true;
   const next = () => (i + 1 < queue.length ? setI(i + 1) : onDone());
 
   return (
     <div
       ref={dialogRef}
       tabIndex={-1}
-      className={`fixed inset-0 z-[70] flex flex-col outline-none transition-colors duration-300 ${dark ? "text-paper" : "text-ink"}`}
+      className={`fixed inset-0 z-[70] flex flex-col outline-none transition-colors duration-300 ${dark ? "text-ground" : "text-ink"}`}
       style={{ background: s.bg }}
       role="dialog"
       aria-modal="true"
@@ -315,8 +315,8 @@ export default function Celebrations({ queue, report, store, onDone }) {
     >
       {s.confetti && !reduce && <Confetti key={i} />}
       <div key={i} className="relative flex-1 flex flex-col items-center justify-center text-center gap-5 px-6 pt-safe">
-        <p className="label celebrate-in opacity-80">{s.kicker}</p>
-        <h2 className="display text-[56px] celebrate-pop max-w-sm">{s.title}</h2>
+        <p className="label celebrate-in">{s.kicker}</p>
+        <h2 className={`display text-[54px] celebrate-pop max-w-sm ${dark ? "text-lilac" : ""}`}>{s.title}</h2>
         <div className="celebrate-in" style={{ animationDelay: "120ms" }}>
           {s.visual}
         </div>
@@ -328,11 +328,11 @@ export default function Celebrations({ queue, report, store, onDone }) {
         {queue.length > 1 && (
           <div className="flex justify-center gap-1.5 mb-4" aria-label={`Pantalla ${i + 1} de ${queue.length}`}>
             {queue.map((_, k) => (
-              <span key={k} className={`h-1.5 rounded-full transition-[width,opacity] duration-300 ease-out ${k === i ? "w-6 opacity-100" : "w-1.5 opacity-40"} ${dark ? "bg-paper" : "bg-ink"}`} />
+              <span key={k} className={`h-1.5 rounded-full transition-[width,opacity] duration-300 ease-out ${k === i ? "w-6 opacity-100" : "w-1.5 opacity-40"} ${dark ? "bg-lilac" : "bg-ink"}`} />
             ))}
           </div>
         )}
-        <Button variant={dark ? "paper" : "ink"} onClick={next} className="w-full">
+        <Button variant={dark ? "yellow" : "ink"} onClick={next} className="w-full">
           {i + 1 < queue.length ? "Continuar" : report.kind === "cards" ? "Terminar" : "Ver resultado"}
         </Button>
       </div>

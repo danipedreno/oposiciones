@@ -23,24 +23,26 @@ export default function Login({ onLogin }) {
     if (!r.ok) setError(r.error);
   };
 
-  const field = "w-full h-14 rounded-folder bg-paper-2 border-2 border-paper-3 px-4 text-ink caret-ink font-semibold outline-none focus:border-ink transition-colors";
+  const field = "w-full h-14 rounded-full bg-ground border-2 border-line px-5 text-ink caret-ink font-semibold outline-none focus:border-ink transition-colors";
 
   return (
-    <div className="fixed inset-0 bg-ink scroll-area">
+    <div className="fixed inset-0 bg-ground scroll-area">
       <div className="max-w-md mx-auto px-4 pt-safe pb-safe min-h-full flex flex-col justify-center gap-6 py-8">
         <header>
-          <h1 className="display text-[56px]">Recuento</h1>
-          <p className="label text-mute mt-2">Oposiciones · Ayudantes de IIPP</p>
+          <h1 className="brand text-[60px]">Recuento</h1>
+          <p className="label text-ink-soft mt-2">Oposiciones a Ayudantes de Instituciones Penitenciarias</p>
         </header>
 
         <Paper className="p-5 anim-rise">
-          <Illustration name="bienvenida" className="w-full" alt="" />
+          <div className="bg-sun blob p-3">
+            <Illustration name="bienvenida" className="w-full" alt="" />
+          </div>
           <p className="display text-[30px] mt-4">Accede a tu temario</p>
-          <p className="text-[15px] text-mute-paper mt-1">Tus preguntas y tarjetas están cifradas. Entra una vez y se quedan en este móvil.</p>
+          <p className="text-[15px] text-ink-soft mt-1">Tus preguntas y tarjetas están cifradas. Entra una vez y se quedan en este móvil.</p>
 
           <form onSubmit={submit} className="mt-5 flex flex-col gap-4" noValidate>
             <div>
-              <label htmlFor="login-user" className="label text-mute-paper block mb-2">
+              <label htmlFor="login-user" className="label text-ink-soft block mb-2">
                 Usuario
               </label>
               <input
@@ -58,7 +60,7 @@ export default function Login({ onLogin }) {
               />
             </div>
             <div>
-              <label htmlFor="login-pass" className="label text-mute-paper block mb-2">
+              <label htmlFor="login-pass" className="label text-ink-soft block mb-2">
                 Contraseña
               </label>
               <div className="relative">
@@ -79,14 +81,14 @@ export default function Login({ onLogin }) {
                   type="button"
                   onClick={() => setShow((v) => !v)}
                   aria-label={show ? "Ocultar contraseña" : "Mostrar contraseña"}
-                  className="tap absolute right-1 top-1 w-12 h-12 rounded-folder text-mute-paper flex items-center justify-center"
+                  className="tap absolute right-1 top-1 w-12 h-12 rounded-full text-ink-soft flex items-center justify-center"
                 >
                   {show ? <EyeSlash size={22} weight="bold" /> : <Eye size={22} weight="bold" />}
                 </button>
               </div>
             </div>
             {error && (
-              <p id="login-error" role="alert" className="text-sm font-semibold text-folder-red -mt-1">
+              <p id="login-error" role="alert" className="text-sm font-semibold text-plum -mt-1">
                 {error}
               </p>
             )}

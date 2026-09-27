@@ -5,6 +5,7 @@ import { useBank } from "./lib/bank.js";
 import CardsScreen from "./screens/Cards.jsx";
 import { DEFAULT_STORE, useInstallPrompt, useNow, usePersistentStore } from "./lib/store.js";
 import { AppToaster, notify } from "./ui.jsx";
+import { PAL } from "./lib/palette.js";
 import Home from "./screens/Home.jsx";
 import Celebrations from "./screens/Celebration.jsx";
 import Temario from "./screens/Temario.jsx";
@@ -13,22 +14,22 @@ import Achievements from "./screens/Achievements.jsx";
 import { ExamResults, ExamRunner, ExamSetup } from "./screens/Exam.jsx";
 
 const TABS = [
-  { id: "home", label: "Inicio", Icon: House, color: "#ffe927", dark: false },
-  { id: "test", label: "Test", Icon: ClipboardText, color: "#1e4bd7", dark: true },
-  { id: "cards", label: "Tarjetas", Icon: Cards, color: "#d71e1e", dark: true },
-  { id: "badges", label: "Logros", Icon: Trophy, color: "#581e70", dark: true },
+  { id: "home", label: "Inicio", Icon: House, color: PAL.sun },
+  { id: "test", label: "Test", Icon: ClipboardText, color: PAL.sky },
+  { id: "cards", label: "Tarjetas", Icon: Cards, color: PAL.peach },
+  { id: "badges", label: "Logros", Icon: Trophy, color: PAL.lilac },
 ];
 
 /**
  * Barra de pestañas. La pestaña activa es una capa de color recortada con clip-path que se desliza
- * de una pestaña a otra: el color de carpeta de cada sección cambia exactamente en el borde.
+ * de una pestaña a otra: el pastel de cada sección cambia exactamente en el borde.
  */
 function TabBar({ tab, onChange }) {
   const index = TABS.findIndex((t) => t.id === tab);
   const n = TABS.length;
   return (
     <nav className="fixed left-4 right-4 tabbar-pos z-40" aria-label="Navegación principal">
-      <div className="relative max-w-md mx-auto rounded-folder bg-ink-2/95 backdrop-blur-md border border-ink-3 p-1.5 shadow-2xl shadow-black/70">
+      <div className="relative max-w-md mx-auto rounded-full bg-card p-1.5 shadow-[0_0_0_1px_#ebdfc3,0_18px_40px_-16px_rgba(33,38,51,0.45)]">
         <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}>
           {TABS.map(({ id, label, Icon }) => (
             <button
@@ -36,10 +37,10 @@ function TabBar({ tab, onChange }) {
               type="button"
               onClick={() => onChange(id)}
               aria-current={tab === id ? "page" : undefined}
-              className="tap press h-14 rounded-[4px] flex flex-col items-center justify-center gap-0.5 text-mute hover:text-paper"
+              className="tap press h-14 rounded-full flex flex-col items-center justify-center gap-0.5 text-ink-soft hover:text-ink"
             >
               <Icon size={24} />
-              <span className="text-xs font-semibold">{label}</span>
+              <span className="text-xs font-medium">{label}</span>
             </button>
           ))}
         </div>
@@ -47,10 +48,10 @@ function TabBar({ tab, onChange }) {
           aria-hidden="true"
           hidden={index < 0}
           className="absolute inset-1.5 grid gap-1 pointer-events-none transition-[clip-path] duration-[250ms] ease-in-out"
-          style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))`, clipPath: `inset(0 ${((n - 1 - index) / n) * 100}% 0 ${(index / n) * 100}% round 4px)` }}
+          style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))`, clipPath: `inset(0 ${((n - 1 - index) / n) * 100}% 0 ${(index / n) * 100}% round 999px)` }}
         >
-          {TABS.map(({ id, label, Icon, color, dark }) => (
-            <div key={id} className={`h-14 rounded-[4px] flex flex-col items-center justify-center gap-0.5 ${dark ? "text-paper" : "text-ink"}`} style={{ background: color }}>
+          {TABS.map(({ id, label, Icon, color }) => (
+            <div key={id} className="h-14 rounded-full flex flex-col items-center justify-center gap-0.5 text-ink" style={{ background: color }}>
               <Icon size={24} weight="fill" />
               <span className="text-xs font-semibold">{label}</span>
             </div>
@@ -69,7 +70,7 @@ export default function App() {
     onUpdated: (b) =>
       notify({
         icon: <CheckCircle size={24} weight="fill" />,
-        color: "#0c7866",
+        color: PAL.mint,
         kicker: "Temario actualizado",
         text: `${b.temas.length} temas · ${b.preguntas.length} preguntas`,
       }),
@@ -145,12 +146,12 @@ export default function App() {
       setStore((s) => ({ ...s, settings: { ...s.settings, blocks: [], tema: "all" } }));
       notify({
         icon: <CheckCircle size={24} weight="fill" />,
-        color: "#0c7866",
+        color: PAL.mint,
         kicker: "Temario importado",
         text: `${r.bank.preguntas.length} preguntas y ${r.bank.flashcards.length} tarjetas`,
       });
     } else {
-      notify({ icon: <WarningCircle size={24} weight="fill" />, color: "#d71e1e", kicker: "No se pudo importar", text: r.error, duration: 6000 });
+      notify({ icon: <WarningCircle size={24} weight="fill" />, color: PAL.peach, kicker: "No se pudo importar", text: r.error, duration: 6000 });
     }
   };
   const onCardsFinish = (results, live) => {
@@ -167,11 +168,11 @@ export default function App() {
     finishedIds.current = new Set();
     setStore({ ...DEFAULT_STORE, installDismissed: storeRef.current.installDismissed });
     setTab("home");
-    notify({ icon: <ArrowCounterClockwise size={24} weight="bold" />, color: "#191919", kicker: "Hecho", text: "Progreso reiniciado" });
+    notify({ icon: <ArrowCounterClockwise size={24} weight="bold" />, color: PAL.sun, kicker: "Hecho", text: "Progreso reiniciado" });
   };
 
   return (
-    <div className="fixed inset-0 overflow-hidden bg-ink">
+    <div className="fixed inset-0 overflow-hidden bg-ground">
       <AppToaster />
       {!bank ? (
         <Login onLogin={login} />

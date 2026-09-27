@@ -19,42 +19,38 @@ export const NIGHT_END_HOUR = 6;
 export const MASTERED_AFTER = 2;
 export const REVIEW_SIZE = 20;
 
-/* Cada bloque es una carpeta de color (paleta Mosby). Clases completas para que Tailwind las detecte. */
+/* Cada bloque es una carpeta de un pastel. Clases completas para que Tailwind las detecte. */
 export const BLOCKS = {
   penitenciario: {
     id: "penitenciario",
     label: "Derecho Penitenciario",
     short: "Penitenciario",
-    hex: "#1e4bd7",
-    bg: "bg-folder-blue",
-    text: "text-folder-blue",
+    hex: "#a4bdff",
+    bg: "bg-sky",
     illustration: "bloque-penitenciario",
   },
   penal: {
     id: "penal",
     label: "Derecho Penal",
     short: "Penal",
-    hex: "#d71e1e",
-    bg: "bg-folder-red",
-    text: "text-folder-red",
+    hex: "#f6d5c2",
+    bg: "bg-peach",
     illustration: "bloque-penal",
   },
   conducta: {
     id: "conducta",
     label: "Conducta Humana",
     short: "Conducta",
-    hex: "#581e70",
-    bg: "bg-folder-purple",
-    text: "text-folder-purple",
+    hex: "#e6befb",
+    bg: "bg-lilac",
     illustration: "procesando",
   },
   funcion: {
     id: "funcion",
     label: "Función Pública",
     short: "Función Pública",
-    hex: "#0c7866",
-    bg: "bg-folder-green",
-    text: "text-folder-green",
+    hex: "#e1f1c8",
+    bg: "bg-mint",
     illustration: "bloque-funcion-publica",
   },
 };
@@ -79,18 +75,18 @@ export const ACHIEVEMENTS = [
 /* Medallas por niveles (estilo Duolingo): cada familia tiene umbrales repartidos a lo largo del mes
    y siempre muestra cuánto falta para el siguiente nivel. `value` lee el progreso del estado guardado. */
 export const MEDAL_FAMILIES = [
-  { id: "racha", name: "En racha", icon: "fire", color: "#ffe927", dark: false, unit: "días seguidos", tiers: [3, 7, 14, 21, 30], value: (s) => s.streak.best || 0 },
-  { id: "meta", name: "Meta cumplida", icon: "target", color: "#0c7866", unit: "días con la meta diaria", tiers: [1, 5, 10, 20, 28], value: (s) => s.goalDays.length },
-  { id: "respondidas", name: "Fondo de armario", icon: "books", color: "#1e4bd7", unit: "preguntas respondidas", tiers: [100, 300, 700, 1200, 2000], value: (s) => s.totals.answered },
-  { id: "maraton", name: "Maratón", icon: "timer", color: "#d71e1e", unit: "tests de 30 o más preguntas", tiers: [1, 5, 10, 20], value: (s) => s.counters.marathons },
-  { id: "repaso", name: "Sin cuentas pendientes", icon: "repeat", color: "#581e70", unit: "fallos dominados", tiers: [5, 20, 50, 100], value: (s) => s.counters.mastered },
-  { id: "tarjetero", name: "Tarjetero", icon: "cards", color: "#d71e1e", unit: "tarjetas dominadas", tiers: [20, 100, 250, 500], value: (s) => Object.values(s.cards || {}).filter((c) => c.box >= 4).length },
-  { id: "matricula", name: "Matrícula", icon: "star", color: "#1e4bd7", unit: "tests de 20+ con nota ≥ 8", tiers: [1, 5, 15], value: (s) => s.counters.highScores },
+  { id: "racha", name: "En racha", icon: "fire", color: "#fae355", unit: "días seguidos", tiers: [3, 7, 14, 21, 30], value: (s) => s.streak.best || 0 },
+  { id: "meta", name: "Meta cumplida", icon: "target", color: "#e1f1c8", unit: "días con la meta diaria", tiers: [1, 5, 10, 20, 28], value: (s) => s.goalDays.length },
+  { id: "respondidas", name: "Fondo de armario", icon: "books", color: "#a4bdff", unit: "preguntas respondidas", tiers: [100, 300, 700, 1200, 2000], value: (s) => s.totals.answered },
+  { id: "maraton", name: "Maratón", icon: "timer", color: "#f6d5c2", unit: "tests de 30 o más preguntas", tiers: [1, 5, 10, 20], value: (s) => s.counters.marathons },
+  { id: "repaso", name: "Sin cuentas pendientes", icon: "repeat", color: "#e6befb", unit: "fallos dominados", tiers: [5, 20, 50, 100], value: (s) => s.counters.mastered },
+  { id: "tarjetero", name: "Tarjetero", icon: "cards", color: "#f6d5c2", unit: "tarjetas dominadas", tiers: [20, 100, 250, 500], value: (s) => Object.values(s.cards || {}).filter((c) => c.box >= 4).length },
+  { id: "matricula", name: "Matrícula", icon: "star", color: "#a4bdff", unit: "tests de 20+ con nota ≥ 8", tiers: [1, 5, 15], value: (s) => s.counters.highScores },
   {
     id: "especialista",
     name: "Especialista",
     icon: "scales",
-    color: "#0c7866",
+    color: "#e1f1c8",
     unit: "bloques con 75 % de aciertos (mín. 50 preguntas)",
     tiers: [1, 2, 3, 4],
     value: (s) => ["penitenciario", "penal", "funcion", "conducta"].filter((b) => (s.blockStats[b]?.t || 0) >= 50 && s.blockStats[b].c / s.blockStats[b].t >= 0.75).length,

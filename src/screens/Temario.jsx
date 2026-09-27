@@ -9,7 +9,7 @@ import { ImportBank } from "./Cards.jsx";
 export default function Temario({ bank, onImport, onBack, onLogout }) {
   const [confirm, setConfirm] = useState(false);
   const back = (
-    <button type="button" onClick={onBack} className="tap press -ml-2 mb-2 h-11 px-2 rounded-folder text-mute hover:text-paper flex items-center gap-1 text-sm font-semibold">
+    <button type="button" onClick={onBack} className="tap press mb-3 h-11 pl-3 pr-4 rounded-full bg-card paper-shadow text-ink flex items-center gap-1 text-sm font-semibold">
       <CaretLeft size={18} weight="bold" /> Inicio
     </button>
   );
@@ -18,20 +18,22 @@ export default function Temario({ bank, onImport, onBack, onLogout }) {
       <div className="flex flex-col gap-6">
         <header>
           {back}
-          <h1 className="display text-[52px]">Temario</h1>
+          <h1 className="display text-[48px]">Temario</h1>
         </header>
         <Paper className="p-4">
-          <Illustration name="apuntes-vacio" className="w-full" alt="" />
+          <div className="bg-mist blob p-3">
+            <Illustration name="apuntes-vacio" className="w-full" alt="" />
+          </div>
           <p className="display text-[30px] mt-3">Carga tu temario</p>
-          <ol className="mt-3 flex flex-col gap-2 text-[15px] text-mute-paper">
-            <li>1. Guarda en el móvil el archivo <span className="font-mono text-ink">mi-banco.json</span> que te han pasado.</li>
+          <ol className="mt-3 flex flex-col gap-2 text-[15px] text-ink-soft">
+            <li>1. Guarda en el móvil el archivo <span className="font-semibold text-ink">mi-banco.json</span> que te han pasado.</li>
             <li>2. Pulsa el botón y elígelo.</li>
             <li>3. Ya puedes crear tests y repasar tarjetas de todos tus temas.</li>
           </ol>
           <div className="mt-4">
             <ImportBank onImport={onImport} variant="blue" />
           </div>
-          <p className="text-sm text-mute-paper mt-3">Se guarda solo en este móvil. No se sube a ningún sitio.</p>
+          <p className="text-sm text-ink-soft mt-3">Se guarda solo en este móvil. No se sube a ningún sitio.</p>
         </Paper>
       </div>
     );
@@ -44,18 +46,18 @@ export default function Temario({ bank, onImport, onBack, onLogout }) {
     <div className="flex flex-col gap-6">
       <header>
         {back}
-        <h1 className="display text-[52px]">Temario</h1>
+        <h1 className="display text-[48px]">Temario</h1>
       </header>
 
-      <div className="grid grid-cols-3 border-y border-ink-3 divide-x divide-ink-3 text-center">
+      <div className="grid grid-cols-3 gap-2 text-center">
         {[
           { label: "Temas", value: bank.temas.length },
           { label: "Preguntas", value: bank.preguntas.length },
           { label: "Tarjetas", value: bank.flashcards.length },
         ].map((s) => (
-          <div key={s.label} className="py-3">
-            <p className="font-mono text-2xl font-semibold tabular-nums">{s.value}</p>
-            <p className="text-xs text-mute">{s.label}</p>
+          <div key={s.label} className="py-3 rounded-folder bg-card paper-shadow">
+            <p className="brand text-[28px] leading-none">{s.value}</p>
+            <p className="text-xs text-ink-soft mt-1.5">{s.label}</p>
           </div>
         ))}
       </div>
@@ -63,13 +65,13 @@ export default function Temario({ bank, onImport, onBack, onLogout }) {
       {bloques.map((b) => (
         <section key={b} aria-label={BLOCKS[b].label}>
           <div className="flex items-end">
-            <FolderTab color={BLOCKS[b].hex} className="ml-2 -mb-px relative z-[1]">
+            <FolderTab color={BLOCKS[b].hex} className="-mb-px relative z-[1]">
               {BLOCKS[b].label}
             </FolderTab>
           </div>
-          <ol className="rounded-folder folder-shadow p-2 flex flex-col gap-1" style={{ background: BLOCKS[b].hex }}>
+          <ol className="rounded-folder rounded-tl-none p-2 flex flex-col gap-1" style={{ background: BLOCKS[b].hex }}>
             {temasOf(bank, b).map((t) => (
-              <li key={t.id} className="rounded-[4px] bg-black/20 px-3 py-2.5 flex items-baseline gap-3">
+              <li key={t.id} className="rounded-[14px] bg-card/70 px-3 py-2.5 flex items-baseline gap-3">
                 <span className="font-mono text-sm font-semibold w-6 shrink-0">{t.numero}</span>
                 <span className="flex-1 min-w-0 leading-snug">{t.titulo}</span>
                 <span className="font-mono text-xs shrink-0 text-right leading-tight">
@@ -83,14 +85,14 @@ export default function Temario({ bank, onImport, onBack, onLogout }) {
         </section>
       ))}
 
-      <div className="border-t border-ink-3 pt-5 flex flex-col gap-3">
-        <p className="text-sm text-mute">
+      <div className="pt-2 flex flex-col gap-3">
+        <p className="text-sm text-ink-soft">
           Versión del {fecha}. Cuando haya temas nuevos, la app los descarga sola al abrirla; tu progreso, racha y fallos se conservan.
         </p>
         <Button variant="ghost" onClick={() => setConfirm(true)} className="w-full">
           <SignOut size={20} weight="bold" /> Cerrar sesión
         </Button>
-        <details className="text-sm text-mute">
+        <details className="text-sm text-ink-soft">
           <summary className="tap cursor-pointer py-3">Importar un archivo manualmente</summary>
           <ImportBank onImport={onImport} label="Elegir mi-banco.json" variant="ghost" />
         </details>
@@ -106,7 +108,7 @@ export default function Temario({ bank, onImport, onBack, onLogout }) {
             <Button variant="red" onClick={() => { setConfirm(false); onLogout(); }}>
               Cerrar sesión
             </Button>
-            <Button variant="paper" className="border-2 border-paper-3" onClick={() => setConfirm(false)}>
+            <Button variant="paper" onClick={() => setConfirm(false)}>
               Cancelar
             </Button>
           </>

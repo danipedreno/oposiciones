@@ -17,8 +17,8 @@ export default defineConfig({
         short_name: "Recuento",
         description: "Tests con corrección oficial, tarjetas de repaso, racha y rangos para preparar Ayudantes de Instituciones Penitenciarias.",
         lang: "es",
-        theme_color: "#191919",
-        background_color: "#191919",
+        theme_color: "#fdf4df",
+        background_color: "#fdf4df",
         display: "standalone",
         orientation: "portrait",
         // Igual que la otra webapp que sí se instala en el mismo móvil: rutas relativas al manifiesto e id estable.

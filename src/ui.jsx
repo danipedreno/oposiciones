@@ -6,36 +6,23 @@ import { ILLUSTRATIONS } from "./lib/illustrations.js";
 import { RANKS, ROMAN } from "./lib/logic.js";
 
 /* ---------------------------------------------------------------------
-   Carpeta con pestaña (motivo de Mosby's Files)
+   Carpeta con pestaña: pestaña redondeada en pastel sobre un cuerpo del mismo color
    --------------------------------------------------------------------- */
-const WEDGE = "M0 0C8 0 10.5 3 12.2 10L16.4 34C17.6 40 20 44 24 44H0Z";
 
-/** Pestaña de carpeta: bordes curvos a ambos lados y cuerpo del color de la carpeta. */
-export function FolderTab({ color, dark = true, compact = false, children, className = "" }) {
-  const w = compact ? 16 : 24;
+/** Pestaña: esquinas superiores redondas y el color de su carpeta. `dark` = texto claro sobre tono hondo. */
+export function FolderTab({ color, dark = false, compact = false, children, className = "" }) {
   return (
-    <div className={`flex items-end h-11 ${className}`}>
-      <svg width={w} height="44" viewBox="0 0 24 44" preserveAspectRatio="none" className="-mr-px shrink-0" style={{ transform: "scaleX(-1)" }} aria-hidden="true">
-        <path d={WEDGE} fill={color} />
-      </svg>
-      <div
-        className={`h-11 flex items-center gap-2 px-1.5 font-serif text-[17px] leading-none whitespace-nowrap ${dark ? "text-paper" : "text-ink"}`}
-        style={{ background: color }}
-      >
-        {children}
-      </div>
-      <svg width={w} height="44" viewBox="0 0 24 44" preserveAspectRatio="none" className="-ml-px shrink-0" aria-hidden="true">
-        <path d={WEDGE} fill={color} />
-      </svg>
+    <div
+      className={`h-11 flex items-center gap-2 rounded-t-[16px] font-medium leading-none whitespace-nowrap ${compact ? "px-3.5 text-[15px]" : "px-4 text-base"} ${dark ? "text-ground" : "text-ink"} ${className}`}
+      style={{ background: color }}
+    >
+      {children}
     </div>
   );
 }
 
-/**
- * Carpeta: pestaña + cuerpo. `stacked` hace que la siguiente carpeta monte su pestaña
- * sobre esta, como el archivador de la portada de Mosby's Files.
- */
-export function Folder({ color, tab, tabDark = true, stacked = false, tabOffset = "ml-3", className = "", bodyClassName = "", children, style }) {
+/** Carpeta: pestaña + cuerpo del mismo color. */
+export function Folder({ color, tab, tabDark = false, stacked = false, tabOffset = "ml-0", className = "", bodyClassName = "", children, style }) {
   return (
     <section className={`relative ${className}`} style={style}>
       <div className="flex items-end">
@@ -43,17 +30,17 @@ export function Folder({ color, tab, tabDark = true, stacked = false, tabOffset 
           {tab}
         </FolderTab>
       </div>
-      <div className={`relative rounded-folder folder-shadow ${stacked ? "pb-16" : ""} ${bodyClassName}`} style={{ background: color }}>
+      <div className={`relative rounded-folder rounded-tl-none ${tabDark ? "text-ground" : "text-ink"} ${stacked ? "pb-16" : ""} ${bodyClassName}`} style={{ background: color }}>
         {children}
       </div>
     </section>
   );
 }
 
-/** Hoja de papel crema: aquí viven la lectura larga y las ilustraciones. */
+/** Tarjeta blanca: lectura larga, formularios e ilustraciones. */
 export function Paper({ className = "", children, as: Tag = "div", ...rest }) {
   return (
-    <Tag className={`bg-paper text-ink rounded-folder paper-shadow ${className}`} {...rest}>
+    <Tag className={`bg-card text-ink rounded-folder paper-shadow ${className}`} {...rest}>
       {children}
     </Tag>
   );
@@ -63,20 +50,20 @@ export function Paper({ className = "", children, as: Tag = "div", ...rest }) {
    Controles
    --------------------------------------------------------------------- */
 const BUTTON_VARIANTS = {
-  yellow: "bg-folder-yellow text-ink hover:brightness-95",
-  blue: "bg-folder-blue text-paper hover:brightness-110",
-  paper: "bg-paper text-ink hover:bg-paper-2",
-  ghost: "bg-transparent text-paper border-2 border-ink-4 hover:border-mute",
-  red: "bg-folder-red text-paper hover:brightness-110",
-  green: "bg-folder-green text-paper hover:brightness-110",
-  ink: "bg-ink text-paper hover:bg-ink-2",
+  yellow: "bg-sun text-ink hover:brightness-95",
+  blue: "bg-ink text-ground hover:bg-navy",
+  paper: "bg-card text-ink border-2 border-line hover:border-line-strong",
+  ghost: "bg-transparent text-ink border-2 border-ink/80 hover:bg-ink/5",
+  red: "bg-plum text-ground hover:brightness-110",
+  green: "bg-olive text-ground hover:brightness-110",
+  ink: "bg-ink text-ground hover:bg-navy",
 };
 
 export function Button({ variant = "yellow", className = "", children, ...rest }) {
   return (
     <button
       type="button"
-      className={`tap press h-14 px-5 rounded-folder font-sans font-semibold text-base flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed ${BUTTON_VARIANTS[variant]} ${className}`}
+      className={`tap press h-14 px-6 rounded-full font-sans font-semibold text-base flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed ${BUTTON_VARIANTS[variant]} ${className}`}
       {...rest}
     >
       {children}
@@ -90,7 +77,7 @@ export function IconButton({ label, className = "", children, ...rest }) {
       type="button"
       aria-label={label}
       title={label}
-      className={`tap press w-12 h-12 rounded-folder flex items-center justify-center disabled:opacity-30 ${className}`}
+      className={`tap press w-12 h-12 rounded-full flex items-center justify-center disabled:opacity-30 ${className}`}
       {...rest}
     >
       {children}
@@ -110,13 +97,13 @@ export function Segmented({ label, options, value, onChange, disabledValues = []
   const cell = (o, active) => (
     <>
       {o.label}
-      {o.sub && <span className={`block font-mono text-[11px] font-medium ${active ? "text-mute-paper" : "text-mute"}`}>{o.sub}</span>}
+      {o.sub && <span className={`block text-[11px] font-medium ${active ? "text-ground/90" : "text-ink-soft"}`}>{o.sub}</span>}
     </>
   );
   return (
     <fieldset>
-      <legend className={hideLabel ? "sr-only" : "label text-mute mb-2"}>{label}</legend>
-      <div className="relative rounded-folder bg-ink-2 border border-ink-3 p-1">
+      <legend className={hideLabel ? "sr-only" : "label text-ink-soft mb-2"}>{label}</legend>
+      <div className="relative rounded-[28px] bg-ground-2 p-1">
         <div className="grid gap-1" style={cols}>
           {options.map((o) => (
             <button
@@ -125,7 +112,7 @@ export function Segmented({ label, options, value, onChange, disabledValues = []
               disabled={disabledValues.includes(o.value)}
               aria-pressed={o.value === value}
               onClick={() => onChange(o.value)}
-              className="tap press min-h-12 py-1.5 rounded-[4px] text-sm font-semibold leading-tight text-mute hover:text-paper disabled:opacity-35"
+              className="tap press min-h-12 py-1.5 rounded-full text-sm font-semibold leading-tight text-ink-soft hover:text-ink disabled:opacity-35"
             >
               {cell(o, false)}
             </button>
@@ -134,10 +121,10 @@ export function Segmented({ label, options, value, onChange, disabledValues = []
         <div
           aria-hidden="true"
           className="absolute inset-1 grid gap-1 pointer-events-none transition-[clip-path] duration-[250ms] ease-in-out"
-          style={{ ...cols, clipPath: `inset(0 ${((n - 1 - index) / n) * 100}% 0 ${(index / n) * 100}% round 4px)` }}
+          style={{ ...cols, clipPath: `inset(0 ${((n - 1 - index) / n) * 100}% 0 ${(index / n) * 100}% round 999px)` }}
         >
           {options.map((o) => (
-            <div key={String(o.value)} className="min-h-12 py-1.5 rounded-[4px] bg-paper text-ink text-sm font-semibold leading-tight flex flex-col items-center justify-center text-center">
+            <div key={String(o.value)} className="min-h-12 py-1.5 rounded-full bg-ink text-ground text-sm font-semibold leading-tight flex flex-col items-center justify-center text-center">
               {cell(o, true)}
             </div>
           ))}
@@ -148,7 +135,7 @@ export function Segmented({ label, options, value, onChange, disabledValues = []
 }
 
 /** Barra de progreso animada con transform (scaleX), no con width: no recalcula el layout. */
-export function ProgressBar({ pct, color = "#ffe927", track = "bg-ink-3", className = "h-2", label }) {
+export function ProgressBar({ pct, color = "#222222", track = "bg-ground-2", className = "h-2", label }) {
   const v = Math.max(0, Math.min(100, pct));
   return (
     <div className={`${track} rounded-full overflow-hidden ${className}`} role="progressbar" aria-valuenow={Math.round(v)} aria-valuemin={0} aria-valuemax={100} aria-label={label}>
@@ -161,7 +148,7 @@ export function ProgressBar({ pct, color = "#ffe927", track = "bg-ink-3", classN
 }
 
 /** Galones: una insignia por nivel alcanzado. */
-export function Galones({ level, onPaper = false }) {
+export function Galones({ level, onPaper = false, onDark = false }) {
   return (
     <div className="flex items-center gap-0.5" aria-label={`Nivel ${level} de ${RANKS.length}`} role="img">
       {RANKS.map((r) => (
@@ -169,7 +156,7 @@ export function Galones({ level, onPaper = false }) {
           key={r.level}
           weight="bold"
           size={20}
-          className={r.level <= level ? (onPaper ? "text-folder-purple" : "text-folder-yellow") : onPaper ? "text-paper-3" : "text-ink-4"}
+          className={onDark ? (r.level <= level ? "text-sun" : "text-ground/25") : r.level <= level ? (onPaper ? "text-plum" : "text-ink") : onPaper ? "text-line" : "text-ink/20"}
         />
       ))}
     </div>
@@ -187,14 +174,14 @@ export function MedalBadge({ family, level, size = 64 }) {
   return (
     <div className="relative shrink-0" style={{ width: size, height: size }}>
       <div
-        className={`w-full h-full rounded-folder flex items-center justify-center ${locked ? "bg-ink-3 text-ink-4" : family.dark === false ? "text-ink" : "text-paper"}`}
+        className={`w-full h-full blob flex items-center justify-center ${locked ? "bg-ground-2 text-line-strong" : "text-ink"}`}
         style={locked ? undefined : { background: family.color }}
       >
-        <Icon size={size * 0.52} weight="fill" />
+        <Icon size={size * 0.46} weight={locked ? "regular" : "fill"} />
       </div>
       {!locked && (
         <span
-          className="absolute -bottom-1.5 -right-1.5 min-w-[28px] h-7 px-1.5 rounded-full bg-paper text-ink border-2 border-ink font-mono text-xs font-semibold flex items-center justify-center"
+          className="absolute -bottom-1.5 -right-1.5 min-w-[28px] h-7 px-1.5 rounded-full bg-ink text-ground font-mono text-xs font-semibold flex items-center justify-center"
           aria-label={`Nivel ${level}`}
         >
           {ROMAN[level]}
@@ -217,12 +204,12 @@ export function Illustration({ name, className = "", alt = "" }) {
   if (attempt >= EXTENSIONS.length) {
     return (
       <div
-        className={`${aspect} rounded-[4px] border-2 border-dashed border-paper-3 flex flex-col items-center justify-center gap-1 text-center px-2 ${className}`}
+        className={`${aspect} rounded-folder border-2 border-dashed border-line flex flex-col items-center justify-center gap-1 text-center px-2 ${className}`}
         role="img"
         aria-label={alt || `Ilustración pendiente: ${name}`}
       >
-        <PencilSimpleLine size={22} weight="bold" className="text-mute-paper" />
-        <span className="font-mono text-[10px] leading-tight text-mute-paper break-all">{name}</span>
+        <PencilSimpleLine size={22} weight="bold" className="text-ink-soft" />
+        <span className="font-mono text-[10px] leading-tight text-ink-soft break-all">{name}</span>
       </div>
     );
   }
@@ -249,16 +236,16 @@ export function Sheet({ open, title, illustration, body, actions, onClose }) {
   return (
     <Drawer.Root open={open} onOpenChange={(o) => !o && onClose()}>
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 z-50 bg-black/70" />
+        <Drawer.Overlay className="fixed inset-0 z-50 bg-navy/45" />
         <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-md outline-none">
-          <Paper className="rounded-b-none px-5 pt-3 pb-safe">
-            <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-paper-3" aria-hidden="true" />
+          <Paper className="rounded-t-[28px] rounded-b-none px-5 pt-3 pb-safe">
+            <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-line" aria-hidden="true" />
             <div className="flex items-start gap-4">
               {illustration && <Illustration name={illustration} className="w-24 shrink-0" />}
               <div className="min-w-0">
-                <Drawer.Title className="display text-3xl">{title}</Drawer.Title>
+                <Drawer.Title className="display text-[30px]">{title}</Drawer.Title>
                 <Drawer.Description asChild>
-                  <div className="mt-2 text-[15px] text-mute-paper leading-relaxed">{body}</div>
+                  <div className="mt-2 text-[15px] text-ink-soft leading-relaxed">{body}</div>
                 </Drawer.Description>
               </div>
             </div>
@@ -276,15 +263,15 @@ export function AppToaster() {
   return <Toaster position="top-center" offset={{ top }} mobileOffset={{ top, left: 16, right: 16 }} gap={8} />;
 }
 
-export function notify({ icon, color = "#581e70", kicker, text, duration = 3800 }) {
+export function notify({ icon, color = "#e6befb", kicker, text, duration = 3800 }) {
   toast.custom(
     () => (
       <Paper className="w-full px-3 py-3 flex items-center gap-3">
-        <span className="w-11 h-11 rounded-[4px] flex items-center justify-center shrink-0 text-paper" style={{ background: color }}>
+        <span className="w-11 h-11 blob flex items-center justify-center shrink-0 text-ink" style={{ background: color }}>
           {icon}
         </span>
         <div className="min-w-0">
-          <p className="label text-mute-paper">{kicker}</p>
+          <p className="label text-ink-soft">{kicker}</p>
           <p className="font-semibold truncate">{text}</p>
         </div>
       </Paper>

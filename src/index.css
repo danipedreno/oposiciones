@@ -1,10 +1,6 @@
-@import "@fontsource-variable/archivo/wdth.css";
+@import "@fontsource-variable/bricolage-grotesque/opsz.css";
+@import "@fontsource/caprasimo/400.css";
 @import "@fontsource-variable/source-serif-4/index.css";
-@import "@fontsource/ibm-plex-sans/400.css";
-@import "@fontsource/ibm-plex-sans/500.css";
-@import "@fontsource/ibm-plex-sans/600.css";
-@import "@fontsource/ibm-plex-mono/500.css";
-@import "@fontsource/ibm-plex-mono/600.css";
 
 @tailwind base;
 @tailwind components;
@@ -12,7 +8,7 @@
 
 @layer base {
   :root {
-    color-scheme: dark;
+    color-scheme: light;
     /* Curvas de Emil Kowalski: ease-out para entradas y respuestas; ease-in-out para lo que se desplaza. */
     --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
     --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
@@ -21,23 +17,28 @@
   body,
   #root {
     height: 100%;
-    background: #191919;
+    background: #fdf4df;
     overscroll-behavior: none;
   }
   body {
-    @apply font-sans text-paper antialiased;
+    @apply font-sans text-ink antialiased;
+    font-optical-sizing: auto;
+    letter-spacing: -0.01em;
     font-size: 16px;
     line-height: 1.5;
     -webkit-tap-highlight-color: transparent;
     -webkit-text-size-adjust: 100%;
   }
   ::selection {
-    background: #ffe927;
-    color: #191919;
+    background: #e6befb;
+    color: #222222;
   }
   html {
-    scrollbar-color: #3a3a3a transparent;
-    caret-color: #ffe927;
+    scrollbar-color: #d9cba8 transparent;
+    caret-color: #222222;
+  }
+  .font-mono {
+    font-variant-numeric: tabular-nums;
   }
   input,
   textarea,
@@ -51,25 +52,30 @@
     cursor: pointer;
   }
   :focus-visible {
-    outline: 3px solid #ffe927;
+    outline: 3px solid #222222;
     outline-offset: 2px;
   }
 }
 
 @layer components {
-  /* Titulares condensados, como el rótulo de Mosby's Files */
+  /* Titulares: grotesca de peso medio, apretada, en caja baja (como Pelago) */
   .display {
-    font-family: "Archivo Variable", "Arial Narrow", sans-serif;
-    font-stretch: 68%;
-    font-weight: 850;
-    text-transform: uppercase;
-    line-height: 0.92;
-    letter-spacing: -0.005em;
+    font-family: "Bricolage Grotesque Variable", system-ui, sans-serif;
+    font-weight: 560;
+    line-height: 1;
+    letter-spacing: -0.035em;
     text-wrap: balance;
   }
+  /* La marca: serif gruesa y blanda */
+  .brand {
+    font-family: Caprasimo, Georgia, serif;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1;
+  }
   .label {
-    @apply font-mono text-xs font-semibold uppercase;
-    letter-spacing: 0.12em;
+    @apply text-sm font-medium;
+    letter-spacing: -0.005em;
   }
   .tap {
     min-height: 44px;
@@ -92,11 +98,19 @@
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
+  /* Pelago es plano: nada de sombras duras, solo un filo tenue para separar del crema */
   .folder-shadow {
-    box-shadow: 0 -1px 10px rgba(0, 0, 0, 0.28);
+    box-shadow: none;
   }
   .paper-shadow {
-    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25), 0 10px 30px -12px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 0 0 1px #ebdfc3;
+  }
+  /* Mancha orgánica detrás de las ilustraciones */
+  .blob {
+    border-radius: 58% 42% 55% 45% / 52% 60% 40% 48%;
+  }
+  .blob-2 {
+    border-radius: 42% 58% 38% 62% / 60% 44% 56% 40%;
   }
   .pt-safe {
     padding-top: calc(env(safe-area-inset-top, 0px) + 16px);

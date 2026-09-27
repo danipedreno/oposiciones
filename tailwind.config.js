@@ -1,4 +1,4 @@
-/** Paleta inspirada en Mosby's Files: tinta, papel y cinco colores de carpeta. */
+/** Paleta inspirada en Pelago: crema, tinta, cinco pasteles y dos tonos hondos. */
 export default {
   // En táctil, :hover se queda «pegado» tras tocar: solo se aplica con ratón.
   future: { hoverOnlyWhenSupported: true },
@@ -6,24 +6,28 @@ export default {
   theme: {
     extend: {
       colors: {
-        ink: { DEFAULT: "#191919", 2: "#232323", 3: "#2e2e2e", 4: "#3a3a3a" },
-        paper: { DEFAULT: "#fdfaf7", 2: "#f1ece5", 3: "#e2dbd2" },
-        mute: { DEFAULT: "#a3a5aa", paper: "#5f6166" },
-        folder: {
-          blue: "#1e4bd7",
-          red: "#d71e1e",
-          green: "#0c7866",
-          purple: "#581e70",
-          yellow: "#ffe927",
-        },
+        ground: { DEFAULT: "#fdf4df", 2: "#f5e8c8" },
+        card: "#ffffff",
+        line: { DEFAULT: "#ebdfc3", strong: "#b8ab8e" },
+        ink: { DEFAULT: "#222222", soft: "#5d5847" },
+        navy: "#212633",
+        sun: "#fae355",
+        lilac: "#e6befb",
+        peach: "#f6d5c2",
+        mint: "#e1f1c8",
+        sky: "#a4bdff",
+        mist: "#e9eefe",
+        plum: "#6b2346",
+        olive: "#4a6a1b",
       },
       fontFamily: {
-        display: ['"Archivo Variable"', "Archivo", "Arial Narrow", "sans-serif"],
+        display: ['"Bricolage Grotesque Variable"', "system-ui", "sans-serif"],
+        brand: ["Caprasimo", "Georgia", "serif"],
         serif: ['"Source Serif 4 Variable"', "Georgia", "serif"],
-        sans: ['"IBM Plex Sans"', "system-ui", "-apple-system", "Roboto", "sans-serif"],
-        mono: ['"IBM Plex Mono"', "ui-monospace", "Menlo", "monospace"],
+        sans: ['"Bricolage Grotesque Variable"', "system-ui", "-apple-system", "Roboto", "sans-serif"],
+        mono: ['"Bricolage Grotesque Variable"', "system-ui", "sans-serif"],
       },
-      borderRadius: { folder: "6px" },
+      borderRadius: { folder: "18px" },
       transitionTimingFunction: {
         out: "cubic-bezier(0.23, 1, 0.32, 1)",
         "in-out": "cubic-bezier(0.77, 0, 0.175, 1)",

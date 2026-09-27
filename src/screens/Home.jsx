@@ -1,19 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowCounterClockwise, Books, CaretRight, Check, DeviceMobile, Fire, X } from "@phosphor-icons/react";
 import { DAILY_GOALS, MASTERED_AFTER, dateKey, daysUntil, rankInfo, streakView } from "../lib/logic.js";
+import { PAL } from "../lib/palette.js";
 import { Button, Folder, FolderTab, Galones, IconButton, Illustration, Paper, ProgressBar, Segmented, Sheet } from "../ui.jsx";
 import { GoalRing } from "./Celebration.jsx";
 import { ImportBank } from "./Cards.jsx";
 
 const WEEKDAY = ["D", "L", "M", "X", "J", "V", "S"];
 
-// La hoja de opositor «sale del archivador» solo la primera vez que se abre Inicio en la sesión:
+// El archivador de Inicio «entra» solo la primera vez que se abre en la sesión:
 // volver a la pestaña es frecuente y repetir la animación la haría pesada.
 let introPlayed = false;
 
 export function RankFolder({ xp, tab = "Hoja de opositor", intro = false }) {
   return (
-    <Folder color="#581e70" tab={tab} className={intro ? "anim-folder" : ""}>
+    <Folder color={PAL.lilac} tab={tab} className={intro ? "anim-folder" : ""}>
       <RankContent xp={xp} />
     </Folder>
   );
@@ -25,30 +26,28 @@ function RankContent({ xp }) {
     <div>
       <div className="p-5 flex gap-4">
         <div className="min-w-0 flex-1">
-          <p className="label text-paper">
-            Rango · Nivel {rank.level}/5
-          </p>
-          <p className="display text-[40px] mt-2">{rank.name}</p>
+          <p className="label">Rango · nivel {rank.level} de 5</p>
+          <p className="display text-[36px] mt-2">{rank.name}</p>
           <div className="mt-3">
             <Galones level={rank.level} />
           </div>
         </div>
-        <Paper className="w-24 h-24 p-1.5 shrink-0 self-start">
+        <div className="w-28 h-28 p-2.5 shrink-0 self-start bg-card blob">
           <Illustration name={rank.illustration} alt={rank.name} className="w-full" />
-        </Paper>
+        </div>
       </div>
       <div className="px-5 pb-5">
         <div className="flex items-baseline justify-between gap-2 mb-2">
           <span className="font-mono font-semibold">{xp} XP</span>
-          <span className="text-sm text-paper text-right">{next ? `${toNext} XP para ${next.name}` : "Rango máximo"}</span>
+          <span className="text-sm text-right">{next ? `${toNext} XP para ${next.name}` : "Rango máximo"}</span>
         </div>
-        <ProgressBar pct={pct} track="bg-black/30" className="h-2.5" label="Progreso hasta el siguiente rango" />
+        <ProgressBar pct={pct} color={PAL.plum} track="bg-card/70" className="h-3" label="Progreso hasta el siguiente rango" />
       </div>
     </div>
   );
 }
 
-function StreakCard({ streak }) {
+function StreakContent({ streak }) {
   const view = streakView(streak);
   const today = new Date();
   const days = Array.from({ length: 7 }, (_, i) => {
@@ -66,27 +65,24 @@ function StreakCard({ streak }) {
   }[view.state];
 
   return (
-    <Paper className="p-4">
+    <div className="p-5">
       <div className="flex gap-4 items-center">
-        <Illustration name={art} className="w-28 shrink-0" alt="" />
+        <div className="w-28 h-28 p-2.5 shrink-0 bg-card blob-2">
+          <Illustration name={art} className="w-full" alt="" />
+        </div>
         <div className="min-w-0">
-          <p className="label text-mute-paper flex items-center gap-1.5">
-            <Fire size={16} weight="fill" className={view.count ? "text-folder-red anim-flicker" : "text-paper-3"} />
-            Racha de estudio
-          </p>
-          <p className="display text-5xl mt-1">
-            {view.count} {view.count === 1 ? "día" : "días"}
-          </p>
-          <p className="text-sm text-mute-paper mt-1 leading-snug">{message}</p>
+          <p className="brand text-[56px] leading-[0.9]">{view.count}</p>
+          <p className="text-lg font-medium leading-tight mt-1">{view.count === 1 ? "día seguido" : "días seguidos"}</p>
+          <p className="text-sm mt-1 leading-snug">{message}</p>
         </div>
       </div>
-      <ol className="grid grid-cols-7 gap-1 mt-4" aria-label="Últimos 7 días">
+      <ol className="grid grid-cols-7 gap-1 mt-5" aria-label="Últimos 7 días">
         {days.map((d) => (
-          <li key={d.k} className="flex flex-col items-center gap-1">
-            <span className={`font-mono text-xs ${d.isToday ? "text-ink font-semibold" : "text-mute-paper"}`}>{d.label}</span>
+          <li key={d.k} className="flex flex-col items-center gap-1.5">
+            <span className={`text-xs ${d.isToday ? "font-bold" : "font-medium"}`}>{d.label}</span>
             <span
               className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors duration-500 ${
-                d.studied ? "bg-folder-yellow text-ink" : d.isToday ? "border-2 border-dashed border-ink/40" : "bg-paper-2"
+                d.studied ? "bg-ink text-peach" : d.isToday ? "border-2 border-dashed border-ink/50" : "bg-card/70"
               }`}
               aria-label={d.studied ? "Estudiado" : "Sin estudiar"}
             >
@@ -95,8 +91,11 @@ function StreakCard({ streak }) {
           </li>
         ))}
       </ol>
-      <p className="font-mono text-xs text-mute-paper mt-3">Mejor racha: {streak.best || 0} días</p>
-    </Paper>
+      <p className="text-sm mt-4 flex items-center gap-1.5">
+        <Fire size={16} weight="fill" className={view.count ? "text-plum anim-flicker" : "text-ink/40"} />
+        Mejor racha: {streak.best || 0} días
+      </p>
+    </div>
   );
 }
 
@@ -121,39 +120,34 @@ function PlanContent({ store, onPlan }) {
 
   return (
     <>
-      <div>
-        <div className="p-5 pb-4 text-ink flex items-center gap-4">
-          <div className="flex-1 min-w-0">
-            {left === null ? (
-              <>
-                <p className="label text-ink">Cuenta atrás</p>
-                <p className="display text-[34px] mt-1">¿Cuándo es tu examen?</p>
-              </>
-            ) : left < 0 ? (
-              <>
-                <p className="label text-ink">Examen</p>
-                <p className="display text-[34px] mt-1">Ya pasó</p>
-              </>
-            ) : (
-              <>
-                <p className="display text-[72px]">{left === 0 ? "Hoy" : left}</p>
-                <p className="label text-ink mt-1">{left === 0 ? "¡Mucha suerte!" : `${left === 1 ? "día" : "días"} para el examen`}</p>
-                <p className="text-sm text-ink mt-1 first-letter:uppercase">{examLabel}</p>
-              </>
-            )}
-          </div>
-          <GoalRing done={done} goal={goal} size={112} stroke={10} color="#191919" track="rgba(25,25,25,0.15)">
-            <span className="font-mono text-xl font-semibold tabular-nums">
-              {Math.min(done, 999)}/{goal}
-            </span>
-            <span className="text-[11px] font-semibold">{done >= goal ? "¡meta!" : "hoy"}</span>
-          </GoalRing>
+      <div className="p-5 flex items-center gap-4">
+        <div className="flex-1 min-w-0">
+          {left === null ? (
+            <>
+              <p className="display text-[34px]">¿Cuándo es tu examen?</p>
+              <p className="text-[15px] mt-2 leading-snug">Pon la fecha y la meta diaria para llevar la cuenta atrás.</p>
+            </>
+          ) : left < 0 ? (
+            <p className="display text-[34px]">El examen ya pasó</p>
+          ) : (
+            <>
+              <p className="brand text-[80px] leading-[0.85]">{left === 0 ? "Hoy" : left}</p>
+              <p className="text-lg font-medium mt-2 leading-tight">{left === 0 ? "¡Mucha suerte!" : `${left === 1 ? "día" : "días"} para el examen`}</p>
+              <p className="text-sm mt-1 first-letter:uppercase">{examLabel}</p>
+            </>
+          )}
         </div>
-        <div className="px-5 pb-5">
-          <button type="button" onClick={openEditor} className="tap press h-11 px-3 -ml-3 rounded-folder text-ink text-sm font-semibold underline underline-offset-4 decoration-2">
-            {left === null ? "Poner fecha y meta diaria" : "Cambiar fecha o meta"}
-          </button>
-        </div>
+        <GoalRing done={done} goal={goal} size={112} stroke={10} color={PAL.ink} track="rgba(34,34,34,0.12)">
+          <span className="font-mono text-xl font-semibold">
+            {Math.min(done, 999)}/{goal}
+          </span>
+          <span className="text-xs font-medium">{done >= goal ? "¡meta!" : "hoy"}</span>
+        </GoalRing>
+      </div>
+      <div className="px-5 pb-5">
+        <button type="button" onClick={openEditor} className="tap press h-11 px-5 rounded-full bg-ink text-ground text-sm font-semibold">
+          {left === null ? "Poner fecha y meta" : "Cambiar fecha o meta"}
+        </button>
       </div>
 
       <Sheet
@@ -163,7 +157,7 @@ function PlanContent({ store, onPlan }) {
         body={
           <div className="flex flex-col gap-4 text-ink pt-1">
             <div>
-              <label htmlFor="exam-date" className="label text-mute-paper block mb-2">
+              <label htmlFor="exam-date" className="label text-ink-soft block mb-2">
                 Fecha del examen
               </label>
               <input
@@ -172,7 +166,7 @@ function PlanContent({ store, onPlan }) {
                 min={today}
                 value={draftDate}
                 onChange={(e) => setDraftDate(e.target.value)}
-                className="w-full h-12 rounded-folder bg-paper-2 border-2 border-paper-3 px-3 font-mono text-ink outline-none focus:border-ink"
+                className="w-full h-12 rounded-full bg-ground border-2 border-line px-4 font-mono text-ink outline-none focus:border-ink"
               />
             </div>
             <Segmented
@@ -194,7 +188,7 @@ function PlanContent({ store, onPlan }) {
             >
               Guardar plan
             </Button>
-            <Button variant="paper" className="border-2 border-paper-3" onClick={() => setEditing(false)}>
+            <Button variant="paper" onClick={() => setEditing(false)}>
               Cancelar
             </Button>
           </>
@@ -207,9 +201,9 @@ function PlanContent({ store, onPlan }) {
 /* Archivador de Inicio: tres carpetas y una sola delante; se cambia tocando su pestaña.
    Se recuerda la última elegida mientras la app esté abierta. */
 const HOME_FOLDERS = [
-  { id: "examen", label: "Tu examen", color: "#ffe927", dark: false },
-  { id: "racha", label: "Racha", color: "#d71e1e", dark: true },
-  { id: "hoja", label: "Hoja de opositor", color: "#581e70", dark: true },
+  { id: "examen", label: "Tu examen", color: PAL.sun },
+  { id: "racha", label: "Racha", color: PAL.peach },
+  { id: "hoja", label: "Hoja de opositor", color: PAL.lilac },
 ];
 let lastFolder = "examen";
 
@@ -233,7 +227,7 @@ function HomeCabinet({ store, onPlan, intro }) {
 
   return (
     <section className={intro ? "anim-folder" : ""}>
-      <div role="tablist" aria-label="Tu progreso" className="flex items-end">
+      <div role="tablist" aria-label="Tu progreso" className="flex items-end gap-1">
         {HOME_FOLDERS.map((f, k) => {
           const on = f.id === active;
           return (
@@ -248,10 +242,10 @@ function HomeCabinet({ store, onPlan, intro }) {
               tabIndex={on ? 0 : -1}
               onClick={() => choose(f.id)}
               onKeyDown={(e) => onKey(e, k)}
-              className={`tap relative shrink-0 -mb-px transition-transform duration-200 ease-out ${k ? "-ml-3" : ""} ${on ? "z-10" : "z-0 translate-y-1"}`}
+              className={`tap relative shrink-0 -mb-px transition-transform duration-200 ease-out ${on ? "z-10" : "z-0 translate-y-1"}`}
             >
-              <FolderTab color={on ? f.color : "#2e2e2e"} dark={on ? f.dark : true} compact>
-                <span className={`text-[14px] ${on ? "" : "text-mute"}`}>{f.label}</span>
+              <FolderTab color={on ? f.color : PAL.ground2} compact>
+                <span className={on ? "font-semibold" : "text-ink-soft"}>{f.label}</span>
               </FolderTab>
             </button>
           );
@@ -261,16 +255,12 @@ function HomeCabinet({ store, onPlan, intro }) {
         id="carpeta-inicio"
         role="tabpanel"
         aria-labelledby={`carpeta-tab-${active}`}
-        className={`rounded-folder folder-shadow transition-colors duration-200 ease-out ${current.dark ? "text-paper" : "text-ink"}`}
+        className={`rounded-folder text-ink transition-colors duration-200 ease-out ${active === HOME_FOLDERS[0].id ? "rounded-tl-none" : ""}`}
         style={{ background: current.color }}
       >
         <div key={active} className="anim-fade">
           {active === "examen" && <PlanContent store={store} onPlan={onPlan} />}
-          {active === "racha" && (
-            <div className="p-2.5">
-              <StreakCard streak={store.streak} />
-            </div>
-          )}
+          {active === "racha" && <StreakContent streak={store.streak} />}
           {active === "hoja" && <RankContent xp={store.xp} />}
         </div>
       </div>
@@ -282,12 +272,13 @@ function HomeCabinet({ store, onPlan, intro }) {
 function TemarioCard({ bank, onImport, onGoTemario }) {
   if (!bank) {
     return (
-      <Paper className="p-4">
-        <Illustration name="bienvenida" className="w-full" alt="" />
-        <p className="label text-mute-paper mt-3">Paso 1</p>
-        <p className="display text-[34px] mt-1">Carga tu temario</p>
-        <p className="text-[15px] text-mute-paper mt-2">
-          Importa el archivo <span className="font-mono text-ink">mi-banco.json</span> con las preguntas y tarjetas de todos tus temas. Se guarda solo en este móvil.
+      <Paper className="p-5">
+        <div className="bg-mist blob p-3">
+          <Illustration name="bienvenida" className="w-full" alt="" />
+        </div>
+        <p className="display text-[34px] mt-4">Carga tu temario</p>
+        <p className="text-[15px] text-ink-soft mt-2">
+          Importa el archivo <span className="font-semibold text-ink">mi-banco.json</span> con las preguntas y tarjetas de todos tus temas. Se guarda solo en este móvil.
         </p>
         <div className="mt-4">
           <ImportBank onImport={onImport} variant="blue" />
@@ -297,15 +288,17 @@ function TemarioCard({ bank, onImport, onGoTemario }) {
   }
   const fecha = new Date(bank.generado).toLocaleDateString("es-ES", { day: "numeric", month: "short" });
   return (
-    <button type="button" onClick={onGoTemario} className="tap press w-full text-left flex items-center gap-3 rounded-folder bg-ink-2 border border-ink-3 px-4 py-3">
-      <Books size={24} weight="fill" className="text-folder-green shrink-0" />
+    <button type="button" onClick={onGoTemario} className="tap press w-full text-left flex items-center gap-3 rounded-folder bg-card paper-shadow px-4 py-3">
+      <span className="w-11 h-11 blob bg-mint flex items-center justify-center shrink-0">
+        <Books size={22} weight="fill" />
+      </span>
       <span className="flex-1 min-w-0">
         <span className="block font-semibold">Temario cargado</span>
-        <span className="block text-sm text-mute">
+        <span className="block text-sm text-ink-soft">
           {bank.temas.length} temas · {bank.preguntas.length} preguntas · actualizado el {fecha}
         </span>
       </span>
-      <CaretRight size={20} weight="bold" className="text-mute shrink-0" />
+      <CaretRight size={20} weight="bold" className="text-ink-soft shrink-0" />
     </button>
   );
 }
@@ -323,21 +316,23 @@ export default function Home({ store, bank, install, onDismissInstall, onImport,
     <div className="flex flex-col gap-6">
       <header className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="display text-[44px]">Recuento</h1>
-          <p className="label text-mute mt-1">{dateLabel}</p>
+          <h1 className="brand text-[46px]">Recuento</h1>
+          <p className="label text-ink-soft mt-1.5 first-letter:uppercase">{dateLabel}</p>
         </div>
-        <div className="flex items-center gap-1.5 h-11 px-3 rounded-full bg-ink-2 border border-ink-3" aria-label={`Racha de ${streakCount} días`}>
-          <Fire size={20} weight="fill" className={streakCount ? "text-folder-yellow" : "text-ink-4"} />
+        <div className={`flex items-center gap-1.5 h-11 px-4 rounded-full ${streakCount ? "bg-sun" : "bg-card paper-shadow"}`} aria-label={`Racha de ${streakCount} días`}>
+          <Fire size={20} weight="fill" className={streakCount ? "text-ink" : "text-line-strong"} />
           <span className="font-mono font-semibold">{streakCount}</span>
         </div>
       </header>
 
       {!install.installed && !install.canInstall && !store.installDismissed && install.browser !== "desktop" && (
         <Paper className="p-4 flex gap-3 anim-pop">
-          <Illustration name="instalar" className="w-16 shrink-0 self-start" />
+          <div className="w-16 h-16 p-1.5 shrink-0 self-start bg-mist blob">
+            <Illustration name="instalar" className="w-full" />
+          </div>
           <div className="min-w-0 flex-1">
             <p className="font-semibold leading-tight">Instálala en tu móvil</p>
-            <p className="text-sm text-mute-paper leading-snug mt-1">
+            <p className="text-sm text-ink-soft leading-snug mt-1">
               {
                 {
                   chrome: "En Chrome: toca ⋮ (arriba a la derecha) → «Instalar aplicación» o «Añadir a pantalla de inicio».",
@@ -348,7 +343,7 @@ export default function Home({ store, bank, install, onDismissInstall, onImport,
               }
             </p>
           </div>
-          <IconButton label="Ocultar aviso" onClick={onDismissInstall} className="text-mute-paper -mr-2 -mt-2 self-start">
+          <IconButton label="Ocultar aviso" onClick={onDismissInstall} className="text-ink-soft -mr-2 -mt-2 self-start">
             <X size={20} weight="bold" />
           </IconButton>
         </Paper>
@@ -356,15 +351,17 @@ export default function Home({ store, bank, install, onDismissInstall, onImport,
 
       {install.canInstall && !store.installDismissed && (
         <Paper className="p-3 flex items-center gap-3 anim-pop">
-          <Illustration name="instalar" className="w-16 shrink-0" />
+          <div className="w-14 h-14 p-1 shrink-0 bg-mist blob">
+            <Illustration name="instalar" className="w-full" />
+          </div>
           <div className="min-w-0 flex-1">
             <p className="font-semibold leading-tight">Instala Recuento</p>
-            <p className="text-sm text-mute-paper leading-snug">Ábrela desde tu pantalla de inicio, también sin conexión.</p>
+            <p className="text-sm text-ink-soft leading-snug">Ábrela desde tu pantalla de inicio, también sin conexión.</p>
           </div>
-          <button type="button" onClick={install.install} className="tap press h-11 px-3 rounded-folder bg-ink text-paper text-sm font-semibold flex items-center gap-1.5">
+          <button type="button" onClick={install.install} className="tap press h-11 px-4 rounded-full bg-ink text-ground text-sm font-semibold flex items-center gap-1.5">
             <DeviceMobile size={18} weight="bold" /> Instalar
           </button>
-          <IconButton label="Ocultar aviso" onClick={onDismissInstall} className="text-mute-paper -mr-1">
+          <IconButton label="Ocultar aviso" onClick={onDismissInstall} className="text-ink-soft -mr-1">
             <X size={20} weight="bold" />
           </IconButton>
         </Paper>
@@ -374,13 +371,15 @@ export default function Home({ store, bank, install, onDismissInstall, onImport,
       <HomeCabinet store={store} onPlan={onPlan} intro={intro} />
 
       {pendingMistakes > 0 && (
-        <button type="button" onClick={onReview} className="tap press text-left rounded-folder bg-folder-red text-paper p-4 flex items-center gap-4">
-          <ArrowCounterClockwise size={30} weight="bold" className="shrink-0" />
+        <button type="button" onClick={onReview} className="tap press text-left rounded-folder bg-plum text-ground p-5 flex items-center gap-4">
+          <span className="w-12 h-12 blob bg-lilac text-plum flex items-center justify-center shrink-0">
+            <ArrowCounterClockwise size={24} weight="bold" />
+          </span>
           <span className="flex-1 min-w-0">
-            <span className="display text-[26px] block">Repasar fallos</span>
+            <span className="display text-[28px] block text-lilac">Repasar fallos</span>
             <span className="text-sm leading-snug block mt-1">Salen del repaso cuando las aciertas {MASTERED_AFTER} veces seguidas</span>
           </span>
-          <span className="font-mono text-3xl font-semibold tabular-nums" aria-label={`${pendingMistakes} pendientes`}>
+          <span className="brand text-[44px] text-lilac" aria-label={`${pendingMistakes} pendientes`}>
             {pendingMistakes}
           </span>
         </button>
