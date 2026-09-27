@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowCounterClockwise, CaretDoubleUp, ClipboardText, FileText, House, Key, Moon, ShieldCheck, Trophy, GridFour } from "@phosphor-icons/react";
-import { ACHIEVEMENTS, applyExamResult, createExam } from "./lib/logic.js";
+import { ACHIEVEMENTS, applyExamResult, createExam, mistakePool } from "./lib/logic.js";
 import { DEFAULT_STORE, useInstallPrompt, useNow, usePersistentStore } from "./lib/store.js";
 import { AppToaster, notify } from "./ui.jsx";
 import Home from "./screens/Home.jsx";
@@ -140,6 +140,12 @@ export default function App() {
       title: s.customTest.title,
     });
   };
+  const onReview = () => {
+    const s = storeRef.current;
+    const pool = mistakePool(s.mistakes);
+    if (!pool.length) return;
+    startExam({ pool, count: pool.length, feedback: s.settings.feedback, secsPerQ: s.settings.secsPerQ, source: "mistakes", title: "Repaso de fallos" });
+  };
   const onNewExam = () => {
     setStore((s) => ({ ...s, lastResult: null }));
     setTab("test");
@@ -167,6 +173,7 @@ export default function App() {
                   onDismissInstall={() => setStore((s) => ({ ...s, installDismissed: true }))}
                   onNewExam={onNewExam}
                   onGoNotes={() => setTab("notes")}
+                  onReview={onReview}
                   onPractice={(block) => {
                     setStore((s) => ({ ...s, lastResult: null, settings: { ...s.settings, source: "bank", block } }));
                     setTab("test");
@@ -175,7 +182,14 @@ export default function App() {
               )}
               {tab === "test" &&
                 (store.lastResult ? (
-                  <ExamResults result={store.lastResult} xp={store.xp} onNew={onNewExam} onHome={() => setTab("home")} />
+                  <ExamResults
+                    result={store.lastResult}
+                    xp={store.xp}
+                    pendingMistakes={Object.keys(store.mistakes).length}
+                    onNew={onNewExam}
+                    onHome={() => setTab("home")}
+                    onReview={onReview}
+                  />
                 ) : (
                   <ExamSetup store={store} onSettings={onSettings} onStart={startExam} />
                 ))}

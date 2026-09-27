@@ -10,6 +10,9 @@ export const XP_PER_CORRECT = 10;
 export const OFFICIAL_SECONDS_PER_QUESTION = 54;
 export const NIGHT_START_HOUR = 23;
 export const NIGHT_END_HOUR = 6;
+// Una pregunta fallada sale del repaso tras acertarla estas veces seguidas.
+export const MASTERED_AFTER = 2;
+export const REVIEW_SIZE = 20;
 
 /* Cada bloque es una carpeta de color (paleta Mosby). Clases completas para que Tailwind las detecte. */
 export const BLOCKS = {
@@ -148,6 +151,14 @@ export function createExam({ pool, count, feedback, secsPerQ, source, title }) {
 }
 
 /** Corrección oficial IIPP: Nota = Aciertos − Errores / 3. Los blancos no puntúan. */
+/** Preguntas del repaso: primero las más falladas y, a igualdad, las falladas más recientemente. */
+export function mistakePool(mistakes, limit = REVIEW_SIZE) {
+  return Object.values(mistakes || {})
+    .sort((a, b) => b.wrong - a.wrong || b.last.localeCompare(a.last))
+    .slice(0, limit)
+    .map((m) => m.q);
+}
+
 export function gradeExam(exam) {
   let correct = 0, wrong = 0, blank = 0, run = 0, maxWrongRun = 0;
   exam.questions.forEach((q, i) => {
@@ -185,6 +196,27 @@ export function applyExamResult(store, exam, reason, date) {
     blockStats[q.block] = { c: prev.c + (exam.answers[i] === q.answer ? 1 : 0), t: prev.t + 1 };
   });
 
+  // Fallos para repasar: se añade cada pregunta fallada (no las dejadas en blanco) y se retira
+  // cuando se acierta MASTERED_AFTER veces seguidas. Se guarda la pregunta entera porque las de
+  // «Mis apuntes» desaparecen al generar otro test.
+  const mistakes = { ...store.mistakes };
+  let mastered = 0;
+  exam.questions.forEach((q, i) => {
+    const a = exam.answers[i];
+    const prev = mistakes[q.id];
+    if (a !== null && a !== q.answer) {
+      const { id, block, q: text, options, answer, exp, origin } = q;
+      mistakes[q.id] = { q: { id, block, q: text, options, answer, exp, origin }, wrong: (prev?.wrong || 0) + 1, right: 0, last: date.toISOString() };
+    } else if (a === q.answer && prev) {
+      if (prev.right + 1 >= MASTERED_AFTER) {
+        delete mistakes[q.id];
+        mastered++;
+      } else {
+        mistakes[q.id] = { ...prev, right: prev.right + 1 };
+      }
+    }
+  });
+
   const earned = [];
   const unlock = (id, cond) => {
     if (cond && !store.achievements[id]) earned.push(id);
@@ -206,6 +238,8 @@ export function applyExamResult(store, exam, reason, date) {
     rankAfter,
     earned,
     reason,
+    mastered,
+    pendingMistakes: Object.keys(mistakes).length,
     finishedAt: date.toISOString(),
   };
 
@@ -236,6 +270,7 @@ export function applyExamResult(store, exam, reason, date) {
         },
         ...store.history,
       ].slice(0, 30),
+      mistakes,
       activeExam: null,
       lastResult: report,
     },

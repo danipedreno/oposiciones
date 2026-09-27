@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { CaretDown, Check, DeviceMobile, Fire, Play, Sparkle, Timer, X } from "@phosphor-icons/react";
-import { BLOCKS, BLOCK_IDS, dateKey, fmt2, rankInfo, streakView } from "../lib/logic.js";
+import { ArrowCounterClockwise, CaretDown, Check, DeviceMobile, Fire, Play, Sparkle, Timer, X } from "@phosphor-icons/react";
+import { BLOCKS, BLOCK_IDS, MASTERED_AFTER, dateKey, fmt2, rankInfo, streakView } from "../lib/logic.js";
 import { SEED_QUESTIONS } from "../data/questions.js";
 import { Button, Folder, FolderTab, Galones, IconButton, Illustration, Paper, ProgressBar } from "../ui.jsx";
 
@@ -162,12 +162,13 @@ function BlockCabinet({ store, intro, onPractice }) {
   );
 }
 
-export default function Home({ store, install, onDismissInstall, onNewExam, onGoNotes, onPractice }) {
+export default function Home({ store, install, onDismissInstall, onNewExam, onGoNotes, onPractice, onReview }) {
   const intro = useRef(!introPlayed).current;
   useEffect(() => {
     introPlayed = true;
   }, []);
   const streakCount = streakView(store.streak).count;
+  const pendingMistakes = Object.keys(store.mistakes).length;
   const dateLabel = new Date().toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
   const accuracy = store.totals.answered ? Math.round((store.totals.correct / store.totals.answered) * 100) : null;
 
@@ -231,6 +232,19 @@ export default function Home({ store, install, onDismissInstall, onNewExam, onGo
           </span>
         </button>
       </div>
+
+      {pendingMistakes > 0 && (
+        <button type="button" onClick={onReview} className="tap press -mt-3 text-left rounded-folder bg-folder-red text-paper p-4 flex items-center gap-4">
+          <ArrowCounterClockwise size={30} weight="bold" className="shrink-0" />
+          <span className="flex-1 min-w-0">
+            <span className="display text-[26px] block">Repasar fallos</span>
+            <span className="text-sm text-paper/85 leading-snug block mt-1">Salen del repaso cuando las aciertas {MASTERED_AFTER} veces seguidas</span>
+          </span>
+          <span className="font-mono text-3xl font-semibold tabular-nums" aria-label={`${pendingMistakes} pendientes`}>
+            {pendingMistakes}
+          </span>
+        </button>
+      )}
 
       <section aria-labelledby="bloques-title">
         <div className="flex items-end justify-between mb-2">

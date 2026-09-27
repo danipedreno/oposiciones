@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowCounterClockwise, CaretDown, CaretLeft, CaretRight, Check, Flag, Minus, Plus, Timer, X } from "@phosphor-icons/react";
 import {
   ACHIEVEMENTS,
+  mistakePool,
   BLOCKS,
   BLOCK_IDS,
   OFFICIAL_SECONDS_PER_QUESTION,
@@ -25,12 +26,20 @@ const BLOCK_CHOICES = [
 export function ExamSetup({ store, onSettings, onStart }) {
   const s = store.settings;
   const custom = store.customTest;
-  const source = s.source === "notes" && custom ? "notes" : "bank";
-  const pool = source === "notes" ? custom.questions : s.block === "all" ? SEED_QUESTIONS : SEED_QUESTIONS.filter((q) => q.block === s.block);
+  const pending = Object.keys(store.mistakes).length;
+  const source = s.source === "notes" && custom ? "notes" : s.source === "mistakes" && pending ? "mistakes" : "bank";
+  const pool =
+    source === "notes"
+      ? custom.questions
+      : source === "mistakes"
+        ? mistakePool(store.mistakes)
+        : s.block === "all"
+          ? SEED_QUESTIONS
+          : SEED_QUESTIONS.filter((q) => q.block === s.block);
   const count = s.count === "all" ? pool.length : Math.min(s.count, pool.length);
 
   const start = () => {
-    const title = source === "notes" ? custom.title : s.block === "all" ? "Simulacro · Temario completo" : `Simulacro · ${BLOCKS[s.block].short}`;
+    const title = source === "notes" ? custom.title : source === "mistakes" ? "Repaso de fallos" : s.block === "all" ? "Simulacro · Temario completo" : `Simulacro · ${BLOCKS[s.block].short}`;
     onStart({ pool, count, feedback: s.feedback, secsPerQ: s.secsPerQ, source, title });
   };
 
@@ -67,10 +76,11 @@ export function ExamSetup({ store, onSettings, onStart }) {
         label="Origen de las preguntas"
         value={source}
         onChange={(v) => onSettings({ source: v })}
-        disabledValues={custom ? [] : ["notes"]}
+        disabledValues={[...(custom ? [] : ["notes"]), ...(pending ? [] : ["mistakes"])]}
         options={[
-          { value: "bank", label: "Banco IIPP", sub: `${SEED_QUESTIONS.length} preguntas` },
-          { value: "notes", label: "Mis apuntes", sub: custom ? `${custom.questions.length} preguntas` : "Genera un test" },
+          { value: "bank", label: "Banco IIPP", sub: `${SEED_QUESTIONS.length} preg.` },
+          { value: "notes", label: "Mis apuntes", sub: custom ? `${custom.questions.length} preg.` : "Sin generar" },
+          { value: "mistakes", label: "Mis fallos", sub: pending ? `${pending} pendientes` : "Ninguno" },
         ]}
       />
 
@@ -378,7 +388,7 @@ export function ExamRunner({ exam, remainingMs, onSelect, onBlank, onGoto, onFin
 /* ---------------------------------------------------------------------
    Resultado
    --------------------------------------------------------------------- */
-export function ExamResults({ result, xp, onNew, onHome }) {
+export function ExamResults({ result, xp, pendingMistakes, onNew, onHome, onReview }) {
   const { grade, exam, xpGained, rankBefore, rankAfter, earned, reason } = result;
   const [open, setOpen] = useState(() => new Set());
   const promoted = rankAfter.level > rankBefore.level;
@@ -472,7 +482,22 @@ export function ExamResults({ result, xp, onNew, onHome }) {
         </section>
       )}
 
-      <div className="grid grid-cols-2 gap-2">
+      {(grade.wrong > 0 || result.mastered > 0) && (
+        <p className="text-[15px] text-mute -mb-3">
+          {grade.wrong > 0 && <>Tus {grade.wrong} {grade.wrong === 1 ? "fallo se ha guardado" : "fallos se han guardado"} para repasar. </>}
+          {result.mastered > 0 && (
+            <>
+              <span className="text-paper">{result.mastered} {result.mastered === 1 ? "pregunta dominada" : "preguntas dominadas"}</span>: salen del repaso.
+            </>
+          )}
+        </p>
+      )}
+      {pendingMistakes > 0 && (
+        <Button variant="red" onClick={onReview} className="w-full">
+          <ArrowCounterClockwise size={20} weight="bold" /> Repasar mis fallos · {pendingMistakes}
+        </Button>
+      )}
+      <div className="grid grid-cols-2 gap-2 -mt-4">
         <Button onClick={onNew}>
           <ArrowCounterClockwise size={20} weight="bold" /> Nuevo test
         </Button>

@@ -11,6 +11,7 @@ export const DEFAULT_STORE = {
   totals: { tests: 0, answered: 0, correct: 0 },
   settings: { feedback: "immediate", count: 20, secsPerQ: OFFICIAL_SECONDS_PER_QUESTION, block: "all", source: "bank" },
   customTest: null,
+  mistakes: {},
   notesDraft: { text: "", block: "penitenciario" },
   activeExam: null,
   lastResult: null,
