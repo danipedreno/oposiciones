@@ -10,7 +10,8 @@
     "icons": "node scripts/icons.mjs",
     "illustrations-doc": "node scripts/illustrations-doc.mjs",
     "trace": "node scripts/trace.mjs",
-    "illustrations": "node --env-file-if-exists=.env scripts/generate.mjs"
+    "illustrations": "node --env-file-if-exists=.env scripts/generate.mjs",
+    "split": "node scripts/split.mjs"
   },
   "dependencies": {
     "@fontsource-variable/archivo": "^5.3.0",

@@ -12,7 +12,7 @@ npm run illustrations ascenso  # regenera solo esa (útil si no te gusta el resu
 - Los PNG originales quedan en `illustrations-src/`; los SVG finales en `public/illustrations/`.
 - Las imágenes de `illustrations-src/_referencia/` se envían a Gemini como referencia de estilo.
   Cuando una ilustración te guste mucho, cópiala ahí para que las siguientes se parezcan más.
-- Si prefieres hacerlas a mano en Gemini, los prompts completos están en PROMPTS-NANO-BANANA.md.
+- Gratis en la web de Gemini, por lotes de 4: ver PROMPTS-NANO-BANANA.md y `npm run split`.
 - Medallas bloqueadas y rangos no alcanzados reutilizan la misma ilustración en gris.
 
 ## Inicio
