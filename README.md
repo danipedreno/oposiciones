@@ -24,7 +24,7 @@ npm run trace        # vectoriza illustrations-src/*.png → public/illustration
 npm run illustrations-doc   # regenera ILUSTRACIONES.md
 ```
 
-Cada push a `main` se publica solo en GitHub Pages (`.github/workflows/deploy.yml`).
+Cada push a `main` compila la app y la publica en la rama `gh-pages` (`.github/workflows/deploy.yml`): https://danipedreno.github.io/oposiciones/
 
 ## Estructura
 
