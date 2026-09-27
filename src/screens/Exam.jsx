@@ -12,6 +12,7 @@ import {
 import { SEED_QUESTIONS } from "../data/questions.js";
 import { Button, Folder, IconButton, Illustration, Paper, ProgressBar, Segmented, Sheet } from "../ui.jsx";
 import { RankFolder } from "./Home.jsx";
+import { useCountUp } from "../lib/motion.js";
 
 /* ---------------------------------------------------------------------
    Configuración del simulacro
@@ -165,6 +166,11 @@ export function ExamRunner({ exam, remainingMs, onSelect, onBlank, onGoto, onFin
   const critical = remainingMs <= 60000;
   const warning = !critical && timePct <= 20;
   const allRevealed = immediate && exam.revealed.every(Boolean);
+  const prevIndex = useRef(i);
+  const dir = i >= prevIndex.current ? 1 : -1;
+  useEffect(() => {
+    prevIndex.current = i;
+  }, [i]);
 
   useEffect(() => {
     chipRefs.current[i]?.scrollIntoView?.({ behavior: "smooth", inline: "center", block: "nearest" });
@@ -267,8 +273,10 @@ export function ExamRunner({ exam, remainingMs, onSelect, onBlank, onGoto, onFin
         </div>
       </div>
 
-      <div ref={scrollRef} className="flex-1 scroll-area px-4 pt-4 pb-6">
-        <div key={i} className="max-w-md mx-auto anim-rise">
+      <div ref={scrollRef} className="flex-1 scroll-area overflow-x-hidden px-4 pt-4 pb-6">
+        {/* La pregunta nueva entra desde el lado hacia el que avanzas. Se ve decenas de veces por
+            examen: 180 ms, 16 px y sin animación de salida. */}
+        <div key={i} className={`max-w-md mx-auto ${dir > 0 ? "anim-q-next" : "anim-q-prev"}`}>
           <Folder color={block.hex} tab={block.short} tabOffset="ml-2">
             <div className="p-2.5">
               <Paper className="p-5">
@@ -324,47 +332,45 @@ export function ExamRunner({ exam, remainingMs, onSelect, onBlank, onGoto, onFin
         </div>
       </div>
 
-      {sheet === "finish" && (
-        <Sheet
-          title="¿Entregar?"
-          illustration="entregar"
-          onClose={() => setSheet(null)}
-          body={
-            <>
-              Has respondido <span className="font-mono text-ink">{answeredCount}</span> de <span className="font-mono text-ink">{n}</span>.
-              {blankCount > 0 && <> Las {blankCount} sin responder cuentan como blanco y no restan.</>}
-            </>
-          }
-          actions={
-            <>
-              <Button variant="blue" onClick={() => { setSheet(null); onFinish(); }}>
-                Entregar y corregir
-              </Button>
-              <Button variant="paper" className="border-2 border-paper-3" onClick={() => setSheet(null)}>
-                Seguir respondiendo
-              </Button>
-            </>
-          }
-        />
-      )}
-      {sheet === "abandon" && (
-        <Sheet
-          title="¿Abandonar?"
-          illustration="abandonar"
-          onClose={() => setSheet(null)}
-          body="Perderás las respuestas de este intento. No suma XP ni cuenta para la racha."
-          actions={
-            <>
-              <Button variant="red" onClick={() => { setSheet(null); onAbandon(); }}>
-                Abandonar examen
-              </Button>
-              <Button variant="paper" className="border-2 border-paper-3" onClick={() => setSheet(null)}>
-                Volver al examen
-              </Button>
-            </>
-          }
-        />
-      )}
+      <Sheet
+        open={sheet === "finish"}
+        title="¿Entregar?"
+        illustration="entregar"
+        onClose={() => setSheet(null)}
+        body={
+          <>
+            Has respondido <span className="font-mono text-ink">{answeredCount}</span> de <span className="font-mono text-ink">{n}</span>.
+            {blankCount > 0 && <> Las {blankCount} sin responder cuentan como blanco y no restan.</>}
+          </>
+        }
+        actions={
+          <>
+            <Button variant="blue" onClick={() => { setSheet(null); onFinish(); }}>
+              Entregar y corregir
+            </Button>
+            <Button variant="paper" className="border-2 border-paper-3" onClick={() => setSheet(null)}>
+              Seguir respondiendo
+            </Button>
+          </>
+        }
+      />
+      <Sheet
+        open={sheet === "abandon"}
+        title="¿Abandonar?"
+        illustration="abandonar"
+        onClose={() => setSheet(null)}
+        body="Perderás las respuestas de este intento. No suma XP ni cuenta para la racha."
+        actions={
+          <>
+            <Button variant="red" onClick={() => { setSheet(null); onAbandon(); }}>
+              Abandonar examen
+            </Button>
+            <Button variant="paper" className="border-2 border-paper-3" onClick={() => setSheet(null)}>
+              Volver al examen
+            </Button>
+          </>
+        }
+      />
     </div>
   );
 }
@@ -376,6 +382,9 @@ export function ExamResults({ result, xp, onNew, onHome }) {
   const { grade, exam, xpGained, rankBefore, rankAfter, earned, reason } = result;
   const [open, setOpen] = useState(() => new Set());
   const promoted = rankAfter.level > rankBefore.level;
+  // La nota «cuenta» hasta su valor: se ve una vez por test, es el momento de celebrar.
+  const netShown = useCountUp(grade.net, { decimals: 2 });
+  const over10Shown = useCountUp(grade.over10, { decimals: 2 });
   const art = reason === "timeout" ? "tiempo-agotado" : promoted ? "ascenso" : grade.over10 >= 7 ? "resultado-alto" : grade.over10 >= 4 ? "resultado-medio" : "resultado-bajo";
   const toggle = (idx) =>
     setOpen((prev) => {
@@ -400,7 +409,9 @@ export function ExamResults({ result, xp, onNew, onHome }) {
         <div className="flex items-start gap-4">
           <div className="min-w-0 flex-1">
             <p className="label text-mute-paper">Acta de corrección</p>
-            <p className="font-mono text-[56px] leading-none font-semibold tracking-tight mt-2">{fmt2(grade.net)}</p>
+            <p className="font-mono text-[56px] leading-none font-semibold tracking-tight tabular-nums mt-2" aria-label={`Nota ${fmt2(grade.net)}`}>
+              {fmt2(netShown)}
+            </p>
             <p className="font-mono text-sm text-mute-paper mt-1">
               sobre {grade.n} · {grade.correct} − {grade.wrong} ÷ 3
             </p>
@@ -410,7 +421,7 @@ export function ExamResults({ result, xp, onNew, onHome }) {
         <div className="mt-4">
           <div className="flex justify-between text-sm mb-1.5">
             <span className="text-mute-paper">Nota sobre 10</span>
-            <span className="font-mono font-semibold">{fmt2(grade.over10)}</span>
+            <span className="font-mono font-semibold tabular-nums">{fmt2(over10Shown)}</span>
           </div>
           <ProgressBar pct={grade.over10 * 10} color="#191919" track="bg-paper-3" className="h-2.5" label="Nota sobre 10" />
         </div>
@@ -443,16 +454,18 @@ export function ExamResults({ result, xp, onNew, onHome }) {
         <section aria-labelledby="medallas-nuevas">
           <h2 id="medallas-nuevas" className="display text-3xl mb-3">Medallas nuevas</h2>
           <div className="flex flex-col gap-2">
-            {earned.map((id) => {
+            {earned.map((id, k) => {
               const a = ACHIEVEMENTS.find((x) => x.id === id);
               return (
-                <Paper key={id} className="p-3 flex items-center gap-3 anim-pop">
-                  <Illustration name={a.illustration} className="w-16 shrink-0" alt="" />
-                  <div>
-                    <p className="font-serif text-lg leading-tight">{a.name}</p>
-                    <p className="text-sm text-mute-paper">{a.desc}</p>
-                  </div>
-                </Paper>
+                <div key={id} className="anim-medal" style={{ animationDelay: `${350 + k * 80}ms` }}>
+                  <Paper className="p-3 flex items-center gap-3">
+                    <Illustration name={a.illustration} className="w-16 shrink-0" alt="" />
+                    <div>
+                      <p className="font-serif text-lg leading-tight">{a.name}</p>
+                      <p className="text-sm text-mute-paper">{a.desc}</p>
+                    </div>
+                  </Paper>
+                </div>
               );
             })}
           </div>

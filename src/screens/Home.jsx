@@ -1,13 +1,18 @@
+import { useEffect, useRef } from "react";
 import { Check, DeviceMobile, Fire, Sparkle, Timer, X } from "@phosphor-icons/react";
 import { BLOCKS, BLOCK_IDS, dateKey, fmt2, rankInfo, streakView } from "../lib/logic.js";
 import { Button, Folder, Galones, IconButton, Illustration, Paper, ProgressBar } from "../ui.jsx";
 
 const WEEKDAY = ["D", "L", "M", "X", "J", "V", "S"];
 
-export function RankFolder({ xp, tab = "Hoja de servicio" }) {
+// Las carpetas «salen del archivador» solo la primera vez que se abre Inicio en la sesión:
+// volver a la pestaña es frecuente y repetir la animación la haría pesada.
+let introPlayed = false;
+
+export function RankFolder({ xp, tab = "Hoja de servicio", intro = false }) {
   const { rank, next, pct, toNext } = rankInfo(xp);
   return (
-    <Folder color="#581e70" tab={tab} className="anim-folder">
+    <Folder color="#581e70" tab={tab} className={intro ? "anim-folder" : ""}>
       <div className="p-5 flex gap-4">
         <div className="min-w-0 flex-1">
           <p className="label text-paper/70">
@@ -51,7 +56,7 @@ function StreakCard({ streak }) {
   }[view.state];
 
   return (
-    <Paper className="p-4 anim-rise">
+    <Paper className="p-4">
       <div className="flex gap-4 items-center">
         <Illustration name={art} className="w-28 shrink-0" alt="" />
         <div className="min-w-0">
@@ -86,6 +91,10 @@ function StreakCard({ streak }) {
 }
 
 export default function Home({ store, install, onDismissInstall, onNewExam, onGoNotes }) {
+  const intro = useRef(!introPlayed).current;
+  useEffect(() => {
+    introPlayed = true;
+  }, []);
   const streakCount = streakView(store.streak).count;
   const dateLabel = new Date().toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
   const accuracy = store.totals.answered ? Math.round((store.totals.correct / store.totals.answered) * 100) : null;
@@ -121,11 +130,11 @@ export default function Home({ store, install, onDismissInstall, onNewExam, onGo
         </Paper>
       )}
 
-      <RankFolder xp={store.xp} />
+      <RankFolder xp={store.xp} intro={intro} />
       <StreakCard streak={store.streak} />
 
       {store.history.length === 0 && (
-        <Paper className="p-4 anim-rise">
+        <Paper className="p-4">
           <Illustration name="bienvenida" className="w-full" alt="" />
           <p className="font-serif text-xl leading-snug mt-3">Tu primer turno empieza aquí.</p>
           <p className="text-[15px] text-mute-paper mt-1">
@@ -162,7 +171,7 @@ export default function Home({ store, install, onDismissInstall, onNewExam, onGo
             const s = store.blockStats[id] || { c: 0, t: 0 };
             const pct = s.t ? (s.c / s.t) * 100 : 0;
             return (
-              <Folder key={id} color={b.hex} tab={b.label} stacked={k < BLOCK_IDS.length - 1} tabOffset={["ml-2", "ml-10", "ml-20"][k]} className={`anim-folder ${k ? "-mt-12" : ""}`} style={{ animationDelay: `${k * 80}ms` }}>
+              <Folder key={id} color={b.hex} tab={b.label} stacked={k < BLOCK_IDS.length - 1} tabOffset={["ml-2", "ml-10", "ml-20"][k]} className={`${intro ? "anim-folder" : ""} ${k ? "-mt-12" : ""}`} style={intro ? { animationDelay: `${120 + k * 50}ms` } : undefined}>
                 <div className="p-5 flex items-end justify-between gap-4">
                   <p className="display text-5xl">{s.t ? `${Math.round(pct)}%` : "—"}</p>
                   <p className="font-mono text-sm text-paper/80 text-right">{s.t ? `${s.c} de ${s.t} aciertos` : "Sin datos todavía"}</p>

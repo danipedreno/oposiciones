@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowCounterClockwise, CaretDoubleUp, ClipboardText, FileText, House, Key, Moon, ShieldCheck, Trophy, GridFour } from "@phosphor-icons/react";
-import { ACHIEVEMENTS, applyExamResult, createExam, uid } from "./lib/logic.js";
+import { ACHIEVEMENTS, applyExamResult, createExam } from "./lib/logic.js";
 import { DEFAULT_STORE, useInstallPrompt, useNow, usePersistentStore } from "./lib/store.js";
-import { Toasts } from "./ui.jsx";
+import { AppToaster, notify } from "./ui.jsx";
 import Home from "./screens/Home.jsx";
 import Notes from "./screens/Notes.jsx";
 import Achievements from "./screens/Achievements.jsx";
@@ -17,27 +17,43 @@ const TABS = [
 
 const ACHIEVEMENT_ICONS = { key: Key, cell: GridFour, shield: ShieldCheck, moon: Moon };
 
+/**
+ * Barra de pestañas. La pestaña activa es una capa de color recortada con clip-path que se desliza
+ * de una pestaña a otra: el color de carpeta de cada sección cambia exactamente en el borde.
+ */
 function TabBar({ tab, onChange }) {
+  const index = TABS.findIndex((t) => t.id === tab);
+  const n = TABS.length;
   return (
     <nav className="fixed left-4 right-4 tabbar-pos z-40" aria-label="Navegación principal">
-      <div className="max-w-md mx-auto rounded-folder bg-ink-2/95 backdrop-blur-md border border-ink-3 p-1.5 grid grid-cols-4 gap-1 shadow-2xl shadow-black/70">
-        {TABS.map(({ id, label, Icon, color, dark }) => {
-          const active = tab === id;
-          return (
-            <button
-              key={id}
-              type="button"
-              onClick={() => onChange(id)}
-              aria-current={active ? "page" : undefined}
-              className={`tap press h-14 rounded-[4px] flex flex-col items-center justify-center gap-0.5 ${active ? (dark ? "text-paper" : "text-ink") : "text-mute hover:text-paper"}`}
-              style={active ? { background: color } : undefined}
-            >
-              <Icon size={24} weight={active ? "fill" : "regular"} />
-              <span className="text-xs font-semibold">{label}</span>
-            </button>
-          );
-        })}
+    <div className="relative max-w-md mx-auto rounded-folder bg-ink-2/95 backdrop-blur-md border border-ink-3 p-1.5 shadow-2xl shadow-black/70">
+      <div className="grid grid-cols-4 gap-1">
+        {TABS.map(({ id, label, Icon }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => onChange(id)}
+            aria-current={tab === id ? "page" : undefined}
+            className="tap press h-14 rounded-[4px] flex flex-col items-center justify-center gap-0.5 text-mute hover:text-paper"
+          >
+            <Icon size={24} />
+            <span className="text-xs font-semibold">{label}</span>
+          </button>
+        ))}
       </div>
+      <div
+        aria-hidden="true"
+        className="absolute inset-1.5 grid grid-cols-4 gap-1 pointer-events-none transition-[clip-path] duration-[250ms] ease-in-out"
+        style={{ clipPath: `inset(0 ${((n - 1 - index) / n) * 100}% 0 ${(index / n) * 100}% round 4px)` }}
+      >
+        {TABS.map(({ id, label, Icon, color, dark }) => (
+          <div key={id} className={`h-14 rounded-[4px] flex flex-col items-center justify-center gap-0.5 ${dark ? "text-paper" : "text-ink"}`} style={{ background: color }}>
+            <Icon size={24} weight="fill" />
+            <span className="text-xs font-semibold">{label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
     </nav>
   );
 }
@@ -45,7 +61,6 @@ function TabBar({ tab, onChange }) {
 export default function App() {
   const [store, setStore] = usePersistentStore();
   const [tab, setTab] = useState(() => (store.activeExam || store.lastResult ? "test" : "home"));
-  const [toasts, setToasts] = useState([]);
   const install = useInstallPrompt();
   const storeRef = useRef(store);
   const finishedIds = useRef(new Set());
@@ -55,12 +70,6 @@ export default function App() {
   const exam = store.activeExam;
   const now = useNow(!!exam);
   const remainingMs = exam ? Math.max(0, exam.endsAt - now) : 0;
-
-  const pushToast = useCallback((t) => {
-    const id = uid();
-    setToasts((ts) => [...ts, { ...t, id }]);
-    setTimeout(() => setToasts((ts) => ts.filter((x) => x.id !== id)), 3800);
-  }, []);
 
   const updateExam = useCallback((fn) => setStore((s) => (s.activeExam ? { ...s, activeExam: fn(s.activeExam) } : s)), [setStore]);
 
@@ -83,15 +92,15 @@ export default function App() {
       setStore(next);
       setTab("test");
       if (report.rankAfter.level > report.rankBefore.level) {
-        pushToast({ icon: <CaretDoubleUp size={24} weight="bold" />, color: "#581e70", kicker: "Ascenso", text: `Ahora eres ${report.rankAfter.name}` });
+        notify({ icon: <CaretDoubleUp size={24} weight="bold" />, color: "#581e70", kicker: "Ascenso", text: `Ahora eres ${report.rankAfter.name}` });
       }
       report.earned.forEach((id, k) => {
         const a = ACHIEVEMENTS.find((x) => x.id === id);
         const Icon = ACHIEVEMENT_ICONS[a.icon];
-        setTimeout(() => pushToast({ icon: <Icon size={24} weight="fill" />, color: "#0c7866", kicker: "Medalla desbloqueada", text: a.name }), 400 + k * 500);
+        setTimeout(() => notify({ icon: <Icon size={24} weight="fill" />, color: "#0c7866", kicker: "Medalla desbloqueada", text: a.name }), 400 + k * 500);
       });
     },
-    [setStore, pushToast]
+    [setStore]
   );
 
   // Entrega automática al agotarse el tiempo (también tras reabrir la app con el examen caducado).
@@ -139,12 +148,12 @@ export default function App() {
     finishedIds.current = new Set();
     setStore({ ...DEFAULT_STORE, installDismissed: storeRef.current.installDismissed });
     setTab("home");
-    pushToast({ icon: <ArrowCounterClockwise size={24} weight="bold" />, color: "#191919", kicker: "Hecho", text: "Progreso reiniciado" });
+    notify({ icon: <ArrowCounterClockwise size={24} weight="bold" />, color: "#191919", kicker: "Hecho", text: "Progreso reiniciado" });
   };
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-ink">
-      <Toasts toasts={toasts} />
+      <AppToaster />
       {exam ? (
         <ExamRunner exam={exam} remainingMs={remainingMs} onSelect={onSelect} onBlank={onBlank} onGoto={onGoto} onFinish={() => finishExam("submitted")} onAbandon={onAbandon} />
       ) : (

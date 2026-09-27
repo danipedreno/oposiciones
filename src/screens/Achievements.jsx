@@ -83,24 +83,23 @@ export default function Achievements({ store, onReset }) {
         Reiniciar progreso
       </button>
 
-      {confirm && (
-        <Sheet
-          title="¿Reiniciar?"
-          illustration="reiniciar"
-          onClose={() => setConfirm(false)}
-          body="Se borran racha, XP, medallas, historial y apuntes guardados en este móvil. No se puede deshacer."
-          actions={
-            <>
-              <Button variant="red" onClick={() => { setConfirm(false); onReset(); }}>
-                Borrar progreso
-              </Button>
-              <Button variant="paper" className="border-2 border-paper-3" onClick={() => setConfirm(false)}>
-                Cancelar
-              </Button>
-            </>
-          }
-        />
-      )}
+      <Sheet
+        open={confirm}
+        title="¿Reiniciar?"
+        illustration="reiniciar"
+        onClose={() => setConfirm(false)}
+        body="Se borran racha, XP, medallas, historial y apuntes guardados en este móvil. No se puede deshacer."
+        actions={
+          <>
+            <Button variant="red" onClick={() => { setConfirm(false); onReset(); }}>
+              Borrar progreso
+            </Button>
+            <Button variant="paper" className="border-2 border-paper-3" onClick={() => setConfirm(false)}>
+              Cancelar
+            </Button>
+          </>
+        }
+      />
     </div>
   );
 }

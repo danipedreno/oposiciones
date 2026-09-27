@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { CaretDoubleUp, PencilSimpleLine } from "@phosphor-icons/react";
+import { Drawer } from "vaul";
+import { Toaster, toast } from "sonner";
 import { ILLUSTRATIONS } from "./lib/illustrations.js";
 import { RANKS } from "./lib/logic.js";
 
@@ -95,40 +97,64 @@ export function IconButton({ label, className = "", children, ...rest }) {
   );
 }
 
+/**
+ * Selector segmentado. El estado activo es una segunda capa idéntica recortada con clip-path:
+ * al cambiar, el recorte se desliza y el color cambia justo en el borde (técnica de Emil Kowalski).
+ * Es CSS puro: va en el hilo del compositor y se puede interrumpir a mitad.
+ */
 export function Segmented({ label, options, value, onChange, disabledValues = [] }) {
+  const n = options.length;
+  const index = Math.max(0, options.findIndex((o) => o.value === value));
+  const cols = { gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` };
+  const cell = (o, active) => (
+    <>
+      {o.label}
+      {o.sub && <span className={`block font-mono text-[11px] font-medium ${active ? "text-mute-paper" : "text-mute/70"}`}>{o.sub}</span>}
+    </>
+  );
   return (
     <fieldset>
       <legend className="label text-mute mb-2">{label}</legend>
-      <div className="grid gap-1 p-1 rounded-folder bg-ink-2 border border-ink-3" style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}>
-        {options.map((o) => {
-          const active = o.value === value;
-          const disabled = disabledValues.includes(o.value);
-          return (
+      <div className="relative rounded-folder bg-ink-2 border border-ink-3 p-1">
+        <div className="grid gap-1" style={cols}>
+          {options.map((o) => (
             <button
               key={String(o.value)}
               type="button"
-              disabled={disabled}
-              aria-pressed={active}
+              disabled={disabledValues.includes(o.value)}
+              aria-pressed={o.value === value}
               onClick={() => onChange(o.value)}
-              className={`tap press min-h-12 py-1.5 rounded-[4px] text-sm font-semibold leading-tight disabled:opacity-35 ${
-                active ? "bg-paper text-ink" : "text-mute hover:text-paper"
-              }`}
+              className="tap press min-h-12 py-1.5 rounded-[4px] text-sm font-semibold leading-tight text-mute hover:text-paper disabled:opacity-35"
             >
-              {o.label}
-              {o.sub && <span className={`block font-mono text-[11px] font-medium ${active ? "text-mute-paper" : "text-mute/70"}`}>{o.sub}</span>}
+              {cell(o, false)}
             </button>
-          );
-        })}
+          ))}
+        </div>
+        <div
+          aria-hidden="true"
+          className="absolute inset-1 grid gap-1 pointer-events-none transition-[clip-path] duration-[250ms] ease-in-out"
+          style={{ ...cols, clipPath: `inset(0 ${((n - 1 - index) / n) * 100}% 0 ${(index / n) * 100}% round 4px)` }}
+        >
+          {options.map((o) => (
+            <div key={String(o.value)} className="min-h-12 py-1.5 rounded-[4px] bg-paper text-ink text-sm font-semibold leading-tight flex flex-col items-center justify-center text-center">
+              {cell(o, true)}
+            </div>
+          ))}
+        </div>
       </div>
     </fieldset>
   );
 }
 
+/** Barra de progreso animada con transform (scaleX), no con width: no recalcula el layout. */
 export function ProgressBar({ pct, color = "#ffe927", track = "bg-ink-3", className = "h-2", label }) {
   const v = Math.max(0, Math.min(100, pct));
   return (
     <div className={`${track} rounded-full overflow-hidden ${className}`} role="progressbar" aria-valuenow={Math.round(v)} aria-valuemin={0} aria-valuemax={100} aria-label={label}>
-      <div className="h-full rounded-full transition-[width] duration-700 ease-out" style={{ width: `${v}%`, background: color }} />
+      <div
+        className="h-full w-full rounded-full origin-left transition-transform duration-500 ease-out"
+        style={{ transform: `scaleX(${v / 100})`, background: color }}
+      />
     </div>
   );
 }
@@ -186,39 +212,54 @@ export function Illustration({ name, className = "", alt = "" }) {
 /* ---------------------------------------------------------------------
    Hoja inferior y avisos
    --------------------------------------------------------------------- */
-export function Sheet({ title, illustration, body, actions, onClose }) {
+/**
+ * Hoja inferior con Vaul (librería de Emil Kowalski): se cierra arrastrando hacia abajo,
+ * con inercia (un gesto rápido basta) y la curva de cajón de iOS. Siempre montada: `open` la abre y cierra.
+ */
+export function Sheet({ open, title, illustration, body, actions, onClose }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center anim-fade" role="dialog" aria-modal="true" aria-label={title}>
-      <button type="button" aria-label="Cerrar" className="absolute inset-0 bg-black/70" onClick={onClose} />
-      <Paper className="relative w-full max-w-md rounded-b-none px-5 pt-4 pb-safe anim-sheet">
-        <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-paper-3" />
-        <div className="flex items-start gap-4">
-          {illustration && <Illustration name={illustration} className="w-24 shrink-0" />}
-          <div className="min-w-0">
-            <h3 className="display text-3xl">{title}</h3>
-            <div className="mt-2 text-[15px] text-mute-paper leading-relaxed">{body}</div>
-          </div>
-        </div>
-        <div className="mt-5 grid gap-2">{actions}</div>
-      </Paper>
-    </div>
+    <Drawer.Root open={open} onOpenChange={(o) => !o && onClose()}>
+      <Drawer.Portal>
+        <Drawer.Overlay className="fixed inset-0 z-50 bg-black/70" />
+        <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-md outline-none">
+          <Paper className="rounded-b-none px-5 pt-3 pb-safe">
+            <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-paper-3" aria-hidden="true" />
+            <div className="flex items-start gap-4">
+              {illustration && <Illustration name={illustration} className="w-24 shrink-0" />}
+              <div className="min-w-0">
+                <Drawer.Title className="display text-3xl">{title}</Drawer.Title>
+                <Drawer.Description asChild>
+                  <div className="mt-2 text-[15px] text-mute-paper leading-relaxed">{body}</div>
+                </Drawer.Description>
+              </div>
+            </div>
+            <div className="mt-5 grid gap-2">{actions}</div>
+          </Paper>
+        </Drawer.Content>
+      </Drawer.Portal>
+    </Drawer.Root>
   );
 }
 
-export function Toasts({ toasts }) {
-  return (
-    <div className="fixed left-4 right-4 toast-pos z-[60] flex flex-col items-center gap-2 pointer-events-none" aria-live="polite">
-      {toasts.map((t) => (
-        <Paper key={t.id} className="anim-toast w-full max-w-md px-3 py-3 flex items-center gap-3">
-          <span className="w-11 h-11 rounded-[4px] flex items-center justify-center shrink-0 text-paper" style={{ background: t.color || "#581e70" }}>
-            {t.icon}
-          </span>
-          <div className="min-w-0">
-            <p className="label text-mute-paper">{t.kicker}</p>
-            <p className="font-semibold truncate">{t.text}</p>
-          </div>
-        </Paper>
-      ))}
-    </div>
+/** Avisos con Sonner (también de Emil): entran y salen por arriba y se descartan deslizando. */
+export function AppToaster() {
+  const top = "calc(env(safe-area-inset-top, 0px) + 12px)";
+  return <Toaster position="top-center" offset={{ top }} mobileOffset={{ top, left: 16, right: 16 }} gap={8} />;
+}
+
+export function notify({ icon, color = "#581e70", kicker, text, duration = 3800 }) {
+  toast.custom(
+    () => (
+      <Paper className="w-full px-3 py-3 flex items-center gap-3">
+        <span className="w-11 h-11 rounded-[4px] flex items-center justify-center shrink-0 text-paper" style={{ background: color }}>
+          {icon}
+        </span>
+        <div className="min-w-0">
+          <p className="label text-mute-paper">{kicker}</p>
+          <p className="font-semibold truncate">{text}</p>
+        </div>
+      </Paper>
+    ),
+    { duration }
   );
 }
