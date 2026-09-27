@@ -18,6 +18,10 @@ let model = MODELS[0];
 const API_KEY = process.env.GEMINI_API_KEY;
 const REF_DIR = join(SRC, "_referencia");
 const CONCURRENCY = 3;
+const NO_BILLING =
+  "Tu clave está en la capa gratuita y Google no da cuota gratis para generar imágenes por API.\n" +
+  "Activa la facturación del proyecto en https://aistudio.google.com/apikey (botón «Set up billing») y vuelve a lanzar el comando.";
+let fatalError = null;
 const MAX_ATTEMPTS = 3;
 
 const args = process.argv.slice(2);
@@ -77,7 +81,14 @@ async function generate(name, refs) {
   });
   const json = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const err = new Error(json.error?.message || `HTTP ${res.status}`);
+    const message = json.error?.message || `HTTP ${res.status}`;
+    // Cuota 0 = la clave no tiene facturación activada: reintentar no sirve.
+    if (res.status === 429 && /limit: 0\b/.test(message)) {
+      const err = new Error(NO_BILLING);
+      err.fatal = true;
+      throw err;
+    }
+    const err = new Error(message.split("\n")[0]);
     err.retryable = res.status === 429 || res.status >= 500;
     // Modelo no disponible para esta clave: pasar al siguiente de la lista.
     if (res.status === 404 && MODELS.indexOf(model) < MODELS.length - 1) {
@@ -108,6 +119,10 @@ async function processOne(name, refs) {
       console.log(`✓ ${name} · ${kb} KB`);
       return true;
     } catch (e) {
+      if (e.fatal) {
+        fatalError = e.message;
+        return false;
+      }
       const last = attempt === MAX_ATTEMPTS || !e.retryable;
       console.log(`${last ? "✗" : "…"} ${name}: ${e.message}${last ? "" : ` (reintento ${attempt + 1}/${MAX_ATTEMPTS})`}`);
       if (last) return false;
@@ -135,12 +150,16 @@ const failed = [];
 const pending = [...queue];
 await Promise.all(
   Array.from({ length: CONCURRENCY }, async () => {
-    while (pending.length) {
+    while (pending.length && !fatalError) {
       const name = pending.shift();
       if (!(await processOne(name, refs))) failed.push(name);
     }
   })
 );
 
+if (fatalError) {
+  console.error(`\n✗ ${fatalError}`);
+  process.exit(1);
+}
 console.log(`\nHechas: ${queue.length - failed.length}/${queue.length}.`);
 if (failed.length) console.log(`Fallidas: ${failed.join(", ")}. Vuelve a lanzar: npm run illustrations ${failed.join(" ")}`);
