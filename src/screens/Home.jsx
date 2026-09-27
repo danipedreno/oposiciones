@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowCounterClockwise, CaretDown, Check, DeviceMobile, Fire, Play, Sparkle, Timer, X } from "@phosphor-icons/react";
+import { ArrowCounterClockwise, CaretDown, Cards as CardsIcon, Check, DeviceMobile, Fire, Play, Sparkle, Timer, X } from "@phosphor-icons/react";
 import { BLOCKS, BLOCK_IDS, DAILY_GOALS, MASTERED_AFTER, dateKey, daysUntil, fmt2, rankInfo, streakView } from "../lib/logic.js";
 import { SEED_QUESTIONS } from "../data/questions.js";
+import { bankCards, bankQuestions } from "../lib/bank.js";
+import { cardsForSession } from "../lib/logic.js";
 import { Button, Folder, FolderTab, Galones, IconButton, Illustration, Paper, ProgressBar, Segmented, Sheet } from "../ui.jsx";
 import { GoalRing } from "./Celebration.jsx";
 
@@ -97,19 +99,22 @@ function StreakCard({ streak }) {
  * Al tocar una pestaña se «saca» esa carpeta y se guarda la que estuviera abierta.
  * Cada franja mide lo mismo que una pestaña (44 px), así la pestaña siguiente asienta sobre ella sin huecos.
  */
-const TAB_OFFSETS = ["ml-2", "ml-12", "ml-24"];
+const TAB_OFFSETS = ["ml-2", "ml-9", "ml-16", "ml-24"];
 
-function BlockCabinet({ store, intro, onPractice }) {
+function BlockCabinet({ store, bank, intro, onPractice }) {
   const [open, setOpen] = useState(null);
+  const sizeOf = (id) => (bank ? bankQuestions(bank, id).length : SEED_QUESTIONS.filter((q) => q.block === id).length);
+  // Solo los bloques con preguntas (o ya estudiados): un cajón vacío no aporta nada.
+  const visible = BLOCK_IDS.filter((id) => sizeOf(id) || store.blockStats[id]);
   return (
     <div className="pt-1">
-      {BLOCK_IDS.map((id, k) => {
+      {visible.map((id, k) => {
         const b = BLOCKS[id];
         const s = store.blockStats[id] || { c: 0, t: 0 };
         const pct = s.t ? Math.round((s.c / s.t) * 100) : null;
         const isOpen = open === id;
-        const last = k === BLOCK_IDS.length - 1;
-        const bankSize = SEED_QUESTIONS.filter((q) => q.block === id).length;
+        const last = k === visible.length - 1;
+        const bankSize = sizeOf(id);
         return (
           <section
             key={id}
@@ -267,7 +272,7 @@ function PlanFolder({ store, onPlan }) {
   );
 }
 
-export default function Home({ store, install, onDismissInstall, onNewExam, onGoNotes, onPractice, onReview, onPlan }) {
+export default function Home({ store, bank, install, onDismissInstall, onNewExam, onGoNotes, onGoCards, onPractice, onReview, onPlan }) {
   const intro = useRef(!introPlayed).current;
   useEffect(() => {
     introPlayed = true;
@@ -330,13 +335,25 @@ export default function Home({ store, install, onDismissInstall, onNewExam, onGo
             <span className="text-sm leading-snug block mt-1">Cronometrado, −⅓ por fallo</span>
           </span>
         </button>
-        <button type="button" onClick={onGoNotes} className="tap press text-left rounded-folder p-4 bg-ink-2 border-2 border-ink-3 min-h-[132px] flex flex-col justify-between">
-          <Sparkle size={30} weight="bold" className="text-folder-yellow" />
-          <span>
-            <span className="display text-[26px] block">Tus apuntes</span>
-            <span className="text-sm text-mute leading-snug block mt-1">Pega texto o sube un PDF</span>
-          </span>
-        </button>
+        {bank ? (
+          <button type="button" onClick={onGoCards} className="tap press text-left rounded-folder p-4 bg-folder-red text-paper min-h-[132px] flex flex-col justify-between">
+            <CardsIcon size={30} weight="fill" />
+            <span>
+              <span className="display text-[26px] block">Tarjetas</span>
+              <span className="text-sm text-paper/85 leading-snug block mt-1">
+                {cardsForSession(bankCards(bank), store.cards, dateKey()).length} para repasar hoy
+              </span>
+            </span>
+          </button>
+        ) : (
+          <button type="button" onClick={onGoNotes} className="tap press text-left rounded-folder p-4 bg-ink-2 border-2 border-ink-3 min-h-[132px] flex flex-col justify-between">
+            <Sparkle size={30} weight="bold" className="text-folder-yellow" />
+            <span>
+              <span className="display text-[26px] block">Tus apuntes</span>
+              <span className="text-sm text-mute leading-snug block mt-1">Pega texto o sube un PDF</span>
+            </span>
+          </button>
+        )}
       </div>
 
       {pendingMistakes > 0 && (
@@ -357,7 +374,7 @@ export default function Home({ store, install, onDismissInstall, onNewExam, onGo
           <h2 id="bloques-title" className="display text-3xl">Por bloques</h2>
           {accuracy !== null && <span className="font-mono text-sm text-mute">Global {accuracy}%</span>}
         </div>
-        <BlockCabinet store={store} intro={intro} onPractice={onPractice} />
+        <BlockCabinet store={store} bank={bank} intro={intro} onPractice={onPractice} />
       </section>
 
       {store.history.length > 0 && (

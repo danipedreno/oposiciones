@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowCounterClockwise, Books, CaretDoubleUp, Fire, PencilSimpleLine, Scales, Star, Target, Timer } from "@phosphor-icons/react";
+import { ArrowCounterClockwise, Books, CaretDoubleUp, Cards, Fire, PencilSimpleLine, Scales, Star, Target, Timer } from "@phosphor-icons/react";
 import { Drawer } from "vaul";
 import { Toaster, toast } from "sonner";
 import { ILLUSTRATIONS } from "./lib/illustrations.js";
@@ -179,7 +179,7 @@ export function Galones({ level, onPaper = false }) {
 /* ---------------------------------------------------------------------
    Distintivo de medalla por niveles: carpeta del color de la familia con su icono y el nivel.
    --------------------------------------------------------------------- */
-const MEDAL_ICONS = { fire: Fire, target: Target, books: Books, timer: Timer, repeat: ArrowCounterClockwise, star: Star, scales: Scales };
+const MEDAL_ICONS = { fire: Fire, target: Target, books: Books, timer: Timer, repeat: ArrowCounterClockwise, star: Star, scales: Scales, cards: Cards };
 
 export function MedalBadge({ family, level, size = 64 }) {
   const Icon = MEDAL_ICONS[family.icon];

@@ -13,6 +13,7 @@ import {
 import { SEED_QUESTIONS } from "../data/questions.js";
 import { Button, Folder, IconButton, Illustration, Paper, ProgressBar, Segmented, Sheet } from "../ui.jsx";
 import { RankFolder } from "./Home.jsx";
+import { bankQuestions, temaLabel, temasOf } from "../lib/bank.js";
 import { useCountUp } from "../lib/motion.js";
 
 /* ---------------------------------------------------------------------
@@ -23,23 +24,29 @@ const BLOCK_CHOICES = [
   ...BLOCK_IDS.map((id) => ({ id, label: BLOCKS[id].short, hex: BLOCKS[id].hex, dark: true })),
 ];
 
-export function ExamSetup({ store, onSettings, onStart }) {
+export function ExamSetup({ store, bank, onSettings, onStart }) {
   const s = store.settings;
   const custom = store.customTest;
   const pending = Object.keys(store.mistakes).length;
-  const source = s.source === "notes" && custom ? "notes" : s.source === "mistakes" && pending ? "mistakes" : "bank";
+  const source =
+    s.source === "notes" && custom ? "notes" : s.source === "mistakes" && pending ? "mistakes" : s.source === "temario" && bank ? "temario" : "bank";
+  const blockPool = (b) => (source === "temario" ? bankQuestions(bank, b) : b === "all" ? SEED_QUESTIONS : SEED_QUESTIONS.filter((q) => q.block === b));
   const pool =
     source === "notes"
       ? custom.questions
       : source === "mistakes"
         ? mistakePool(store.mistakes)
-        : s.block === "all"
-          ? SEED_QUESTIONS
-          : SEED_QUESTIONS.filter((q) => q.block === s.block);
+        : source === "temario"
+          ? bankQuestions(bank, s.block, s.block === "all" ? "all" : s.tema || "all")
+          : blockPool(s.block);
   const count = s.count === "all" ? pool.length : Math.min(s.count, pool.length);
 
   const start = () => {
-    const title = source === "notes" ? custom.title : source === "mistakes" ? "Repaso de fallos" : s.block === "all" ? "Simulacro · Temario completo" : `Simulacro · ${BLOCKS[s.block].short}`;
+    const temaTitle = source === "temario" && s.block !== "all" && s.tema && s.tema !== "all" ? temaLabel(bank, s.tema).split(" · ")[0] : "";
+    const title =
+      source === "temario"
+        ? `Temario · ${s.block === "all" ? "Todo" : BLOCKS[s.block].short}${temaTitle ? ` · ${temaTitle}` : ""}`
+        : source === "notes" ? custom.title : source === "mistakes" ? "Repaso de fallos" : s.block === "all" ? "Simulacro · Temario completo" : `Simulacro · ${BLOCKS[s.block].short}`;
     onStart({ pool, count, feedback: s.feedback, secsPerQ: s.secsPerQ, source, title });
   };
 
@@ -78,22 +85,23 @@ export function ExamSetup({ store, onSettings, onStart }) {
         onChange={(v) => onSettings({ source: v })}
         disabledValues={[...(custom ? [] : ["notes"]), ...(pending ? [] : ["mistakes"])]}
         options={[
-          { value: "bank", label: "Banco IIPP", sub: `${SEED_QUESTIONS.length} preg.` },
-          { value: "notes", label: "Mis apuntes", sub: custom ? `${custom.questions.length} preg.` : "Sin generar" },
-          { value: "mistakes", label: "Mis fallos", sub: pending ? `${pending} pendientes` : "Ninguno" },
+          ...(bank ? [{ value: "temario", label: "Temario", sub: `${bank.preguntas.length} preg.` }] : []),
+          { value: "bank", label: bank ? "Demo" : "Banco IIPP", sub: `${SEED_QUESTIONS.length} preg.` },
+          { value: "notes", label: bank ? "Apuntes" : "Mis apuntes", sub: custom ? `${custom.questions.length} preg.` : "Sin generar" },
+          { value: "mistakes", label: bank ? "Fallos" : "Mis fallos", sub: pending ? `${pending} pend.` : "Ninguno" },
         ]}
       />
 
-      {source === "bank" && (
+      {(source === "bank" || source === "temario") && (
         <fieldset>
           <legend className="label text-mute mb-1">Bloque</legend>
           <div className="grid grid-cols-2 gap-x-3 gap-y-1">
-            {BLOCK_CHOICES.map((b) => {
+            {BLOCK_CHOICES.filter((b) => b.id === "all" || blockPool(b.id).length).map((b) => {
               const active = s.block === b.id;
-              const n = b.id === "all" ? SEED_QUESTIONS.length : SEED_QUESTIONS.filter((q) => q.block === b.id).length;
+              const n = blockPool(b.id).length;
               const color = active ? b.hex : "#2e2e2e";
               return (
-                <button key={b.id} type="button" onClick={() => onSettings({ block: b.id })} aria-pressed={active} className="tap press text-left">
+                <button key={b.id} type="button" onClick={() => onSettings({ block: b.id, tema: "all" })} aria-pressed={active} className="tap press text-left">
                   <Folder color={color} tab={<span className="text-[15px]">{b.label}</span>} tabDark={!active || b.dark} tabOffset="ml-0">
                     <p className={`px-3 py-3 font-mono text-sm ${active ? (b.dark ? "text-paper" : "text-ink") : "text-mute"}`}>{n} preguntas</p>
                   </Folder>
@@ -102,6 +110,27 @@ export function ExamSetup({ store, onSettings, onStart }) {
             })}
           </div>
         </fieldset>
+      )}
+
+      {source === "temario" && s.block !== "all" && (
+        <div>
+          <label htmlFor="exam-tema" className="label text-mute block mb-2">
+            Tema
+          </label>
+          <select
+            id="exam-tema"
+            value={s.tema || "all"}
+            onChange={(e) => onSettings({ tema: e.target.value })}
+            className="tap w-full h-12 rounded-folder bg-ink-2 border border-ink-3 px-3 text-paper font-semibold text-sm appearance-none"
+          >
+            <option value="all">Todos los temas del bloque</option>
+            {temasOf(bank, s.block).map((t) => (
+              <option key={t.id} value={t.id}>
+                Tema {t.numero} · {t.titulo} ({bankQuestions(bank, s.block, t.id).length})
+              </option>
+            ))}
+          </select>
+        </div>
       )}
 
       <div>

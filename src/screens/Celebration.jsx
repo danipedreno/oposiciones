@@ -122,8 +122,45 @@ function testScreen(report) {
   };
 }
 
+function cardsScreen(report) {
+  const ratio = report.n ? report.known / report.n : 0;
+  return {
+    bg: "#d71e1e",
+    kicker: "Repaso completado",
+    title: ratio >= 0.7 ? "¡Muy bien!" : "¡Buen repaso!",
+    confetti: ratio >= 0.9,
+    visual: (
+      <Paper className="w-40 h-40 p-2">
+        <Illustration name="test-listo" className="w-full" alt="" />
+      </Paper>
+    ),
+    body: (
+      <>
+        <div className="grid grid-cols-2 gap-2 w-full max-w-[16rem]">
+          <div className="rounded-folder bg-folder-yellow text-ink py-3">
+            <p className="font-mono text-2xl font-semibold tabular-nums">
+              +<CountUp value={report.xpGained} />
+            </p>
+            <p className="text-xs font-semibold">XP</p>
+          </div>
+          <div className="rounded-folder bg-black/25 py-3">
+            <p className="font-mono text-2xl font-semibold tabular-nums">
+              {report.known}/{report.n}
+            </p>
+            <p className="text-xs">Te las sabías</p>
+          </div>
+        </div>
+        <p className="text-sm text-paper/85 mt-3">
+          Hoy llevas {report.dailyDone} de {report.dailyGoal} de tu meta.
+        </p>
+      </>
+    ),
+  };
+}
+
 function screenFor(item, report, store) {
   if (item.type === "test") return testScreen(report);
+  if (item.type === "cards") return cardsScreen(report);
 
   if (item.type === "streak") {
     const racha = MEDAL_FAMILIES.find((f) => f.id === "racha");
@@ -291,7 +328,7 @@ export default function Celebrations({ queue, report, store, onDone }) {
           </div>
         )}
         <Button variant={dark ? "paper" : "ink"} onClick={next} className="w-full">
-          {i + 1 < queue.length ? "Continuar" : "Ver resultado"}
+          {i + 1 < queue.length ? "Continuar" : report.kind === "cards" ? "Terminar" : "Ver resultado"}
         </Button>
       </div>
     </div>

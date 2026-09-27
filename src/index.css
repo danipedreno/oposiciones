@@ -156,6 +156,26 @@
     animation-timing-function: cubic-bezier(0.33, 0, 0.67, 1);
     animation-fill-mode: both;
   }
+  /* Tarjeta que gira: se repite decenas de veces por sesión, así que es rápida (220 ms). */
+  .flip-card {
+    perspective: 1200px;
+  }
+  .flip-inner {
+    display: grid;
+    transform-style: preserve-3d;
+    transition: transform 220ms var(--ease-out);
+  }
+  .flip-card[data-flipped="true"] .flip-inner {
+    transform: rotateY(180deg);
+  }
+  .flip-face {
+    grid-area: 1 / 1;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+  .flip-back {
+    transform: rotateY(180deg);
+  }
   .anim-folder {
     animation: folder 360ms var(--ease-out) both;
   }
@@ -228,4 +248,12 @@
   .press:active:not(:disabled) {
     transform: none;
   }
+  /* Sin giro: la respuesta aparece con un fundido */
+  .flip-inner, .flip-card[data-flipped="true"] .flip-inner, .flip-back {
+    transform: none !important;
+    transition: none !important;
+  }
+  .flip-face { transition: opacity 150ms ease !important; }
+  .flip-card[data-flipped="true"] .flip-face:not(.flip-back),
+  .flip-card[data-flipped="false"] .flip-back { opacity: 0; }
 }

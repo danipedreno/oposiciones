@@ -3,10 +3,11 @@ import { Check, FilePdf, Lightning, Sparkle, UploadSimple } from "@phosphor-icon
 import { BLOCKS, BLOCK_IDS, analyzeNotes } from "../lib/logic.js";
 import { SAMPLE_NOTES } from "../data/questions.js";
 import { Button, FolderTab, Illustration, Paper, ProgressBar } from "../ui.jsx";
+import { ImportBank } from "./Cards.jsx";
 
 const PROCESS_STEPS = ["Leyendo tus apuntes", "Detectando plazos, normas y conceptos", "Generando preguntas tipo test"];
 
-export default function Notes({ store, onSaveDraft, onSaveCustom, onStartCustom }) {
+export default function Notes({ store, bank, onImport, onSaveDraft, onSaveCustom, onStartCustom }) {
   const [text, setText] = useState(store.notesDraft.text);
   const [block, setBlock] = useState(store.notesDraft.block);
   const [upload, setUpload] = useState(null); // { name, progress, simulated }
@@ -87,6 +88,22 @@ export default function Notes({ store, onSaveDraft, onSaveCustom, onStartCustom 
         <p className="label text-mute">Apuntes e IA</p>
         <h1 className="display text-[52px] mt-1">De tus apuntes a un test</h1>
       </header>
+
+      <Paper className="p-4">
+        <p className="label text-mute-paper">Tu temario de la academia</p>
+        {bank ? (
+          <p className="font-serif text-[17px] leading-snug mt-2">
+            Importado: {bank.temas.length} temas, {bank.preguntas.length} preguntas y {bank.flashcards.length} tarjetas. Úsalo en Test y en Tarjetas.
+          </p>
+        ) : (
+          <p className="font-serif text-[17px] leading-snug mt-2">
+            Importa el archivo <span className="font-mono text-base">mi-banco.json</span> con las preguntas de todo tu temario. Se guarda solo en este móvil.
+          </p>
+        )}
+        <div className="mt-4">
+          <ImportBank onImport={onImport} label={bank ? "Actualizar mi temario" : "Importar mi temario"} variant={bank ? "ink" : "blue"} />
+        </div>
+      </Paper>
 
       {!text && phase === "idle" && (
         <Paper className="p-4 anim-rise">

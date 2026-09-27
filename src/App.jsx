@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowCounterClockwise, ClipboardText, FileText, House, Trophy } from "@phosphor-icons/react";
-import { applyExamResult, createExam, mistakePool } from "./lib/logic.js";
+import { ArrowCounterClockwise, Cards, CheckCircle, ClipboardText, FileText, House, Trophy, WarningCircle } from "@phosphor-icons/react";
+import { applyCardsResult, applyExamResult, createExam, mistakePool } from "./lib/logic.js";
+import { useBank } from "./lib/bank.js";
+import CardsScreen from "./screens/Cards.jsx";
 import { DEFAULT_STORE, useInstallPrompt, useNow, usePersistentStore } from "./lib/store.js";
 import { AppToaster, notify } from "./ui.jsx";
 import Home from "./screens/Home.jsx";
@@ -12,6 +14,7 @@ import { ExamResults, ExamRunner, ExamSetup } from "./screens/Exam.jsx";
 const TABS = [
   { id: "home", label: "Inicio", Icon: House, color: "#ffe927", dark: false },
   { id: "test", label: "Test", Icon: ClipboardText, color: "#1e4bd7", dark: true },
+  { id: "cards", label: "Tarjetas", Icon: Cards, color: "#d71e1e", dark: true },
   { id: "notes", label: "Apuntes", Icon: FileText, color: "#0c7866", dark: true },
   { id: "badges", label: "Logros", Icon: Trophy, color: "#581e70", dark: true },
 ];
@@ -26,7 +29,7 @@ function TabBar({ tab, onChange }) {
   return (
     <nav className="fixed left-4 right-4 tabbar-pos z-40" aria-label="Navegación principal">
       <div className="relative max-w-md mx-auto rounded-folder bg-ink-2/95 backdrop-blur-md border border-ink-3 p-1.5 shadow-2xl shadow-black/70">
-        <div className="grid grid-cols-4 gap-1">
+        <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}>
           {TABS.map(({ id, label, Icon }) => (
             <button
               key={id}
@@ -42,8 +45,8 @@ function TabBar({ tab, onChange }) {
         </div>
         <div
           aria-hidden="true"
-          className="absolute inset-1.5 grid grid-cols-4 gap-1 pointer-events-none transition-[clip-path] duration-[250ms] ease-in-out"
-          style={{ clipPath: `inset(0 ${((n - 1 - index) / n) * 100}% 0 ${(index / n) * 100}% round 4px)` }}
+          className="absolute inset-1.5 grid gap-1 pointer-events-none transition-[clip-path] duration-[250ms] ease-in-out"
+          style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))`, clipPath: `inset(0 ${((n - 1 - index) / n) * 100}% 0 ${(index / n) * 100}% round 4px)` }}
         >
           {TABS.map(({ id, label, Icon, color, dark }) => (
             <div key={id} className={`h-14 rounded-[4px] flex flex-col items-center justify-center gap-0.5 ${dark ? "text-paper" : "text-ink"}`} style={{ background: color }}>
@@ -61,6 +64,7 @@ export default function App() {
   const [store, setStore] = usePersistentStore();
   const [tab, setTab] = useState(() => (store.activeExam || store.lastResult ? "test" : "home"));
   const install = useInstallPrompt();
+  const { bank, importFile } = useBank();
   const [celebration, setCelebration] = useState(null); // { queue, report }
   const storeRef = useRef(store);
   const finishedIds = useRef(new Set());
@@ -140,6 +144,26 @@ export default function App() {
     if (!pool.length) return;
     startExam({ pool, count: pool.length, feedback: s.settings.feedback, secsPerQ: s.settings.secsPerQ, source: "mistakes", title: "Repaso de fallos" });
   };
+  const onImport = async (file) => {
+    const r = await importFile(file);
+    if (r.ok) {
+      setStore((s) => ({ ...s, settings: { ...s.settings, source: "temario", block: "all", tema: "all" } }));
+      notify({
+        icon: <CheckCircle size={24} weight="fill" />,
+        color: "#0c7866",
+        kicker: "Temario importado",
+        text: `${r.bank.preguntas.length} preguntas y ${r.bank.flashcards.length} tarjetas`,
+      });
+    } else {
+      notify({ icon: <WarningCircle size={24} weight="fill" />, color: "#d71e1e", kicker: "No se pudo importar", text: r.error, duration: 6000 });
+    }
+  };
+  const onCardsFinish = (results) => {
+    if (!results.length) return;
+    const { store: next, report } = applyCardsResult(storeRef.current, results, new Date());
+    setStore(next);
+    setCelebration({ queue: report.celebrations, report });
+  };
   const onNewExam = () => {
     setStore((s) => ({ ...s, lastResult: null }));
     setTab("test");
@@ -170,8 +194,10 @@ export default function App() {
                   onGoNotes={() => setTab("notes")}
                   onReview={onReview}
                   onPlan={(patch) => setStore((s) => ({ ...s, plan: { ...s.plan, ...patch } }))}
+                  bank={bank}
+                  onGoCards={() => setTab("cards")}
                   onPractice={(block) => {
-                    setStore((s) => ({ ...s, lastResult: null, settings: { ...s.settings, source: "bank", block } }));
+                    setStore((s) => ({ ...s, lastResult: null, settings: { ...s.settings, source: bank ? "temario" : "bank", block, tema: "all" } }));
                     setTab("test");
                   }}
                 />
@@ -187,9 +213,10 @@ export default function App() {
                     onReview={onReview}
                   />
                 ) : (
-                  <ExamSetup store={store} onSettings={onSettings} onStart={startExam} />
+                  <ExamSetup store={store} bank={bank} onSettings={onSettings} onStart={startExam} />
                 ))}
-              {tab === "notes" && <Notes store={store} onSaveDraft={onSaveDraft} onSaveCustom={onSaveCustom} onStartCustom={onStartCustom} />}
+              {tab === "cards" && <CardsScreen store={store} bank={bank} onImport={onImport} onFinish={onCardsFinish} />}
+              {tab === "notes" && <Notes store={store} bank={bank} onImport={onImport} onSaveDraft={onSaveDraft} onSaveCustom={onSaveCustom} onStartCustom={onStartCustom} />}
               {tab === "badges" && <Achievements store={store} onReset={onReset} />}
             </div>
           </main>

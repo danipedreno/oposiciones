@@ -39,6 +39,15 @@ export const BLOCKS = {
     text: "text-folder-red",
     illustration: "bloque-penal",
   },
+  conducta: {
+    id: "conducta",
+    label: "Conducta Humana",
+    short: "Conducta",
+    hex: "#581e70",
+    bg: "bg-folder-purple",
+    text: "text-folder-purple",
+    illustration: "procesando",
+  },
   funcion: {
     id: "funcion",
     label: "Función Pública",
@@ -49,7 +58,7 @@ export const BLOCKS = {
     illustration: "bloque-funcion-publica",
   },
 };
-export const BLOCK_IDS = Object.keys(BLOCKS);
+export const BLOCK_IDS = ["penitenciario", "penal", "funcion", "conducta"];
 
 export const RANKS = [
   { level: 1, name: "Opositor Novato", min: 0, illustration: "rango-1-novato" },
@@ -75,6 +84,7 @@ export const MEDAL_FAMILIES = [
   { id: "respondidas", name: "Fondo de armario", icon: "books", color: "#1e4bd7", unit: "preguntas respondidas", tiers: [100, 300, 700, 1200, 2000], value: (s) => s.totals.answered },
   { id: "maraton", name: "Maratón", icon: "timer", color: "#d71e1e", unit: "tests de 30 o más preguntas", tiers: [1, 5, 10, 20], value: (s) => s.counters.marathons },
   { id: "repaso", name: "Sin cuentas pendientes", icon: "repeat", color: "#581e70", unit: "fallos dominados", tiers: [5, 20, 50, 100], value: (s) => s.counters.mastered },
+  { id: "tarjetero", name: "Tarjetero", icon: "cards", color: "#d71e1e", unit: "tarjetas dominadas", tiers: [20, 100, 250, 500], value: (s) => Object.values(s.cards || {}).filter((c) => c.box >= 4).length },
   { id: "matricula", name: "Matrícula", icon: "star", color: "#1e4bd7", unit: "tests de 20+ con nota ≥ 8", tiers: [1, 5, 15], value: (s) => s.counters.highScores },
   {
     id: "especialista",
@@ -82,8 +92,8 @@ export const MEDAL_FAMILIES = [
     icon: "scales",
     color: "#0c7866",
     unit: "bloques con 75 % de aciertos (mín. 50 preguntas)",
-    tiers: [1, 2, 3],
-    value: (s) => ["penitenciario", "penal", "funcion"].filter((b) => (s.blockStats[b]?.t || 0) >= 50 && s.blockStats[b].c / s.blockStats[b].t >= 0.75).length,
+    tiers: [1, 2, 3, 4],
+    value: (s) => ["penitenciario", "penal", "funcion", "conducta"].filter((b) => (s.blockStats[b]?.t || 0) >= 50 && s.blockStats[b].c / s.blockStats[b].t >= 0.75).length,
   },
 ];
 
@@ -224,17 +234,108 @@ export function gradeExam(exam) {
 }
 
 /** Aplica el resultado de un examen al progreso guardado. Devuelve el nuevo estado y un informe. */
+
+/* ---------------------------------------------------------------------
+   Progreso común a tests y tarjetas: meta diaria, racha y celebraciones
+   --------------------------------------------------------------------- */
+function studyProgress(store, n, today) {
+  const goal = store.plan.dailyGoal;
+  const doneBefore = store.daily[today] || 0;
+  const doneAfter = doneBefore + n;
+  const goalMet = doneBefore < goal && doneAfter >= goal;
+  return {
+    goal,
+    doneAfter,
+    goalMet,
+    daily: Object.fromEntries(Object.entries({ ...store.daily, [today]: doneAfter }).slice(-60)),
+    goalDays: goalMet ? [...store.goalDays, today] : store.goalDays,
+    streak: bumpStreak(store.streak, today),
+  };
+}
+
+/** Cola de celebraciones, en el orden en que se muestran al terminar. */
+function celebrationsFor(store, nextStore, { first, today, goalMet, goal, earned = [] }) {
+  const list = [{ type: first }];
+  // La racha se celebra con la primera sesión de estudio de cada día (como Duolingo).
+  if (store.streak.last !== today) list.push({ type: "streak", count: nextStore.streak.count });
+  if (goalMet) list.push({ type: "goal", goal });
+  earned.forEach((id) => list.push({ type: "special", id }));
+  MEDAL_FAMILIES.forEach((f) => {
+    const before = medalProgress(f, store).level;
+    const after = medalProgress(f, nextStore).level;
+    for (let level = before + 1; level <= after; level++) list.push({ type: "tier", family: f.id, level });
+  });
+  const rankBefore = rankInfo(store.xp).rank;
+  const rankAfter = rankInfo(nextStore.xp).rank;
+  if (rankAfter.level > rankBefore.level) list.push({ type: "rank", level: rankAfter.level });
+  return list;
+}
+
+/* ---------------------------------------------------------------------
+   Tarjetas (flashcards) con repetición espaciada tipo Leitner
+   Caja 1..5; «Lo sé» sube de caja y aplaza, «Difícil» mantiene, «Otra vez» vuelve a la caja 1.
+   --------------------------------------------------------------------- */
+export const CARD_INTERVALS = [0, 1, 3, 7, 14, 30]; // días hasta volver a verla, por caja
+export const XP_PER_CARD = { good: 3, hard: 1, again: 1 };
+export const MASTERED_BOX = 4;
+
+const addDays = (key, days) => {
+  const [y, m, d] = key.split("-").map(Number);
+  return dateKey(new Date(y, m - 1, d + days));
+};
+
+export function scheduleCard(prev, rating, today) {
+  const box = prev?.box || 0;
+  const nextBox = rating === "good" ? Math.min(5, box + 1) : rating === "hard" ? Math.max(1, box) : 1;
+  const days = rating === "again" ? 0 : CARD_INTERVALS[nextBox];
+  return { box: nextBox, due: addDays(today, days), seen: (prev?.seen || 0) + 1 };
+}
+
+/** Tarjetas para hoy: primero las vencidas (las más atrasadas antes) y después las nuevas. */
+export function cardsForSession(cards, state, today, limit = 20, newLimit = 10) {
+  const due = cards.filter((c) => state[c.id] && state[c.id].due <= today).sort((a, b) => state[a.id].due.localeCompare(state[b.id].due));
+  const fresh = cards.filter((c) => !state[c.id]).slice(0, newLimit);
+  return [...due, ...fresh].slice(0, limit);
+}
+
+export function applyCardsResult(store, results, date) {
+  const today = dateKey(date);
+  const cards = { ...store.cards };
+  results.forEach((r) => (cards[r.id] = scheduleCard(cards[r.id], r.rating, today)));
+  const { goal, doneAfter, goalMet, daily, goalDays, streak } = studyProgress(store, results.length, today);
+  const xpParts = {
+    cards: results.reduce((acc, r) => acc + XP_PER_CARD[r.rating], 0),
+    goal: goalMet ? XP_GOAL_BONUS : 0,
+  };
+  const xpGained = xpParts.cards + xpParts.goal;
+  const nextStore = {
+    ...store,
+    cards,
+    daily,
+    goalDays,
+    streak,
+    xp: store.xp + xpGained,
+    totals: { ...store.totals, cards: (store.totals.cards || 0) + results.length },
+  };
+  const report = {
+    kind: "cards",
+    n: results.length,
+    known: results.filter((r) => r.rating === "good").length,
+    xpGained,
+    xpParts,
+    dailyDone: doneAfter,
+    dailyGoal: goal,
+    celebrations: celebrationsFor(store, nextStore, { first: "cards", today, goalMet, goal }),
+  };
+  return { report, store: nextStore };
+}
+
 export function applyExamResult(store, exam, reason, date) {
   const grade = gradeExam(exam);
   const today = dateKey(date);
 
   // Meta diaria: cuenta todas las preguntas del test (también las dejadas en blanco).
-  const goal = store.plan.dailyGoal;
-  const doneBefore = store.daily[today] || 0;
-  const doneAfter = doneBefore + grade.n;
-  const goalMet = doneBefore < goal && doneAfter >= goal;
-  const daily = Object.fromEntries(Object.entries({ ...store.daily, [today]: doneAfter }).slice(-60));
-  const goalDays = goalMet ? [...store.goalDays, today] : store.goalDays;
+  const { goal, doneAfter, goalMet, daily, goalDays, streak } = studyProgress(store, grade.n, today);
 
   const xpParts = {
     correct: grade.correct * XP_PER_CORRECT,
@@ -286,8 +387,8 @@ export function applyExamResult(store, exam, reason, date) {
   const achievements = { ...store.achievements };
   earned.forEach((id) => (achievements[id] = date.toISOString()));
 
-  const streak = bumpStreak(store.streak, today);
   const counters = {
+    ...store.counters,
     marathons: store.counters.marathons + (grade.n >= 30 ? 1 : 0),
     mastered: store.counters.mastered + mastered,
     highScores: store.counters.highScores + (grade.n >= 20 && grade.over10 >= 8 ? 1 : 0),
@@ -299,18 +400,7 @@ export function applyExamResult(store, exam, reason, date) {
   };
   const nextStore = { ...store, xp, blockStats, achievements, streak, totals, counters, daily, goalDays, mistakes };
 
-  // Cola de celebraciones, en el orden en que se muestran al terminar.
-  const celebrations = [{ type: "test" }];
-  // La racha se celebra con el primer test de cada día (como Duolingo).
-  if (store.streak.last !== today) celebrations.push({ type: "streak", count: streak.count });
-  if (goalMet) celebrations.push({ type: "goal", goal });
-  earned.forEach((id) => celebrations.push({ type: "special", id }));
-  MEDAL_FAMILIES.forEach((f) => {
-    const before = medalProgress(f, store).level;
-    const after = medalProgress(f, nextStore).level;
-    for (let level = before + 1; level <= after; level++) celebrations.push({ type: "tier", family: f.id, level });
-  });
-  if (rankAfter.level > rankBefore.level) celebrations.push({ type: "rank", level: rankAfter.level });
+  const celebrations = celebrationsFor(store, nextStore, { first: "test", today, goalMet, goal, earned });
 
   const report = {
     exam,
