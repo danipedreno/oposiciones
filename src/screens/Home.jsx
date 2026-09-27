@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowCounterClockwise, Books, CaretRight, Check, DeviceMobile, Fire, X } from "@phosphor-icons/react";
 import { DAILY_GOALS, MASTERED_AFTER, dateKey, daysUntil, rankInfo, streakView } from "../lib/logic.js";
-import { Button, Folder, Galones, IconButton, Illustration, Paper, ProgressBar, Segmented, Sheet } from "../ui.jsx";
+import { Button, Folder, FolderTab, Galones, IconButton, Illustration, Paper, ProgressBar, Segmented, Sheet } from "../ui.jsx";
 import { GoalRing } from "./Celebration.jsx";
 import { ImportBank } from "./Cards.jsx";
 
@@ -11,10 +11,18 @@ const WEEKDAY = ["D", "L", "M", "X", "J", "V", "S"];
 // volver a la pestaña es frecuente y repetir la animación la haría pesada.
 let introPlayed = false;
 
-export function RankFolder({ xp, tab = "Hoja de servicio", intro = false }) {
-  const { rank, next, pct, toNext } = rankInfo(xp);
+export function RankFolder({ xp, tab = "Hoja de opositor", intro = false }) {
   return (
     <Folder color="#581e70" tab={tab} className={intro ? "anim-folder" : ""}>
+      <RankContent xp={xp} />
+    </Folder>
+  );
+}
+
+function RankContent({ xp }) {
+  const { rank, next, pct, toNext } = rankInfo(xp);
+  return (
+    <div>
       <div className="p-5 flex gap-4">
         <div className="min-w-0 flex-1">
           <p className="label text-paper/70">
@@ -36,7 +44,7 @@ export function RankFolder({ xp, tab = "Hoja de servicio", intro = false }) {
         </div>
         <ProgressBar pct={pct} track="bg-black/30" className="h-2.5" label="Progreso hasta el siguiente rango" />
       </div>
-    </Folder>
+    </div>
   );
 }
 
@@ -92,8 +100,8 @@ function StreakCard({ streak }) {
   );
 }
 
-/** Carpeta «Tu examen»: cuenta atrás y meta de hoy, el gancho diario. */
-function PlanFolder({ store, onPlan }) {
+/** «Tu examen»: cuenta atrás y meta de hoy, el gancho diario. */
+function PlanContent({ store, onPlan }) {
   const today = dateKey();
   const done = store.daily[today] || 0;
   const goal = store.plan.dailyGoal;
@@ -113,7 +121,7 @@ function PlanFolder({ store, onPlan }) {
 
   return (
     <>
-      <Folder color="#ffe927" tab="Tu examen" tabDark={false}>
+      <div>
         <div className="p-5 pb-4 text-ink flex items-center gap-4">
           <div className="flex-1 min-w-0">
             {left === null ? (
@@ -146,7 +154,7 @@ function PlanFolder({ store, onPlan }) {
             {left === null ? "Poner fecha y meta diaria" : "Cambiar fecha o meta"}
           </button>
         </div>
-      </Folder>
+      </div>
 
       <Sheet
         open={editing}
@@ -193,6 +201,80 @@ function PlanFolder({ store, onPlan }) {
         }
       />
     </>
+  );
+}
+
+/* Archivador de Inicio: tres carpetas y una sola delante; se cambia tocando su pestaña.
+   Se recuerda la última elegida mientras la app esté abierta. */
+const HOME_FOLDERS = [
+  { id: "examen", label: "Tu examen", color: "#ffe927", dark: false },
+  { id: "racha", label: "Racha", color: "#d71e1e", dark: true },
+  { id: "hoja", label: "Hoja de opositor", color: "#581e70", dark: true },
+];
+let lastFolder = "examen";
+
+function HomeCabinet({ store, onPlan, intro }) {
+  const [active, setActive] = useState(lastFolder);
+  const tabs = useRef([]);
+  const current = HOME_FOLDERS.find((f) => f.id === active);
+  const choose = (id) => {
+    lastFolder = id;
+    setActive(id);
+  };
+  // Patrón de pestañas: flechas para moverse entre ellas.
+  const onKey = (e, k) => {
+    const dir = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+    if (!dir) return;
+    e.preventDefault();
+    const next = (k + dir + HOME_FOLDERS.length) % HOME_FOLDERS.length;
+    choose(HOME_FOLDERS[next].id);
+    tabs.current[next]?.focus();
+  };
+
+  return (
+    <section className={intro ? "anim-folder" : ""}>
+      <div role="tablist" aria-label="Tu progreso" className="flex items-end">
+        {HOME_FOLDERS.map((f, k) => {
+          const on = f.id === active;
+          return (
+            <button
+              key={f.id}
+              ref={(el) => (tabs.current[k] = el)}
+              type="button"
+              role="tab"
+              id={`carpeta-tab-${f.id}`}
+              aria-selected={on}
+              aria-controls="carpeta-inicio"
+              tabIndex={on ? 0 : -1}
+              onClick={() => choose(f.id)}
+              onKeyDown={(e) => onKey(e, k)}
+              className={`tap relative shrink-0 -mb-px transition-transform duration-200 ease-out ${k ? "-ml-3" : ""} ${on ? "z-10" : "z-0 translate-y-1"}`}
+            >
+              <FolderTab color={on ? f.color : "#2e2e2e"} dark={on ? f.dark : true} compact>
+                <span className={`text-[14px] ${on ? "" : "text-mute"}`}>{f.label}</span>
+              </FolderTab>
+            </button>
+          );
+        })}
+      </div>
+      <div
+        id="carpeta-inicio"
+        role="tabpanel"
+        aria-labelledby={`carpeta-tab-${active}`}
+        className={`rounded-folder folder-shadow transition-colors duration-200 ease-out ${current.dark ? "text-paper" : "text-ink"}`}
+        style={{ background: current.color }}
+      >
+        <div key={active} className="anim-fade">
+          {active === "examen" && <PlanContent store={store} onPlan={onPlan} />}
+          {active === "racha" && (
+            <div className="p-2.5">
+              <StreakCard streak={store.streak} />
+            </div>
+          )}
+          {active === "hoja" && <RankContent xp={store.xp} />}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -267,9 +349,7 @@ export default function Home({ store, bank, install, onDismissInstall, onImport,
       )}
 
       {!bank && <TemarioCard bank={bank} onImport={onImport} onGoTemario={onGoTemario} />}
-      <PlanFolder store={store} onPlan={onPlan} />
-      <StreakCard streak={store.streak} />
-      <RankFolder xp={store.xp} intro={intro} tab="Hoja de opositor" />
+      <HomeCabinet store={store} onPlan={onPlan} intro={intro} />
 
       {pendingMistakes > 0 && (
         <button type="button" onClick={onReview} className="tap press text-left rounded-folder bg-folder-red text-paper p-4 flex items-center gap-4">
