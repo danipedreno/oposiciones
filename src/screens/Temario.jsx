@@ -1,11 +1,13 @@
-import { CaretLeft } from "@phosphor-icons/react";
+import { useState } from "react";
+import { CaretLeft, SignOut } from "@phosphor-icons/react";
 import { BLOCKS, BLOCK_IDS } from "../lib/logic.js";
 import { bankCards, bankQuestions, temasOf } from "../lib/bank.js";
-import { FolderTab, Illustration, Paper } from "../ui.jsx";
+import { Button, FolderTab, Illustration, Paper, Sheet } from "../ui.jsx";
 import { ImportBank } from "./Cards.jsx";
 
 /** Pestaña Temario: cargar o actualizar el banco y ver qué hay en cada carpeta. */
-export default function Temario({ bank, onImport, onBack }) {
+export default function Temario({ bank, onImport, onBack, onLogout }) {
+  const [confirm, setConfirm] = useState(false);
   const back = (
     <button type="button" onClick={onBack} className="tap press -ml-2 mb-2 h-11 px-2 rounded-folder text-mute hover:text-paper flex items-center gap-1 text-sm font-semibold">
       <CaretLeft size={18} weight="bold" /> Inicio
@@ -84,9 +86,34 @@ export default function Temario({ bank, onImport, onBack }) {
       ))}
 
       <div className="border-t border-ink-3 pt-5 flex flex-col gap-3">
-        <p className="text-sm text-mute">Versión del {fecha}. Cuando te pasen una versión nueva, actualízala aquí: tu progreso, racha y fallos se conservan.</p>
-        <ImportBank onImport={onImport} label="Actualizar mi temario" variant="ghost" />
+        <p className="text-sm text-mute">
+          Versión del {fecha}. Cuando haya temas nuevos, la app los descarga sola al abrirla; tu progreso, racha y fallos se conservan.
+        </p>
+        <Button variant="ghost" onClick={() => setConfirm(true)} className="w-full">
+          <SignOut size={20} weight="bold" /> Cerrar sesión
+        </Button>
+        <details className="text-sm text-mute">
+          <summary className="tap cursor-pointer py-3">Importar un archivo manualmente</summary>
+          <ImportBank onImport={onImport} label="Elegir mi-banco.json" variant="ghost" />
+        </details>
       </div>
+
+      <Sheet
+        open={confirm}
+        title="¿Cerrar sesión?"
+        onClose={() => setConfirm(false)}
+        body="Se quita el temario de este móvil. Tu racha, XP y medallas se conservan. Para volver a entrar necesitarás tu usuario y contraseña."
+        actions={
+          <>
+            <Button variant="red" onClick={() => { setConfirm(false); onLogout(); }}>
+              Cerrar sesión
+            </Button>
+            <Button variant="paper" className="border-2 border-paper-3" onClick={() => setConfirm(false)}>
+              Cancelar
+            </Button>
+          </>
+        }
+      />
     </div>
   );
 }

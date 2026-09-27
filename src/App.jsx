@@ -8,6 +8,7 @@ import { AppToaster, notify } from "./ui.jsx";
 import Home from "./screens/Home.jsx";
 import Celebrations from "./screens/Celebration.jsx";
 import Temario from "./screens/Temario.jsx";
+import Login from "./screens/Login.jsx";
 import Achievements from "./screens/Achievements.jsx";
 import { ExamResults, ExamRunner, ExamSetup } from "./screens/Exam.jsx";
 
@@ -64,7 +65,15 @@ export default function App() {
   const [store, setStore] = usePersistentStore();
   const [tab, setTab] = useState(() => (store.activeExam || store.lastResult ? "test" : "home"));
   const install = useInstallPrompt();
-  const { bank, importFile } = useBank();
+  const { bank, importFile, login, logout } = useBank({
+    onUpdated: (b) =>
+      notify({
+        icon: <CheckCircle size={24} weight="fill" />,
+        color: "#0c7866",
+        kicker: "Temario actualizado",
+        text: `${b.temas.length} temas · ${b.preguntas.length} preguntas`,
+      }),
+  });
   const [celebration, setCelebration] = useState(null); // { queue, report }
   const storeRef = useRef(store);
   const finishedIds = useRef(new Set());
@@ -164,6 +173,10 @@ export default function App() {
   return (
     <div className="fixed inset-0 overflow-hidden bg-ink">
       <AppToaster />
+      {!bank ? (
+        <Login onLogin={login} />
+      ) : (
+      <>
       {celebration && <Celebrations queue={celebration.queue} report={celebration.report} store={store} onDone={() => setCelebration(null)} />}
       {exam ? (
         <ExamRunner exam={exam} remainingMs={remainingMs} onSelect={onSelect} onBlank={onBlank} onGoto={onGoto} onFinish={() => finishExam("submitted")} onAbandon={onAbandon} />
@@ -197,12 +210,24 @@ export default function App() {
                   <ExamSetup store={store} bank={bank} onSettings={onSettings} onStart={startExam} />
                 ))}
               {tab === "cards" && <CardsScreen store={store} bank={bank} onImport={onImport} onFinish={onCardsFinish} />}
-              {tab === "temario" && <Temario bank={bank} onImport={onImport} onBack={() => setTab("home")} />}
+              {tab === "temario" && (
+                <Temario
+                  bank={bank}
+                  onImport={onImport}
+                  onBack={() => setTab("home")}
+                  onLogout={() => {
+                    logout();
+                    setTab("home");
+                  }}
+                />
+              )}
               {tab === "badges" && <Achievements store={store} onReset={onReset} />}
             </div>
           </main>
           <TabBar tab={tab} onChange={setTab} />
         </>
+      )}
+      </>
       )}
     </div>
   );
