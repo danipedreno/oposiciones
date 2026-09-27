@@ -18,7 +18,7 @@ Total: **29 ilustraciones**, en el estilo de tu referencia: personajes de trazo 
 
 | Archivo | Tamaño | Dónde aparece | Qué dibujar |
 |---|---|---|---|
-| `bienvenida.svg` | 1200 × 600 (2:1) | Tarjeta de bienvenida mientras no hay ningún test hecho. | Grupo de 3–4 opositores caminando en fila con carpetas, códigos y una mochila; uno saluda. |
+| `bienvenida.svg` | 1600 × 900 (16:9) | Tarjeta de bienvenida mientras no hay ningún test hecho. | Grupo de 3–4 opositores caminando en fila con carpetas, códigos y una mochila; uno saluda. |
 | `racha-activa.svg` | 800 × 800 (1:1) | Tarjeta de racha cuando ya has estudiado hoy. | Personaje orgulloso sosteniendo en alto una vela o antorcha encendida. |
 | `racha-pendiente.svg` | 800 × 800 (1:1) | Tarjeta de racha cuando estudiaste ayer pero aún no hoy. | Personaje bostezando junto a una vela con la llama pequeña, mirando un reloj. |
 | `racha-apagada.svg` | 800 × 800 (1:1) | Tarjeta de racha sin racha o con la racha rota. | Personaje soplando o mirando una vela apagada con una voluta de humo. |
@@ -48,7 +48,7 @@ Total: **29 ilustraciones**, en el estilo de tu referencia: personajes de trazo 
 
 | Archivo | Tamaño | Dónde aparece | Qué dibujar |
 |---|---|---|---|
-| `simulacro.svg` | 1200 × 600 (2:1) | Cabecera de la configuración del simulacro. | Personaje sentado en un pupitre con lápiz, y un reloj grande en la pared. |
+| `simulacro.svg` | 1600 × 900 (16:9) | Cabecera de la configuración del simulacro. | Personaje sentado en un pupitre con lápiz, y un reloj grande en la pared. |
 | `entregar.svg` | 800 × 800 (1:1) | Hoja de confirmación «¿Entregar el examen?». | Personaje entregando una carpeta por encima de un mostrador. |
 | `abandonar.svg` | 800 × 800 (1:1) | Hoja de confirmación «¿Abandonar el examen?». | Personaje saliendo de puntillas por una puerta. |
 
@@ -56,7 +56,7 @@ Total: **29 ilustraciones**, en el estilo de tu referencia: personajes de trazo 
 
 | Archivo | Tamaño | Dónde aparece | Qué dibujar |
 |---|---|---|---|
-| `apuntes-vacio.svg` | 1200 × 600 (2:1) | Cabecera de Apuntes antes de cargar texto. | Personaje con una torre de apuntes y PDFs en equilibrio sobre la cabeza. |
+| `apuntes-vacio.svg` | 1600 × 900 (16:9) | Cabecera de Apuntes antes de cargar texto. | Personaje con una torre de apuntes y PDFs en equilibrio sobre la cabeza. |
 | `bloque-penitenciario.svg` | 800 × 800 (1:1) | Carpeta azul · Derecho Penitenciario. | Personaje con un manojo de llaves grande junto a una puerta con mirilla. |
 | `bloque-penal.svg` | 800 × 800 (1:1) | Carpeta roja · Derecho Penal. | Personaje sosteniendo una balanza de la justicia o un Código Penal enorme. |
 | `bloque-funcion-publica.svg` | 800 × 800 (1:1) | Carpeta verde · Función Pública. | Personaje en una ventanilla con un sello de caucho. |

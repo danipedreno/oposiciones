@@ -4,7 +4,7 @@ import { ILLUSTRATIONS } from "../src/lib/illustrations.js";
 
 const entries = Object.entries(ILLUSTRATIONS);
 const screens = [...new Set(entries.map(([, v]) => v.screen))];
-const size = (r) => (r === "wide" ? "1200 × 600 (2:1)" : "800 × 800 (1:1)");
+const size = (r) => (r === "wide" ? "1600 × 900 (16:9)" : "800 × 800 (1:1)");
 
 let md = `# Ilustraciones de Recuento
 

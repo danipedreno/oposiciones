@@ -157,7 +157,7 @@ const EXTENSIONS = ["svg", "png", "webp"];
 export function Illustration({ name, className = "", alt = "" }) {
   const meta = ILLUSTRATIONS[name] || { ratio: "square" };
   const [attempt, setAttempt] = useState(0);
-  const aspect = meta.ratio === "wide" ? "aspect-[2/1]" : "aspect-square";
+  const aspect = meta.ratio === "wide" ? "aspect-video" : "aspect-square";
 
   if (attempt >= EXTENSIONS.length) {
     return (
