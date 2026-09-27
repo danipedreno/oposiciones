@@ -11,7 +11,7 @@ import {
   formatMinutes,
 } from "../lib/logic.js";
 import { SEED_QUESTIONS } from "../data/questions.js";
-import { Button, Folder, FolderTab, IconButton, Illustration, Paper, ProgressBar, Segmented, Sheet } from "../ui.jsx";
+import { Button, Folder, IconButton, Illustration, Paper, ProgressBar, Segmented, Sheet } from "../ui.jsx";
 import { RankFolder } from "./Home.jsx";
 import { temaLabel, temasOf } from "../lib/bank.js";
 import { useCountUp } from "../lib/motion.js";
@@ -43,18 +43,27 @@ function Step({ n, title, hint, children }) {
   );
 }
 
-/** Carpeta seleccionable: el color del bloque aparece al elegirla. */
-function BlockToggle({ id, selected, onToggle }) {
-  const b = BLOCKS[id];
+/** Casilla de la lista «¿Qué quieres repasar?»: una fila grande con check, fácil de tocar. */
+function ChoiceRow({ label, color, checked, onToggle, note }) {
   return (
-    <button type="button" onClick={onToggle} aria-pressed={selected} className="tap press text-left w-full">
-      <div className="flex items-end">
-        <FolderTab color={selected ? b.hex : "#2e2e2e"} className="-mb-px relative z-[1]">
-          <span className={`text-[15px] ${selected ? "" : "text-mute"}`}>{b.short}</span>
-          {selected && <Check size={16} weight="bold" />}
-        </FolderTab>
-      </div>
-      <div className="h-3 rounded-folder rounded-tl-none transition-colors duration-200" style={{ background: selected ? b.hex : "#2e2e2e" }} />
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={checked}
+      onClick={onToggle}
+      className={`tap press w-full min-h-14 px-4 py-2 flex items-center gap-3 text-left transition-colors duration-150 ${checked ? "bg-ink-3" : "hover:bg-ink-3/60"}`}
+    >
+      <span
+        className={`w-6 h-6 rounded-[5px] border-2 flex items-center justify-center shrink-0 transition-colors duration-150 ${checked ? "bg-paper border-paper text-ink" : "border-ink-4"}`}
+        aria-hidden="true"
+      >
+        {checked && <Check size={16} weight="bold" />}
+      </span>
+      {color && <span className="w-3 h-3 rounded-full shrink-0" style={{ background: color }} aria-hidden="true" />}
+      <span className="flex-1 min-w-0">
+        <span className="block font-semibold leading-tight">{label}</span>
+        {note && <span className="block text-xs text-mute mt-0.5">{note}</span>}
+      </span>
     </button>
   );
 }
@@ -62,8 +71,7 @@ function BlockToggle({ id, selected, onToggle }) {
 export function ExamSetup({ store, bank, onSettings, onStart }) {
   const s = store.settings;
   const base = bank ? bank.preguntas : SEED_QUESTIONS;
-  const available = BLOCK_IDS.filter((id) => base.some((q) => q.block === id));
-  const blocks = (s.blocks || []).filter((b) => available.includes(b));
+  const blocks = (s.blocks || []).filter((b) => BLOCK_IDS.includes(b));
   const all = blocks.length === 0;
   const tema = blocks.length === 1 && s.tema && s.tema !== "all" ? s.tema : "all";
   const pendingAll = Object.keys(store.mistakes).length;
@@ -75,7 +83,8 @@ export function ExamSetup({ store, bank, onSettings, onStart }) {
 
   const toggleBlock = (id) => {
     const next = blocks.includes(id) ? blocks.filter((b) => b !== id) : [...blocks, id];
-    onSettings({ blocks: next, tema: "all" });
+    // Marcar los cuatro es lo mismo que «Todo el temario».
+    onSettings({ blocks: next.length === BLOCK_IDS.length ? [] : next, tema: "all" });
   };
 
   const scope = all
@@ -95,20 +104,22 @@ export function ExamSetup({ store, bank, onSettings, onStart }) {
         {!bank && <p className="text-sm text-mute mt-2">Aún no has cargado tu temario: de momento se usan 40 preguntas de muestra.</p>}
       </header>
 
-      <Step n="1" title="¿Qué quieres repasar?" hint="Todo el temario o las carpetas que elijas.">
-        <button
-          type="button"
-          onClick={() => onSettings({ blocks: [], tema: "all" })}
-          aria-pressed={all}
-          className={`tap press h-14 px-4 rounded-folder flex items-center justify-between font-semibold ${all ? "bg-paper text-ink" : "bg-ink-2 border border-ink-3 text-mute"}`}
-        >
-          Todo el temario
-          {all && <Check size={20} weight="bold" />}
-        </button>
-        <div className="grid grid-cols-2 gap-x-3 gap-y-2">
-          {available.map((id) => (
-            <BlockToggle key={id} id={id} selected={blocks.includes(id)} onToggle={() => toggleBlock(id)} />
-          ))}
+      <Step n="1" title="¿Qué quieres repasar?" hint="Marca todo el temario o uno o varios bloques.">
+        <div className="rounded-folder bg-ink-2 border border-ink-3 overflow-hidden divide-y divide-ink-3" role="group" aria-label="Qué quieres repasar">
+          <ChoiceRow label="Todo el temario" checked={all} onToggle={() => onSettings({ blocks: [], tema: "all" })} />
+          {BLOCK_IDS.map((id) => {
+            const hasQuestions = base.some((q) => q.block === id);
+            return (
+              <ChoiceRow
+                key={id}
+                label={BLOCKS[id].label}
+                color={BLOCKS[id].hex}
+                checked={blocks.includes(id)}
+                onToggle={() => toggleBlock(id)}
+                note={hasQuestions ? null : "Aún sin preguntas: llegarán con tu temario"}
+              />
+            );
+          })}
         </div>
         {bank && blocks.length === 1 && (
           <div>
