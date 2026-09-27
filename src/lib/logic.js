@@ -15,6 +15,7 @@ export const DEFAULT_DAILY_GOAL = 40;
 export const OFFICIAL_SECONDS_PER_QUESTION = 54;
 export const NIGHT_START_HOUR = 23;
 export const NIGHT_END_HOUR = 6;
+export const EARLY_END_HOUR = 8;
 // Una pregunta fallada sale del repaso tras acertarla estas veces seguidas.
 export const MASTERED_AFTER = 2;
 export const REVIEW_SIZE = 20;
@@ -67,7 +68,7 @@ export const RANKS = [
 
 export const ACHIEVEMENTS = [
   { id: "primer-turno", name: "Primer Turno", desc: "Completa tu primer test.", icon: "key", illustration: "medalla-primer-turno" },
-  { id: "celda-castigo", name: "Celda de Castigo", desc: "Comete 3 fallos seguidos en un test.", icon: "cell", illustration: "medalla-celda-castigo" },
+  { id: "madrugador", name: "Madrugador", desc: "Termina un test entre las 6:00 y las 8:00.", icon: "sun", illustration: "medalla-madrugador", fallback: "medalla-primer-turno" },
   { id: "imbatible", name: "Imbatible", desc: "Test de más de 10 preguntas sin fallos ni blancos.", icon: "shield", illustration: "medalla-imbatible" },
   { id: "nocturno", name: "Estudioso Nocturno", desc: "Termina un test entre las 23:00 y las 6:00.", icon: "moon", illustration: "medalla-estudioso-nocturno" },
 ];
@@ -414,7 +415,7 @@ export function applyExamResult(store, exam, reason, date) {
   };
   const hour = date.getHours();
   unlock("primer-turno", true);
-  unlock("celda-castigo", grade.maxWrongRun >= 3);
+  unlock("madrugador", hour >= NIGHT_END_HOUR && hour < EARLY_END_HOUR);
   unlock("imbatible", grade.n > 10 && grade.wrong === 0 && grade.blank === 0);
   unlock("nocturno", hour >= NIGHT_START_HOUR || hour < NIGHT_END_HOUR);
 

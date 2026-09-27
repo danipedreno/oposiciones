@@ -1,6 +1,6 @@
 # Ilustraciones gratis con la web de Gemini
 
-En vez de 29 imágenes, **10 generaciones**: 7 lotes de 4 en cuadrícula 2×2 y 3 panorámicas sueltas.
+En vez de 29 imágenes, **11 generaciones**: 8 lotes de 4 en cuadrícula 2×2 y 3 panorámicas sueltas.
 Un script recorta los lotes, centra cada ilustración y la pasa a SVG.
 
 ## Pasos
@@ -9,7 +9,7 @@ Un script recorta los lotes, centra cada ilustración y la pasa a SVG.
 2. En cada mensaje **adjunta** las dos imágenes de `illustrations-src/_referencia/` y pega el prompt.
    Un prompt por mensaje. Si ya las generaste en ese chat, no hace falta volver a adjuntarlas.
 3. Descarga cada imagen con el nombre indicado:
-   - lotes → `illustrations-src/_lotes/lote-1.png` … `lote-7.png`
+   - lotes → `illustrations-src/_lotes/lote-1.png` … `lote-8.png`
    - panorámicas → `illustrations-src/<nombre>.png`
 4. Cuando tengas todas (o las que sea), ejecuta una sola vez:
 
@@ -99,6 +99,18 @@ Clean black ink line illustration in the same style as the attached reference im
 Square image arranged as a 2x2 grid of 2 completely separate illustrations, one per quadrant, each centered in its quadrant with wide empty space around it. No borders, no dividing lines, no frames between them, and nothing crossing into another quadrant. Where a scene mentions the reference sheet, redraw that figure from the attached sheet.
 Top-left: A person reading a book at a desk under a desk lamp at night, a crescent moon and a small owl visible through the window behind.
 Top-right: A person sweeping a messy pile of papers with a broom, clearing the floor.
+```
+
+## lote-8 → todo-temario, caja-las-se, caja-no-las-se, medalla-madrugador
+
+```
+Clean black ink line illustration in the same style as the attached reference images: modern editorial line art, simplified but realistic human proportions, people in office clothes or prison-officer uniforms, confident even line weight, solid flat black fills on hair, ties, trousers and shoes, minimal facial features with expressive poses. Strictly black ink only, no gray, no color, no hatching-heavy shading. Plain flat off-white background #FDFAF7. Absolutely no text, letters or numbers anywhere, including on books, signs and papers. 
+
+Square image arranged as a 2x2 grid of 4 completely separate illustrations, one per quadrant, each centered in its quadrant with wide empty space around it. No borders, no dividing lines, no frames between them, and nothing crossing into another quadrant. Where a scene mentions the reference sheet, redraw that figure from the attached sheet.
+Top-left: A cheerful person carrying a tall stack of four thick binders in both arms, with an open cardboard archive box full of documents at their feet.
+Top-right: A smiling person dropping one more index card into an open cardboard box already full of neatly stacked cards, giving a thumbs up with the other hand.
+Bottom-left: A determined person sitting on an open cardboard box with a few loose index cards, holding one card up close and reading it carefully, a pencil behind the ear.
+Bottom-right: An early riser stretching happily at a desk with an open book and a steaming mug of coffee, a rising sun visible through the window behind.
 ```
 
 ## bienvenida (panorámica 16:9, suelta) → `illustrations-src/bienvenida.png`

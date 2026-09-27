@@ -11,7 +11,7 @@ import {
   formatMinutes,
 } from "../lib/logic.js";
 import { SEED_QUESTIONS } from "../data/questions.js";
-import { Button, Folder, IconButton, Illustration, Paper, ProgressBar, Segmented, Sheet } from "../ui.jsx";
+import { Button, ChoiceTile, Folder, IconButton, Illustration, Paper, Picker, ProgressBar, Segmented, Sheet } from "../ui.jsx";
 import { RankFolder } from "./Home.jsx";
 import { temaLabel, temasOf } from "../lib/bank.js";
 import { useCountUp } from "../lib/motion.js";
@@ -41,31 +41,6 @@ function Step({ n, title, hint, children }) {
       </div>
       {children}
     </section>
-  );
-}
-
-/** Casilla de la lista «¿Qué quieres repasar?»: una fila grande con check, fácil de tocar. */
-function ChoiceRow({ label, color, checked, onToggle, note }) {
-  return (
-    <button
-      type="button"
-      role="checkbox"
-      aria-checked={checked}
-      onClick={onToggle}
-      className={`tap press w-full min-h-14 px-4 py-2 flex items-center gap-3 text-left transition-colors duration-150 ${checked ? "bg-mist" : "hover:bg-ground/70"}`}
-    >
-      <span
-        className={`w-6 h-6 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors duration-150 ${checked ? "bg-ink border-ink text-ground" : "border-line-strong"}`}
-        aria-hidden="true"
-      >
-        {checked && <Check size={16} weight="bold" />}
-      </span>
-      {color && <span className="w-4 h-4 blob shrink-0" style={{ background: color }} aria-hidden="true" />}
-      <span className="flex-1 min-w-0">
-        <span className="block font-semibold leading-tight">{label}</span>
-        {note && <span className="block text-xs text-ink-soft mt-0.5">{note}</span>}
-      </span>
-    </button>
   );
 }
 
@@ -104,42 +79,38 @@ export function ExamSetup({ store, bank, onSettings, onStart }) {
         {!bank && <p className="text-sm text-ink-soft mt-2">Aún no has cargado tu temario: de momento se usan 40 preguntas de muestra.</p>}
       </header>
 
-      <Step n="1" title="¿Qué quieres repasar?" hint="Marca todo el temario o uno o varios bloques.">
-        <div className="rounded-folder bg-card paper-shadow overflow-hidden divide-y divide-line" role="group" aria-label="Qué quieres repasar">
-          <ChoiceRow label="Todo el temario" checked={all} onToggle={() => onSettings({ blocks: [], tema: "all" })} />
-          {BLOCK_IDS.map((id) => {
-            const hasQuestions = base.some((q) => q.block === id);
-            return (
-              <ChoiceRow
-                key={id}
-                label={BLOCKS[id].label}
-                color={BLOCKS[id].hex}
-                checked={blocks.includes(id)}
-                onToggle={() => toggleBlock(id)}
-                note={hasQuestions ? null : "Aún sin preguntas: llegarán con tu temario"}
-              />
-            );
-          })}
+      <Step n="1" title="¿Qué quieres repasar?" hint="Elige todo el temario o uno o varios bloques.">
+        <div className="grid grid-cols-2 gap-2.5" role="group" aria-label="Qué quieres repasar">
+          <ChoiceTile
+            wide
+            title="Todo el temario"
+            note="Los cuatro bloques mezclados"
+            color={PAL.sun}
+            illustration="todo-temario"
+            fallback="simulacro"
+            selected={all}
+            onClick={() => onSettings({ blocks: [], tema: "all" })}
+          />
+          {BLOCK_IDS.map((id) => (
+            <ChoiceTile
+              key={id}
+              title={BLOCKS[id].label}
+              note={base.some((q) => q.block === id) ? null : "Aún sin preguntas"}
+              color={BLOCKS[id].hex}
+              illustration={BLOCKS[id].illustration}
+              selected={blocks.includes(id)}
+              onClick={() => toggleBlock(id)}
+            />
+          ))}
         </div>
         {bank && blocks.length === 1 && (
-          <div>
-            <label htmlFor="exam-tema" className="sr-only">
-              Tema
-            </label>
-            <select
-              id="exam-tema"
-              value={tema}
-              onChange={(e) => onSettings({ tema: e.target.value })}
-              className="tap w-full h-12 rounded-full bg-card paper-shadow px-4 text-ink font-semibold text-sm"
-            >
-              <option value="all">Todos los temas de {BLOCKS[blocks[0]].short}</option>
-              {temasOf(bank, blocks[0]).map((t) => (
-                <option key={t.id} value={t.id}>
-                  Tema {t.numero} · {t.titulo}
-                </option>
-              ))}
-            </select>
-          </div>
+          <Picker
+            id="exam-tema"
+            label={`Tema de ${BLOCKS[blocks[0]].label}`}
+            value={tema}
+            onChange={(v) => onSettings({ tema: v })}
+            options={[{ value: "all", label: `Todos los temas` }, ...temasOf(bank, blocks[0]).map((t) => ({ value: t.id, label: `Tema ${t.numero} · ${t.titulo}` }))]}
+          />
         )}
         <button
           type="button"
@@ -565,7 +536,7 @@ export function ExamResults({ result, xp, pendingMistakes, onNew, onHome, onRevi
                 <div key={id} className="anim-medal" style={{ animationDelay: `${350 + k * 80}ms` }}>
                   <Paper className="p-3 flex items-center gap-3">
                     <div className="w-16 h-16 p-1 shrink-0 bg-lilac blob">
-                      <Illustration name={a.illustration} className="w-full" alt="" />
+                      <Illustration name={a.illustration} fallback={a.fallback} className="w-full" alt="" />
                     </div>
                     <div>
                       <p className="font-serif text-lg leading-tight">{a.name}</p>

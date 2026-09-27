@@ -1,9 +1,9 @@
 import { useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Cards as CardsIcon, CheckCircle, Fire, UploadSimple, X, XCircle } from "@phosphor-icons/react";
+import { Cards as CardsIcon, Fire, UploadSimple, X } from "@phosphor-icons/react";
 import { BLOCKS, BLOCK_IDS, COMBO_BONUS, COMBO_STEP, MASTERED_BOX, XP_PER_CARD, cardPiles, cardsForSession, dateKey, shuffle } from "../lib/logic.js";
 import { bankCards, temaLabel, temasOf } from "../lib/bank.js";
-import { Button, Folder, IconButton, Illustration, Paper, ProgressBar } from "../ui.jsx";
+import { Button, ChoiceTile, Folder, IconButton, Illustration, Paper, Picker, ProgressBar } from "../ui.jsx";
 import { PAL } from "../lib/palette.js";
 
 /** Botón para importar el banco privado (mi-banco.json). */
@@ -29,8 +29,6 @@ export function ImportBank({ onImport, label = "Importar mi temario", variant = 
     </>
   );
 }
-
-const selectClass = "tap w-full h-12 rounded-full bg-card paper-shadow px-4 text-ink font-semibold text-sm appearance-none";
 
 function Session({ bank, queue: initial, onExit, onFinish }) {
   const [queue, setQueue] = useState(initial);
@@ -166,25 +164,26 @@ function Session({ bank, queue: initial, onExit, onFinish }) {
   );
 }
 
-/** Caja de tarjetas («Las sé» / «No las sé») con su contador y botón de repaso. */
-function Pile({ title, color, cards, icon, onReview }) {
+/** Caja de tarjetas («Las sé» / «No las sé») con su ilustración, contador y botón de repaso. */
+function Pile({ title, color, cards, illustration, fallback, onReview }) {
   return (
-    <Folder color={color} tab={title} className="min-w-0">
-      <div className="p-3 flex flex-col gap-3 text-ink">
-        <div className="flex items-center justify-between">
-          <span className="brand text-[44px] leading-none">{cards.length}</span>
-          {icon}
-        </div>
-        <button
-          type="button"
-          onClick={onReview}
-          disabled={!cards.length}
-          className="tap press h-11 rounded-full bg-ink text-ground text-sm font-semibold disabled:opacity-40"
-        >
-          Repasar
-        </button>
+    <div className="rounded-[22px] p-3 flex flex-col gap-3 min-w-0" style={{ background: color }}>
+      <div className="w-full aspect-square bg-card/75 blob p-2">
+        <Illustration name={illustration} fallback={fallback} className="w-full" alt="" />
       </div>
-    </Folder>
+      <div className="flex items-baseline justify-between gap-2 px-1">
+        <span className="font-semibold text-[17px] leading-tight">{title}</span>
+        <span className="brand text-[34px] leading-none">{cards.length}</span>
+      </div>
+      <button
+        type="button"
+        onClick={onReview}
+        disabled={!cards.length}
+        className="tap press h-11 rounded-full bg-ink text-ground text-sm font-semibold disabled:opacity-40"
+      >
+        Repasar
+      </button>
+    </div>
   );
 }
 
@@ -271,44 +270,49 @@ export default function CardsScreen({ store, bank, onImport, onFinish }) {
         ))}
       </div>
 
-      <div className="grid gap-3">
-        <div>
-          <label htmlFor="cards-block" className="label text-ink-soft block mb-2">
-            Bloque
-          </label>
-          <select
-            id="cards-block"
-            value={block}
-            onChange={(e) => {
-              setBlock(e.target.value);
+      <section aria-labelledby="cards-que" className="flex flex-col gap-3">
+        <h2 id="cards-que" className="font-semibold text-lg leading-tight">
+          ¿Qué quieres repasar?
+        </h2>
+        <div className="grid grid-cols-2 gap-2.5" role="group" aria-labelledby="cards-que">
+          <ChoiceTile
+            wide
+            compact
+            title="Todo el temario"
+            color={PAL.sun}
+            illustration="todo-temario"
+            fallback="simulacro"
+            selected={block === "all"}
+            onClick={() => {
+              setBlock("all");
               setTema("all");
             }}
-            className={selectClass}
-          >
-            <option value="all">Todo el temario</option>
-            {BLOCK_IDS.filter((b) => temasOf(bank, b).length).map((b) => (
-              <option key={b} value={b}>
-                {BLOCKS[b].label}
-              </option>
-            ))}
-          </select>
+          />
+          {BLOCK_IDS.filter((b) => temasOf(bank, b).length).map((b) => (
+            <ChoiceTile
+              key={b}
+              compact
+              title={BLOCKS[b].label}
+              color={BLOCKS[b].hex}
+              illustration={BLOCKS[b].illustration}
+              selected={block === b}
+              onClick={() => {
+                setBlock(b);
+                setTema("all");
+              }}
+            />
+          ))}
         </div>
         {block !== "all" && (
-          <div>
-            <label htmlFor="cards-tema" className="label text-ink-soft block mb-2">
-              Tema
-            </label>
-            <select id="cards-tema" value={tema} onChange={(e) => setTema(e.target.value)} className={selectClass}>
-              <option value="all">Todos los temas</option>
-              {temasOf(bank, block).map((t) => (
-                <option key={t.id} value={t.id}>
-                  Tema {t.numero} · {t.titulo}
-                </option>
-              ))}
-            </select>
-          </div>
+          <Picker
+            id="cards-tema"
+            label={`Tema de ${BLOCKS[block].label}`}
+            value={tema}
+            onChange={setTema}
+            options={[{ value: "all", label: "Todos los temas" }, ...temasOf(bank, block).map((t) => ({ value: t.id, label: `Tema ${t.numero} · ${t.titulo}` }))]}
+          />
         )}
-      </div>
+      </section>
 
       <div className="rounded-folder bg-peach p-5">
         <div className="flex items-center gap-4">
@@ -331,8 +335,8 @@ export default function CardsScreen({ store, bank, onImport, onFinish }) {
         <h2 id="cajas-title" className="display text-[30px]">Tus cajas</h2>
         <p className="text-sm text-ink-soft mt-1 mb-3">Cada tarjeta va a una caja según tu última respuesta. Repásalas cuando quieras.</p>
         <div className="grid grid-cols-2 gap-3">
-          <Pile title="Las sé" color={PAL.mint} cards={piles.known} icon={<CheckCircle size={28} weight="fill" />} onReview={() => startPile(piles.known)} />
-          <Pile title="No las sé" color={PAL.lilac} cards={piles.unknown} icon={<XCircle size={28} weight="fill" />} onReview={() => startPile(piles.unknown)} />
+          <Pile title="Las sé" color={PAL.mint} cards={piles.known} illustration="caja-las-se" fallback="test-listo" onReview={() => startPile(piles.known)} />
+          <Pile title="No las sé" color={PAL.lilac} cards={piles.unknown} illustration="caja-no-las-se" fallback="procesando" onReview={() => startPile(piles.unknown)} />
         </div>
       </section>
 

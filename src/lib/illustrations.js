@@ -45,6 +45,11 @@ export const ILLUSTRATIONS = {
   "medalla-celda-castigo": { ratio: "square", screen: "Logros", where: "Medalla Celda de Castigo.", fromSheet: true, scene: "man peeking out from behind prison cell bars" },
   "medalla-imbatible": { ratio: "square", screen: "Logros", where: "Medalla Imbatible.", scene: "A person in office clothes striking a superhero pose with a cape flowing behind them and a round shield on one arm." },
   "medalla-estudioso-nocturno": { ratio: "square", screen: "Logros", where: "Medalla Estudioso Nocturno.", scene: "A person reading a book at a desk under a desk lamp at night, a crescent moon and a small owl visible through the window behind." },
+  // Lote 8 (Crea tu test, cajas de Tarjetas y medalla Madrugador)
+  "todo-temario": { ratio: "square", lote: 8, screen: "Test", where: "Opción «Todo el temario» al crear un test.", scene: "A cheerful person carrying a tall stack of four thick binders in both arms, with an open cardboard archive box full of documents at their feet." },
+  "caja-las-se": { ratio: "square", lote: 8, screen: "Tarjetas", where: "Caja «Las sé».", scene: "A smiling person dropping one more index card into an open cardboard box already full of neatly stacked cards, giving a thumbs up with the other hand." },
+  "caja-no-las-se": { ratio: "square", lote: 8, screen: "Tarjetas", where: "Caja «No las sé».", scene: "A determined person sitting on an open cardboard box with a few loose index cards, holding one card up close and reading it carefully, a pencil behind the ear." },
+  "medalla-madrugador": { ratio: "square", lote: 8, screen: "Logros", where: "Medalla Madrugador.", scene: "An early riser stretching happily at a desk with an open book and a steaming mug of coffee, a rising sun visible through the window behind." },
   reiniciar: { ratio: "square", screen: "Logros", where: "Hoja de confirmación «¿Reiniciar progreso?».", scene: "A person sweeping a messy pile of papers with a broom, clearing the floor." },
 };
 
@@ -60,9 +65,14 @@ export const fullPrompt = (name) => `${STYLE}\n\n${ILLUSTRATIONS[name].prompt}`;
 /* Lotes para la web de Gemini (gratis): 4 ilustraciones cuadradas por imagen en cuadrícula 2×2.
    Las panorámicas (16:9) van sueltas. `npm run split` recorta cada lote en sus 4 ilustraciones. */
 const POSITIONS = ["Top-left", "Top-right", "Bottom-left", "Bottom-right"];
-const squares = Object.keys(ILLUSTRATIONS).filter((n) => ILLUSTRATIONS[n].ratio === "square");
+// Las que llevan `lote` van en su propio lote fijo (añadidas después): así no se mueven los lotes ya hechos.
+const squares = Object.keys(ILLUSTRATIONS).filter((n) => ILLUSTRATIONS[n].ratio === "square" && !ILLUSTRATIONS[n].lote);
 export const GRIDS = [];
 for (let i = 0; i < squares.length; i += 4) GRIDS.push(squares.slice(i, i + 4));
+for (const [name, v] of Object.entries(ILLUSTRATIONS)) {
+  if (!v.lote) continue;
+  (GRIDS[v.lote - 1] ||= []).push(name);
+}
 
 export function gridPrompt(names) {
   if (names.length === 1) return fullPrompt(names[0]);

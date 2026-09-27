@@ -220,7 +220,7 @@ function screenFor(item, report, store) {
       confetti: true,
       visual: (
         <div className="w-44 h-44 p-4 bg-card blob">
-          <Illustration name={a.illustration} className="w-full" alt="" />
+          <Illustration name={a.illustration} fallback={a.fallback} className="w-full" alt="" />
         </div>
       ),
       body: (

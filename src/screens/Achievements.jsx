@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Check, Lock } from "@phosphor-icons/react";
+import { Check, Lock, Trophy } from "@phosphor-icons/react";
 import { ACHIEVEMENTS, MEDAL_FAMILIES, RANKS, ROMAN, medalProgress, rankInfo } from "../lib/logic.js";
-import { Button, Folder, Illustration, MedalBadge, Paper, ProgressBar, Sheet } from "../ui.jsx";
+import { Button, Illustration, MedalBadge, Paper, ProgressBar, Sheet } from "../ui.jsx";
 import { PAL } from "../lib/palette.js";
 
 export default function Achievements({ store, onReset }) {
@@ -18,8 +18,9 @@ export default function Achievements({ store, onReset }) {
         <div>
           <h1 className="display text-[48px]">Logros</h1>
         </div>
-        <p className="font-mono text-ink-soft pb-1">
-          <span className="brand text-ink text-[32px]">{unlocked}</span> de {total}
+        <p className="h-11 px-4 mb-1 rounded-full bg-card paper-shadow flex items-center gap-1.5 text-[15px] font-semibold" aria-label={`${unlocked} de ${total} logros conseguidos`}>
+          <Trophy size={18} weight="fill" className="text-plum" />
+          {unlocked} de {total}
         </p>
       </header>
 
@@ -58,7 +59,7 @@ export default function Achievements({ store, onReset }) {
             <li key={a.id} className="anim-rise" style={{ animationDelay: `${k * 60}ms` }}>
               <Paper className="h-full p-3 flex flex-col gap-2">
                 <div className={`relative blob p-2 ${date ? "bg-lilac" : "bg-ground"}`}>
-                  <Illustration name={a.illustration} alt="" className={`w-full ${date ? "" : "opacity-30"}`} />
+                  <Illustration name={a.illustration} fallback={a.fallback} alt="" className={`w-full ${date ? "" : "opacity-30"}`} />
                   {!date && (
                     <span className="absolute top-0 right-0 w-8 h-8 rounded-full bg-card paper-shadow text-ink flex items-center justify-center" aria-label="Bloqueada">
                       <Lock size={16} weight="bold" />
@@ -76,8 +77,11 @@ export default function Achievements({ store, onReset }) {
         })}
       </ul>
 
-      <Folder color={PAL.plum} tabDark tab="Escalafón">
-        <ol className="p-3 flex flex-col gap-1">
+      <section aria-labelledby="escalafon-title" className="rounded-folder bg-plum text-ground p-3">
+        <h2 id="escalafon-title" className="display text-[30px] text-lilac px-2 pt-2 pb-3">
+          Escalafón
+        </h2>
+        <ol className="flex flex-col gap-1">
           {RANKS.map((r) => {
             const reached = store.xp >= r.min;
             const current = r.level === rank.level;
@@ -95,7 +99,7 @@ export default function Achievements({ store, onReset }) {
             );
           })}
         </ol>
-      </Folder>
+      </section>
 
       <dl className="grid grid-cols-3 gap-2 text-center">
         {[

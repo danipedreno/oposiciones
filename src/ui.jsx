@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowCounterClockwise, Books, CaretDoubleUp, Cards, Fire, PencilSimpleLine, Scales, Star, Target, Timer } from "@phosphor-icons/react";
+import { ArrowCounterClockwise, Books, CaretDoubleUp, CaretDown, Cards, Check, Fire, PencilSimpleLine, Scales, Star, Target, Timer } from "@phosphor-icons/react";
 import { Drawer } from "vaul";
 import { Toaster, toast } from "sonner";
 import { ILLUSTRATIONS } from "./lib/illustrations.js";
@@ -134,6 +134,98 @@ export function Segmented({ label, options, value, onChange, disabledValues = []
   );
 }
 
+/**
+ * Baldosa seleccionable con ilustración (sustituye a las casillas). `wide` ocupa las dos columnas.
+ * Es un botón conmutable (aria-pressed): el estado se ve con el borde de tinta y el círculo con check.
+ */
+export function ChoiceTile({ selected, onClick, color, title, note, illustration, fallback, wide = false, compact = false }) {
+  const art = wide ? (compact ? "w-16 h-16" : "w-24 h-24") : compact ? "w-14 h-14" : "w-20 h-20";
+  return (
+    <button
+      type="button"
+      aria-pressed={selected}
+      onClick={onClick}
+      className={`tap press relative text-left rounded-[22px] p-3 transition-shadow duration-150 ${
+        wide ? `col-span-2 flex items-center gap-3 ${compact ? "min-h-[88px]" : "min-h-[116px]"}` : `flex flex-col ${compact ? "min-h-[128px]" : "min-h-[172px]"}`
+      } ${selected ? "shadow-[inset_0_0_0_3px_#222222]" : ""}`}
+      style={{ background: color }}
+    >
+      <span
+        className={`absolute top-2.5 right-2.5 w-7 h-7 rounded-full flex items-center justify-center transition-colors duration-150 ${selected ? "bg-ink text-ground" : "bg-card/70 border-2 border-ink/25"}`}
+        aria-hidden="true"
+      >
+        {selected && <Check size={16} weight="bold" />}
+      </span>
+      <span className={`${art} shrink-0 bg-card/75 blob p-1.5 ${wide ? "order-2 ml-auto mr-8" : ""}`}>
+        <Illustration name={illustration} fallback={fallback} className="w-full" alt="" />
+      </span>
+      <span className={wide ? "order-1 min-w-0 pl-1" : "mt-auto pt-2 pr-1"}>
+        <span className="block font-semibold text-[17px] leading-tight">{title}</span>
+        {note && <span className="block text-xs mt-1 leading-snug">{note}</span>}
+      </span>
+    </button>
+  );
+}
+
+/**
+ * Desplegable con estilo propio: un campo en píldora que abre una hoja inferior con las opciones
+ * (el menú nativo del sistema no se puede decorar).
+ */
+export function Picker({ id, label, value, options, onChange }) {
+  const [open, setOpen] = useState(false);
+  const current = options.find((o) => o.value === value) || options[0];
+  return (
+    <div>
+      <span id={`${id}-label`} className="label text-ink-soft block mb-2">
+        {label}
+      </span>
+      <button
+        type="button"
+        aria-haspopup="dialog"
+        aria-labelledby={`${id}-label ${id}-value`}
+        onClick={() => setOpen(true)}
+        className="tap press w-full min-h-12 rounded-full bg-card paper-shadow pl-5 pr-2 py-1.5 flex items-center gap-2 text-left"
+      >
+        <span id={`${id}-value`} className="flex-1 min-w-0 truncate font-semibold text-[15px]">
+          {current.label}
+        </span>
+        <span className="w-9 h-9 rounded-full bg-ground flex items-center justify-center shrink-0" aria-hidden="true">
+          <CaretDown size={16} weight="bold" />
+        </span>
+      </button>
+      <Sheet
+        open={open}
+        title={label}
+        onClose={() => setOpen(false)}
+        body={
+          <div role="listbox" aria-label={label} className="-mx-2 max-h-[55vh] overflow-y-auto flex flex-col gap-1 pt-1">
+            {options.map((o) => {
+              const on = o.value === value;
+              return (
+                <button
+                  key={o.value}
+                  type="button"
+                  role="option"
+                  aria-selected={on}
+                  onClick={() => {
+                    onChange(o.value);
+                    setOpen(false);
+                  }}
+                  className={`tap press w-full text-left rounded-[16px] px-3 py-2.5 flex items-center gap-3 text-ink ${on ? "bg-sun" : "hover:bg-ground"}`}
+                >
+                  {o.color && <span className="w-4 h-4 blob shrink-0" style={{ background: o.color }} aria-hidden="true" />}
+                  <span className="flex-1 min-w-0 leading-snug">{o.label}</span>
+                  {on && <Check size={18} weight="bold" className="shrink-0" />}
+                </button>
+              );
+            })}
+          </div>
+        }
+      />
+    </div>
+  );
+}
+
 /** Barra de progreso animada con transform (scaleX), no con width: no recalcula el layout. */
 export function ProgressBar({ pct, color = "#222222", track = "bg-ground-2", className = "h-2", label }) {
   const v = Math.max(0, Math.min(100, pct));
@@ -196,12 +288,14 @@ export function MedalBadge({ family, level, size = 64 }) {
    --------------------------------------------------------------------- */
 const EXTENSIONS = ["svg", "png", "webp"];
 
-export function Illustration({ name, className = "", alt = "" }) {
+export function Illustration({ name, className = "", alt = "", fallback }) {
   const meta = ILLUSTRATIONS[name] || { ratio: "square" };
   const [attempt, setAttempt] = useState(0);
   const aspect = meta.ratio === "wide" ? "aspect-video" : "aspect-square";
 
   if (attempt >= EXTENSIONS.length) {
+    // Mientras llega una ilustración nueva, se usa otra parecida en vez del marcador.
+    if (fallback) return <Illustration name={fallback} className={className} alt={alt} />;
     return (
       <div
         className={`${aspect} rounded-folder border-2 border-dashed border-line flex flex-col items-center justify-center gap-1 text-center px-2 ${className}`}
@@ -249,7 +343,8 @@ export function Sheet({ open, title, illustration, body, actions, onClose }) {
                 </Drawer.Description>
               </div>
             </div>
-            <div className="mt-5 grid gap-2">{actions}</div>
+            {actions && <div className="mt-5 grid gap-2">{actions}</div>}
+            {!actions && <div className="h-4" />}
           </Paper>
         </Drawer.Content>
       </Drawer.Portal>

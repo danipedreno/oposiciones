@@ -1,6 +1,6 @@
 # Ilustraciones de Recuento
 
-Total: **29 ilustraciones**, en line art editorial de tinta negra.
+Total: **33 ilustraciones**, en line art editorial de tinta negra.
 
 ## Cómo se generan
 
@@ -52,6 +52,7 @@ npm run illustrations ascenso  # regenera solo esa (útil si no te gusta el resu
 | `simulacro` | 16:9 | Cabecera de la configuración del simulacro. |
 | `entregar` | 1:1 | Hoja de confirmación «¿Entregar el examen?». |
 | `abandonar` | 1:1 | Hoja de confirmación «¿Abandonar el examen?». |
+| `todo-temario` | 1:1 | Opción «Todo el temario» al crear un test. |
 
 ## Apuntes
 
@@ -72,5 +73,13 @@ npm run illustrations ascenso  # regenera solo esa (útil si no te gusta el resu
 | `medalla-celda-castigo` | 1:1 | Medalla Celda de Castigo. |
 | `medalla-imbatible` | 1:1 | Medalla Imbatible. |
 | `medalla-estudioso-nocturno` | 1:1 | Medalla Estudioso Nocturno. |
+| `medalla-madrugador` | 1:1 | Medalla Madrugador. |
 | `reiniciar` | 1:1 | Hoja de confirmación «¿Reiniciar progreso?». |
+
+## Tarjetas
+
+| Archivo | Formato | Dónde aparece |
+|---|---|---|
+| `caja-las-se` | 1:1 | Caja «Las sé». |
+| `caja-no-las-se` | 1:1 | Caja «No las sé». |
 

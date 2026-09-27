@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowCounterClockwise, Books, CaretRight, Check, DeviceMobile, Fire, X } from "@phosphor-icons/react";
 import { DAILY_GOALS, MASTERED_AFTER, dateKey, daysUntil, rankInfo, streakView } from "../lib/logic.js";
 import { PAL } from "../lib/palette.js";
-import { Button, Folder, FolderTab, Galones, IconButton, Illustration, Paper, ProgressBar, Segmented, Sheet } from "../ui.jsx";
+import { Button, Folder, Galones, IconButton, Illustration, Paper, ProgressBar, Segmented, Sheet } from "../ui.jsx";
 import { GoalRing } from "./Celebration.jsx";
 import { ImportBank } from "./Cards.jsx";
 
@@ -242,11 +242,12 @@ function HomeCabinet({ store, onPlan, intro }) {
               tabIndex={on ? 0 : -1}
               onClick={() => choose(f.id)}
               onKeyDown={(e) => onKey(e, k)}
-              className={`tap relative shrink-0 -mb-px transition-transform duration-200 ease-out ${on ? "z-10" : "z-0 translate-y-1"}`}
+              className={`relative shrink-0 -mb-px px-4 rounded-t-[16px] text-[15px] leading-none whitespace-nowrap transition-[height,background-color,color] duration-200 ease-out ${
+                on ? "h-[52px] z-10 font-semibold text-ink" : "h-11 z-0 font-medium text-ink-soft hover:text-ink"
+              }`}
+              style={{ background: on ? f.color : PAL.ground2 }}
             >
-              <FolderTab color={on ? f.color : PAL.ground2} compact>
-                <span className={on ? "font-semibold" : "text-ink-soft"}>{f.label}</span>
-              </FolderTab>
+              {f.label}
             </button>
           );
         })}
@@ -255,7 +256,7 @@ function HomeCabinet({ store, onPlan, intro }) {
         id="carpeta-inicio"
         role="tabpanel"
         aria-labelledby={`carpeta-tab-${active}`}
-        className={`rounded-folder text-ink transition-colors duration-200 ease-out ${active === HOME_FOLDERS[0].id ? "rounded-tl-none" : ""}`}
+        className="rounded-folder rounded-tl-none text-ink transition-colors duration-200 ease-out"
         style={{ background: current.color }}
       >
         <div key={active} className="anim-fade">
