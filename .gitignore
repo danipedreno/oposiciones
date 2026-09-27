@@ -2,3 +2,7 @@ node_modules
 dist
 .DS_Store
 .env
+
+# Material de la academia: privado, nunca al repositorio público
+temario-privado/
+banco-privado/
