@@ -332,6 +332,28 @@ export default function Home({ store, bank, install, onDismissInstall, onImport,
         </div>
       </header>
 
+      {!install.installed && !install.canInstall && !store.installDismissed && install.browser !== "desktop" && (
+        <Paper className="p-4 flex gap-3 anim-pop">
+          <Illustration name="instalar" className="w-16 shrink-0 self-start" />
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold leading-tight">Instálala en tu móvil</p>
+            <p className="text-sm text-mute-paper leading-snug mt-1">
+              {
+                {
+                  chrome: "En Chrome: toca ⋮ (arriba a la derecha) → «Instalar aplicación» o «Añadir a pantalla de inicio».",
+                  samsung: "En Samsung Internet: toca ≡ (abajo) → «Añadir página a» → «Pantalla de inicio».",
+                  firefox: "En Firefox: toca ⋮ → «Instalar» o «Añadir a pantalla de inicio».",
+                  ios: "En Safari: toca Compartir → «Añadir a pantalla de inicio».",
+                }[install.browser]
+              }
+            </p>
+          </div>
+          <IconButton label="Ocultar aviso" onClick={onDismissInstall} className="text-mute-paper -mr-2 -mt-2 self-start">
+            <X size={20} weight="bold" />
+          </IconButton>
+        </Paper>
+      )}
+
       {install.canInstall && !store.installDismissed && (
         <Paper className="p-3 flex items-center gap-3 anim-pop">
           <Illustration name="instalar" className="w-16 shrink-0" />

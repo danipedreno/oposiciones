@@ -98,5 +98,8 @@ export function useInstallPrompt() {
     await promptEvent.userChoice.catch(() => null);
     setPromptEvent(null);
   };
-  return { canInstall: !!promptEvent && !installed, installed, install };
+  // Navegador, para dar las instrucciones manuales correctas cuando no hay aviso automático.
+  const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
+  const browser = /SamsungBrowser/i.test(ua) ? "samsung" : /Firefox/i.test(ua) ? "firefox" : /iPhone|iPad/i.test(ua) ? "ios" : /Android/i.test(ua) ? "chrome" : "desktop";
+  return { canInstall: !!promptEvent && !installed, installed, install, browser };
 }
