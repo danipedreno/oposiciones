@@ -1,0 +1,200 @@
+import { Check, DeviceMobile, Fire, Sparkle, Timer, X } from "@phosphor-icons/react";
+import { BLOCKS, BLOCK_IDS, dateKey, fmt2, rankInfo, streakView } from "../lib/logic.js";
+import { Button, Folder, Galones, IconButton, Illustration, Paper, ProgressBar } from "../ui.jsx";
+
+const WEEKDAY = ["D", "L", "M", "X", "J", "V", "S"];
+
+export function RankFolder({ xp, tab = "Hoja de servicio" }) {
+  const { rank, next, pct, toNext } = rankInfo(xp);
+  return (
+    <Folder color="#581e70" tab={tab} className="anim-folder">
+      <div className="p-5 flex gap-4">
+        <div className="min-w-0 flex-1">
+          <p className="label text-paper/70">
+            Rango · Nivel {rank.level}/5
+          </p>
+          <p className="display text-[40px] mt-2">{rank.name}</p>
+          <div className="mt-3">
+            <Galones level={rank.level} />
+          </div>
+        </div>
+        <Paper className="w-24 h-24 p-1.5 shrink-0 self-start">
+          <Illustration name={rank.illustration} alt={rank.name} className="w-full" />
+        </Paper>
+      </div>
+      <div className="px-5 pb-5">
+        <div className="flex items-baseline justify-between gap-2 mb-2">
+          <span className="font-mono font-semibold">{xp} XP</span>
+          <span className="text-sm text-paper/75 text-right">{next ? `${toNext} XP para ${next.name}` : "Rango máximo"}</span>
+        </div>
+        <ProgressBar pct={pct} track="bg-black/30" className="h-2.5" label="Progreso hasta el siguiente rango" />
+      </div>
+    </Folder>
+  );
+}
+
+function StreakCard({ streak }) {
+  const view = streakView(streak);
+  const today = new Date();
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(today.getDate() - (6 - i));
+    const k = dateKey(d);
+    return { k, label: WEEKDAY[d.getDay()], studied: (streak.days || []).includes(k), isToday: i === 6 };
+  });
+  const art = view.state === "done" ? "racha-activa" : view.state === "pending" ? "racha-pendiente" : "racha-apagada";
+  const message = {
+    done: "Hoy ya has cumplido. Vuelve mañana.",
+    pending: "Haz un test hoy para no perder la racha.",
+    broken: "La racha se ha cortado. Empieza otra hoy.",
+    none: "Termina un test para encender tu primera racha.",
+  }[view.state];
+
+  return (
+    <Paper className="p-4 anim-rise">
+      <div className="flex gap-4 items-center">
+        <Illustration name={art} className="w-28 shrink-0" alt="" />
+        <div className="min-w-0">
+          <p className="label text-mute-paper flex items-center gap-1.5">
+            <Fire size={16} weight="fill" className={view.count ? "text-folder-red anim-flicker" : "text-paper-3"} />
+            Racha de estudio
+          </p>
+          <p className="display text-5xl mt-1">
+            {view.count} {view.count === 1 ? "día" : "días"}
+          </p>
+          <p className="text-sm text-mute-paper mt-1 leading-snug">{message}</p>
+        </div>
+      </div>
+      <ol className="grid grid-cols-7 gap-1 mt-4" aria-label="Últimos 7 días">
+        {days.map((d) => (
+          <li key={d.k} className="flex flex-col items-center gap-1">
+            <span className={`font-mono text-xs ${d.isToday ? "text-ink font-semibold" : "text-mute-paper"}`}>{d.label}</span>
+            <span
+              className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors duration-500 ${
+                d.studied ? "bg-folder-yellow text-ink" : d.isToday ? "border-2 border-dashed border-ink/40" : "bg-paper-2"
+              }`}
+              aria-label={d.studied ? "Estudiado" : "Sin estudiar"}
+            >
+              {d.studied && <Check size={18} weight="bold" />}
+            </span>
+          </li>
+        ))}
+      </ol>
+      <p className="font-mono text-xs text-mute-paper mt-3">Mejor racha: {streak.best || 0} días</p>
+    </Paper>
+  );
+}
+
+export default function Home({ store, install, onDismissInstall, onNewExam, onGoNotes }) {
+  const streakCount = streakView(store.streak).count;
+  const dateLabel = new Date().toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
+  const accuracy = store.totals.answered ? Math.round((store.totals.correct / store.totals.answered) * 100) : null;
+
+  return (
+    <div className="flex flex-col gap-6">
+      <header className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="display text-[44px]">Recuento</h1>
+          <p className="label text-mute mt-1">{dateLabel}</p>
+        </div>
+        <div className="flex items-center gap-1.5 h-11 px-3 rounded-full bg-ink-2 border border-ink-3" aria-label={`Racha de ${streakCount} días`}>
+          <Fire size={20} weight="fill" className={streakCount ? "text-folder-yellow" : "text-ink-4"} />
+          <span className="font-mono font-semibold">{streakCount}</span>
+        </div>
+      </header>
+
+      {install.canInstall && !store.installDismissed && (
+        <Paper className="p-3 flex items-center gap-3 anim-pop">
+          <Illustration name="instalar" className="w-16 shrink-0" />
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold leading-tight">Instala Recuento</p>
+            <p className="text-sm text-mute-paper leading-snug">Ábrela desde tu pantalla de inicio, también sin conexión.</p>
+          </div>
+          <div className="flex flex-col gap-1">
+            <button type="button" onClick={install.install} className="tap press h-11 px-3 rounded-folder bg-ink text-paper text-sm font-semibold flex items-center gap-1.5">
+              <DeviceMobile size={18} weight="bold" /> Instalar
+            </button>
+          </div>
+          <IconButton label="Ocultar aviso" onClick={onDismissInstall} className="text-mute-paper -mr-1">
+            <X size={20} weight="bold" />
+          </IconButton>
+        </Paper>
+      )}
+
+      <RankFolder xp={store.xp} />
+      <StreakCard streak={store.streak} />
+
+      {store.history.length === 0 && (
+        <Paper className="p-4 anim-rise">
+          <Illustration name="bienvenida" className="w-full" alt="" />
+          <p className="font-serif text-xl leading-snug mt-3">Tu primer turno empieza aquí.</p>
+          <p className="text-[15px] text-mute-paper mt-1">
+            Haz un simulacro corto para estrenar la racha y conseguir la medalla Primer Turno.
+          </p>
+        </Paper>
+      )}
+
+      <div className="grid grid-cols-2 gap-3">
+        <button type="button" onClick={onNewExam} className="tap press text-left rounded-folder p-4 bg-folder-yellow text-ink min-h-[132px] flex flex-col justify-between">
+          <Timer size={30} weight="bold" />
+          <span>
+            <span className="display text-[26px] block">Simulacro</span>
+            <span className="text-sm leading-snug block mt-1">Cronometrado, −⅓ por fallo</span>
+          </span>
+        </button>
+        <button type="button" onClick={onGoNotes} className="tap press text-left rounded-folder p-4 bg-ink-2 border-2 border-ink-3 min-h-[132px] flex flex-col justify-between">
+          <Sparkle size={30} weight="bold" className="text-folder-yellow" />
+          <span>
+            <span className="display text-[26px] block">Tus apuntes</span>
+            <span className="text-sm text-mute leading-snug block mt-1">Pega texto o sube un PDF</span>
+          </span>
+        </button>
+      </div>
+
+      <section aria-labelledby="bloques-title">
+        <div className="flex items-end justify-between mb-2">
+          <h2 id="bloques-title" className="display text-3xl">Por bloques</h2>
+          {accuracy !== null && <span className="font-mono text-sm text-mute">Global {accuracy}%</span>}
+        </div>
+        <div className="pt-1">
+          {BLOCK_IDS.map((id, k) => {
+            const b = BLOCKS[id];
+            const s = store.blockStats[id] || { c: 0, t: 0 };
+            const pct = s.t ? (s.c / s.t) * 100 : 0;
+            return (
+              <Folder key={id} color={b.hex} tab={b.label} stacked={k < BLOCK_IDS.length - 1} tabOffset={["ml-2", "ml-10", "ml-20"][k]} className={`anim-folder ${k ? "-mt-12" : ""}`} style={{ animationDelay: `${k * 80}ms` }}>
+                <div className="p-5 flex items-end justify-between gap-4">
+                  <p className="display text-5xl">{s.t ? `${Math.round(pct)}%` : "—"}</p>
+                  <p className="font-mono text-sm text-paper/80 text-right">{s.t ? `${s.c} de ${s.t} aciertos` : "Sin datos todavía"}</p>
+                </div>
+                <div className="px-5 pb-5">
+                  <ProgressBar pct={pct} color="#fdfaf7" track="bg-black/25" label={`Aciertos en ${b.label}`} />
+                </div>
+              </Folder>
+            );
+          })}
+        </div>
+      </section>
+
+      {store.history.length > 0 && (
+        <section aria-labelledby="historial-title">
+          <h2 id="historial-title" className="display text-3xl mb-3">Últimos tests</h2>
+          <ul className="flex flex-col divide-y divide-ink-3 border-y border-ink-3">
+            {store.history.slice(0, 5).map((h) => (
+              <li key={h.id} className="py-3 flex items-center gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium truncate">{h.title}</p>
+                  <p className="font-mono text-xs text-mute mt-0.5">
+                    {new Date(h.date).toLocaleDateString("es-ES", { day: "numeric", month: "short" })} · {h.correct} A · {h.wrong} E · {h.blank} B
+                  </p>
+                </div>
+                <p className="font-mono text-lg font-semibold tabular-nums">{fmt2(h.over10)}</p>
+              </li>
+            ))}
+          </ul>
+          <p className="font-mono text-xs text-mute mt-2">A aciertos · E errores · B en blanco · nota sobre 10</p>
+        </section>
+      )}
+    </div>
+  );
+}

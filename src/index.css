@@ -1,0 +1,177 @@
+@import "@fontsource-variable/archivo/wdth.css";
+@import "@fontsource-variable/source-serif-4/index.css";
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+@import "@fontsource/ibm-plex-sans/600.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+@import "@fontsource/ibm-plex-mono/600.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+    background: #191919;
+    overscroll-behavior: none;
+  }
+  body {
+    @apply font-sans text-paper antialiased;
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+  }
+  input,
+  textarea,
+  select {
+    font-size: 16px !important; /* evita el zoom automático al enfocar */
+  }
+  button {
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: pointer;
+  }
+  :focus-visible {
+    outline: 3px solid #ffe927;
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Titulares condensados, como el rótulo de Mosby's Files */
+  .display {
+    font-family: "Archivo Variable", "Arial Narrow", sans-serif;
+    font-stretch: 68%;
+    font-weight: 850;
+    text-transform: uppercase;
+    line-height: 0.92;
+    letter-spacing: -0.005em;
+    text-wrap: balance;
+  }
+  .label {
+    @apply font-mono text-xs font-semibold uppercase;
+    letter-spacing: 0.12em;
+  }
+  .tap {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .press {
+    transition: transform 160ms cubic-bezier(0.2, 0.9, 0.3, 1.2), background-color 200ms, color 200ms, border-color 200ms, opacity 200ms;
+  }
+  .press:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+  .scroll-area {
+    overflow-y: auto;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .folder-shadow {
+    box-shadow: 0 -1px 10px rgba(0, 0, 0, 0.28);
+  }
+  .paper-shadow {
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25), 0 10px 30px -12px rgba(0, 0, 0, 0.6);
+  }
+  .pt-safe {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 16px);
+  }
+  .pb-safe {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+  }
+  .pb-tabbar {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 120px);
+  }
+  .tabbar-pos {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+  }
+  .toast-pos {
+    top: calc(env(safe-area-inset-top, 0px) + 12px);
+  }
+}
+
+@layer utilities {
+  .anim-rise {
+    animation: rise 320ms ease-out both;
+  }
+  .anim-pop {
+    animation: pop 300ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  }
+  .anim-shake {
+    animation: shake 420ms ease-in-out;
+  }
+  .anim-fade {
+    animation: fade 200ms ease-out both;
+  }
+  .anim-sheet {
+    animation: sheet 300ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  }
+  .anim-toast {
+    animation: toast 400ms cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+  }
+  .anim-flicker {
+    animation: flicker 1.8s ease-in-out infinite;
+    transform-origin: 50% 90%;
+  }
+  .anim-folder {
+    animation: folder 420ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  }
+}
+
+@keyframes rise {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes pop {
+  from { transform: scale(0.94); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+@keyframes fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes sheet {
+  from { transform: translateY(100%); }
+  to { transform: none; }
+}
+@keyframes toast {
+  from { transform: translateY(-130%); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes flicker {
+  0%, 100% { transform: scale(1) rotate(-3deg); }
+  50% { transform: scale(1.1) rotate(3deg); }
+}
+/* Las carpetas «se deslizan» desde abajo, como al sacarlas del archivador */
+@keyframes folder {
+  from { transform: translateY(28px) rotate(-1.5deg); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

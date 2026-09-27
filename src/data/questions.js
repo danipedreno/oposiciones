@@ -1,0 +1,203 @@
+/* Banco semilla de preguntas (la correcta va primera; se barajan al crear el examen). */
+const mk = (id, block, q, options, exp, tags) => ({ id, block, q, options, answer: 0, exp, tags });
+
+export const SEED_QUESTIONS = [
+  // --- Derecho Penitenciario ---
+  mk("p01", "penitenciario", "¿Qué norma es la Ley Orgánica General Penitenciaria?",
+    ["Ley Orgánica 1/1979, de 26 de septiembre", "Ley Orgánica 10/1995, de 23 de noviembre", "Real Decreto 190/1996, de 9 de febrero", "Ley Orgánica 6/1985, de 1 de julio"],
+    "La LOGP es la LO 1/1979. La LO 10/1995 es el Código Penal y el RD 190/1996, el Reglamento Penitenciario.",
+    ["logp", "general penitenciaria", "1/1979"]),
+  mk("p02", "penitenciario", "Según el art. 25.2 CE, las penas privativas de libertad y las medidas de seguridad estarán orientadas hacia:",
+    ["La reeducación y reinserción social", "La retribución proporcional del delito", "La prevención general e intimidatoria", "La reparación del daño a la víctima"],
+    "Art. 25.2 de la Constitución, reiterado en el art. 1 LOGP como fin primordial de las instituciones penitenciarias.",
+    ["reeducación", "reinserción", "constitución", "25.2"]),
+  mk("p03", "penitenciario", "El Reglamento Penitenciario vigente fue aprobado por:",
+    ["Real Decreto 190/1996, de 9 de febrero", "Real Decreto 1201/1981, de 8 de mayo", "Real Decreto 840/2011, de 17 de junio", "Ley Orgánica 1/1979, de 26 de septiembre"],
+    "El RD 190/1996 sustituyó al Reglamento de 1981 (RD 1201/1981).",
+    ["reglamento penitenciario", "190/1996"]),
+  mk("p04", "penitenciario", "Los penados clasificados en tercer grado cumplen condena en régimen:",
+    ["Abierto", "Ordinario", "Cerrado", "Preventivo"],
+    "Art. 72 LOGP y art. 101 RP: primer grado → régimen cerrado; segundo → ordinario; tercero → abierto.",
+    ["tercer grado", "régimen abierto", "clasificación"]),
+  mk("p05", "penitenciario", "La clasificación en primer grado determina la aplicación del régimen:",
+    ["Cerrado", "Abierto", "Ordinario", "Preventivo"],
+    "Art. 101.3 RP: el primer grado se reserva a internos de peligrosidad extrema o inadaptación manifiesta.",
+    ["primer grado", "régimen cerrado", "peligrosidad"]),
+  mk("p06", "penitenciario", "La clasificación de los penados debe revisarse, como máximo, cada:",
+    ["Seis meses", "Tres meses", "Un año", "Dos meses"],
+    "Art. 65.4 LOGP y art. 105 RP: revisión cada seis meses como máximo.",
+    ["revisión", "revisarse", "6 meses", "seis meses"]),
+  mk("p07", "penitenciario", "Para disfrutar de permisos ordinarios de salida, el penado en segundo o tercer grado debe haber extinguido:",
+    ["La cuarta parte de la condena", "La mitad de la condena", "Las dos terceras partes de la condena", "Las tres cuartas partes de la condena"],
+    "Art. 47.2 LOGP: cuarta parte extinguida y no observar mala conducta.",
+    ["permisos", "permiso", "cuarta parte"]),
+  mk("p08", "penitenciario", "¿Cuántos días de permiso ordinario al año pueden disfrutar, como máximo, los penados en segundo grado?",
+    ["36 días", "48 días", "30 días", "60 días"],
+    "Art. 154 RP: hasta 36 días al año en segundo grado y 48 en tercero, con un máximo de 7 días por permiso.",
+    ["permisos", "36 días", "segundo grado"]),
+  mk("p09", "penitenciario", "La sanción de aislamiento en celda por falta muy grave no podrá exceder de:",
+    ["Catorce días", "Siete días", "Treinta días", "Cuarenta y dos días"],
+    "Art. 42.2 LOGP: máximo 14 días. Los 42 días son el límite por acumulación de sanciones (art. 236 RP).",
+    ["aislamiento", "sanción", "14 días", "disciplinari"]),
+  mk("p10", "penitenciario", "Las comunicaciones íntimas se conceden, previa solicitud, al menos una vez al mes y con una duración:",
+    ["No inferior a una hora ni superior a tres", "No inferior a veinte minutos ni superior a una hora", "De dos horas exactas", "No superior a seis horas"],
+    "Art. 45.4 RP.",
+    ["vis a vis", "comunicaciones", "íntima"]),
+  mk("p11", "penitenciario", "Según el art. 7 LOGP, los establecimientos penitenciarios comprenden:",
+    ["Preventivos, de cumplimiento y especiales", "Abiertos, cerrados y mixtos", "Ordinarios, de régimen cerrado y hospitalarios", "Centrales, provinciales y locales"],
+    "Art. 7 LOGP: establecimientos de preventivos, de cumplimiento de penas y especiales.",
+    ["establecimientos", "preventivos", "cumplimiento", "especiales"]),
+  mk("p12", "penitenciario", "¿Qué órgano judicial resuelve los recursos de los internos contra las sanciones disciplinarias?",
+    ["Juez de Vigilancia Penitenciaria", "Juez de Instrucción", "Audiencia Provincial", "Tribunal Superior de Justicia"],
+    "Art. 76.2.e LOGP.",
+    ["juez de vigilancia", "sanciones", "recurso"]),
+  mk("p13", "penitenciario", "Según los arts. 45 LOGP y 72 RP, NO es un medio coercitivo:",
+    ["El traslado a otro centro penitenciario", "El aislamiento provisional", "La fuerza física personal", "Las esposas"],
+    "Art. 72.1 RP: aislamiento provisional, fuerza física personal, defensas de goma, aerosoles de acción adecuada y esposas.",
+    ["medios coercitivos", "esposas", "aislamiento provisional"]),
+  mk("p14", "penitenciario", "El régimen de los internos preventivos se rige por el principio de:",
+    ["Presunción de inocencia", "Individualización científica", "Peligrosidad social", "Oportunidad"],
+    "Art. 5 LOGP.",
+    ["preventivos", "presunción de inocencia"]),
+  mk("p15", "penitenciario", "Con carácter general, para acceder a la libertad condicional el penado debe haber extinguido:",
+    ["Las tres cuartas partes de la condena", "La mitad de la condena", "Las dos terceras partes de la condena", "La cuarta parte de la condena"],
+    "Art. 90.1 CP: tercer grado, 3/4 partes extinguidas y buena conducta. Existen supuestos especiales de 2/3 y de la mitad.",
+    ["libertad condicional", "tres cuartas partes"]),
+  mk("p16", "penitenciario", "La resolución sobre la clasificación inicial de un penado corresponde a:",
+    ["El Centro Directivo", "La Junta de Tratamiento", "El Juez de Vigilancia Penitenciaria", "El Consejo de Dirección"],
+    "La Junta de Tratamiento formula la propuesta y resuelve el Centro Directivo (arts. 103 y 104 RP).",
+    ["junta de tratamiento", "centro directivo", "clasificación inicial"]),
+
+  // --- Derecho Penal ---
+  mk("c01", "penal", "El Código Penal vigente fue aprobado por:",
+    ["Ley Orgánica 10/1995, de 23 de noviembre", "Ley Orgánica 1/1979, de 26 de septiembre", "Ley Orgánica 5/2000, de 12 de enero", "Ley Orgánica 1/2015, de 30 de marzo"],
+    "La LO 5/2000 regula la responsabilidad penal de los menores y la LO 1/2015 es una reforma del CP.",
+    ["código penal", "10/1995"]),
+  mk("c02", "penal", "Según el art. 33 CP, por su naturaleza y duración las penas se clasifican en:",
+    ["Graves, menos graves y leves", "Muy graves, graves y leves", "Criminales y administrativas", "Privativas y no privativas"],
+    "Art. 33.1 CP.",
+    ["penas", "menos graves", "leves", "clasifican"]),
+  mk("c03", "penal", "Según el art. 33.3 CP, es pena menos grave la prisión de:",
+    ["Tres meses hasta cinco años", "Más de cinco años", "Un día a tres meses", "Seis meses a diez años"],
+    "La prisión superior a cinco años es pena grave (art. 33.2 CP).",
+    ["prisión", "menos grave", "cinco años"]),
+  mk("c04", "penal", "La prisión permanente revisable se introdujo en el Código Penal mediante:",
+    ["Ley Orgánica 1/2015, de 30 de marzo", "Ley Orgánica 5/2010, de 22 de junio", "Ley Orgánica 7/2003, de 30 de junio", "Ley Orgánica 10/1995, de 23 de noviembre"],
+    "Reforma operada por la LO 1/2015.",
+    ["prisión permanente revisable", "1/2015"]),
+  mk("c05", "penal", "Según el art. 36 CP, la pena de prisión tendrá una duración mínima de:",
+    ["Tres meses", "Seis meses", "Un mes", "Quince días"],
+    "Mínimo de tres meses y máximo de veinte años, salvo lo que excepcionalmente dispongan otros preceptos.",
+    ["duración mínima", "3 meses", "20 años", "veinte años"]),
+  mk("c06", "penal", "Los delitos leves prescriben:",
+    ["Al año", "A los seis meses", "A los tres años", "A los tres meses"],
+    "Art. 131.1 CP.",
+    ["prescripción", "prescriben", "delitos leves"]),
+  mk("c07", "penal", "Según el art. 10 CP, son delitos:",
+    ["Las acciones y omisiones dolosas o imprudentes penadas por la ley", "Solo las acciones dolosas penadas por la ley", "Las conductas antisociales tipificadas en reglamentos", "Las infracciones administrativas muy graves"],
+    "Art. 10 CP.",
+    ["delitos", "dolosas", "imprudentes", "omisiones"]),
+  mk("c08", "penal", "Es circunstancia agravante de la responsabilidad criminal (art. 22 CP):",
+    ["La alevosía", "La confesión a las autoridades", "La reparación del daño", "Las dilaciones indebidas"],
+    "Las otras tres son atenuantes del art. 21 CP.",
+    ["agravante", "alevosía", "circunstancia"]),
+  mk("c09", "penal", "Con carácter general, la suspensión de la ejecución exige que la pena impuesta no sea superior a:",
+    ["Dos años", "Un año", "Tres años", "Cinco años"],
+    "Art. 80.2.2ª CP.",
+    ["suspensión", "suspenderse", "2 años", "dos años"]),
+  mk("c10", "penal", "Los menores de dieciocho años que cometan un hecho delictivo responden conforme a:",
+    ["La LO 5/2000, reguladora de la responsabilidad penal de los menores", "La LO 1/1996, de protección jurídica del menor", "El Código Penal, con la pena atenuada", "La Ley 39/2015, de procedimiento administrativo"],
+    "Art. 19 CP.",
+    ["menores", "18 años", "dieciocho", "responsables criminalmente"]),
+  mk("c11", "penal", "El delito de quebrantamiento de condena se regula en el artículo:",
+    ["468 CP", "138 CP", "234 CP", "510 CP"],
+    "El art. 138 regula el homicidio, el 234 el hurto y el 510 los delitos de odio.",
+    ["quebrantamiento", "fuga"]),
+  mk("c12", "penal", "¿Cuál de las siguientes es una eximente del art. 20 CP?",
+    ["La legítima defensa", "El arrebato u obcecación", "La reincidencia", "El abuso de confianza"],
+    "El arrebato es atenuante (art. 21.3); la reincidencia y el abuso de confianza son agravantes (art. 22).",
+    ["eximente", "legítima defensa"]),
+
+  // --- Función Pública ---
+  mk("f01", "funcion", "El texto refundido del Estatuto Básico del Empleado Público se aprobó por:",
+    ["Real Decreto Legislativo 5/2015, de 30 de octubre", "Real Decreto Legislativo 2/2015, de 23 de octubre", "Ley 30/1984, de 2 de agosto", "Ley 40/2015, de 1 de octubre"],
+    "El RDLeg 2/2015 es el Estatuto de los Trabajadores.",
+    ["estatuto básico", "trebep", "5/2015"]),
+  mk("f02", "funcion", "Según el art. 8 TREBEP, NO es una clase de empleado público:",
+    ["El personal colaborador honorífico", "El funcionario interino", "El personal eventual", "El personal laboral"],
+    "Clases: funcionarios de carrera, funcionarios interinos, personal laboral y personal eventual.",
+    ["empleados públicos", "interinos", "personal eventual", "personal laboral"]),
+  mk("f03", "funcion", "El Cuerpo de Ayudantes de Instituciones Penitenciarias pertenece al Subgrupo:",
+    ["C1", "A2", "C2", "A1"],
+    "El Subgrupo C1 exige título de Bachiller o Técnico (art. 76 TREBEP).",
+    ["subgrupo", "c1", "bachiller"]),
+  mk("f04", "funcion", "NO es una situación administrativa de los funcionarios de carrera (art. 85 TREBEP):",
+    ["La incapacidad temporal", "Los servicios especiales", "La excedencia", "La suspensión de funciones"],
+    "Durante la incapacidad temporal el funcionario sigue en servicio activo.",
+    ["situaciones administrativas", "excedencia", "servicios especiales"]),
+  mk("f05", "funcion", "Las faltas muy graves de los funcionarios prescriben a los:",
+    ["Tres años", "Seis años", "Dos años", "Seis meses"],
+    "Art. 97 TREBEP: muy graves, 3 años; graves, 2 años; leves, 6 meses.",
+    ["faltas", "prescriben", "3 años", "muy graves"]),
+  mk("f06", "funcion", "La sanción de suspensión firme de funciones no puede superar:",
+    ["Seis años", "Tres años", "Un año", "Diez años"],
+    "Art. 96.1.c TREBEP.",
+    ["suspensión firme", "6 años", "sanción"]),
+  mk("f07", "funcion", "Según el art. 103.1 CE, la Administración actúa de acuerdo con los principios de:",
+    ["Eficacia, jerarquía, descentralización, desconcentración y coordinación", "Legalidad, publicidad e irretroactividad", "Autonomía, solidaridad y unidad", "Transparencia, participación y rendición de cuentas"],
+    "Art. 103.1 CE, con sometimiento pleno a la ley y al Derecho.",
+    ["103", "eficacia", "jerarquía", "administración pública"]),
+  mk("f08", "funcion", "El procedimiento administrativo común se regula en:",
+    ["Ley 39/2015, de 1 de octubre", "Ley 40/2015, de 1 de octubre", "Ley 30/1992, de 26 de noviembre", "Ley 29/1998, de 13 de julio"],
+    "La Ley 40/2015 regula el régimen jurídico del sector público y la Ley 29/1998, la jurisdicción contencioso-administrativa.",
+    ["procedimiento administrativo", "39/2015"]),
+  mk("f09", "funcion", "Si la norma reguladora no fija plazo máximo, la Administración debe resolver y notificar en:",
+    ["Tres meses", "Seis meses", "Un mes", "Diez días"],
+    "Art. 21.3 Ley 39/2015.",
+    ["plazo máximo", "resolver", "3 meses", "notificar"]),
+  mk("f10", "funcion", "El plazo para interponer recurso de alzada contra un acto expreso es de:",
+    ["Un mes", "Tres meses", "Quince días", "Dos meses"],
+    "Art. 122.1 Ley 39/2015.",
+    ["recurso de alzada", "alzada"]),
+  mk("f11", "funcion", "El acceso al empleo público se rige, según el art. 103.3 CE, por los principios de:",
+    ["Igualdad, mérito y capacidad", "Antigüedad y jerarquía", "Confianza y libre designación", "Territorialidad y proximidad"],
+    "Recogidos también en el art. 55 TREBEP.",
+    ["acceso", "mérito", "capacidad", "igualdad"]),
+  mk("f12", "funcion", "La Ley Orgánica para la igualdad efectiva de mujeres y hombres es la:",
+    ["LO 3/2007, de 22 de marzo", "LO 1/2004, de 28 de diciembre", "LO 3/2018, de 5 de diciembre", "Ley 19/2013, de 9 de diciembre"],
+    "La LO 1/2004 trata la violencia de género, la LO 3/2018 la protección de datos y la Ley 19/2013 la transparencia.",
+    ["igualdad efectiva", "3/2007", "mujeres y hombres"]),
+];
+
+/* Extractos de ejemplo que se cargan al simular la lectura de un PDF. */
+export const SAMPLE_NOTES = {
+  penitenciario: `TEMA 7. CLASIFICACIÓN Y TRATAMIENTO PENITENCIARIO.
+Las penas privativas de libertad se ejecutan según el sistema de individualización científica, separado en grados.
+El primer grado determina la aplicación del régimen cerrado, reservado a internos de peligrosidad extrema o inadaptación manifiesta.
+El segundo grado se corresponde con el régimen ordinario, que se aplica a la mayoría de los penados.
+La propuesta de clasificación inicial la formula la Junta de Tratamiento del establecimiento.
+La resolución sobre la clasificación inicial corresponde al Centro Directivo.
+La clasificación de cada penado debe revisarse como máximo cada 6 meses.
+Los permisos ordinarios de salida tienen una duración máxima de 7 días por permiso.
+Los penados en segundo grado pueden disfrutar hasta 36 días de permiso ordinario al año.
+La sanción de aislamiento en celda por falta muy grave no puede superar 14 días.
+Contra las sanciones disciplinarias el interno puede recurrir ante el Juez de Vigilancia Penitenciaria.`,
+  penal: `TEMA 2. LAS PENAS EN EL CÓDIGO PENAL.
+El Código Penal vigente fue aprobado por la Ley Orgánica 10/1995, de 23 de noviembre.
+Son delitos las acciones y omisiones dolosas o imprudentes penadas por la ley.
+Por su naturaleza y duración, las penas se clasifican en graves, menos graves y leves.
+La pena de prisión tiene una duración mínima de 3 meses y máxima de veinte años, salvo lo que excepcionalmente dispongan otros preceptos.
+La prisión permanente revisable se incorporó mediante la Ley Orgánica 1/2015, de 30 de marzo.
+Con carácter general, solo puede suspenderse la ejecución de penas privativas de libertad no superiores a 2 años.
+Los menores de 18 años no son responsables criminalmente con arreglo al Código Penal.
+La alevosía es una circunstancia agravante de la responsabilidad criminal.`,
+  funcion: `TEMA 12. EL ESTATUTO BÁSICO DEL EMPLEADO PÚBLICO.
+El texto refundido del Estatuto Básico del Empleado Público se aprobó por el Real Decreto Legislativo 5/2015, de 30 de octubre.
+Los empleados públicos se clasifican en funcionarios de carrera, funcionarios interinos, personal laboral y personal eventual.
+El personal eventual solo realiza funciones expresamente calificadas como de confianza o asesoramiento especial.
+Las faltas muy graves prescriben a los 3 años, las graves a los dos años y las leves a los seis meses.
+La sanción de suspensión firme de funciones no puede superar 6 años.
+Cuando la norma no fije plazo máximo, la Administración debe resolver y notificar en 3 meses.
+Los actos que no ponen fin a la vía administrativa pueden impugnarse mediante recurso de alzada ante el órgano superior jerárquico.
+El acceso al empleo público se rige por los principios de igualdad, mérito y capacidad.`,
+};
