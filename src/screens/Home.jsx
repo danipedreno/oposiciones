@@ -4,6 +4,7 @@ import { DAILY_GOALS, MASTERED_AFTER, dateKey, daysUntil, rankInfo, streakView }
 import { PAL } from "../lib/palette.js";
 import { Button, Folder, Galones, IconButton, Illustration, Paper, ProgressBar, Segmented, Sheet } from "../ui.jsx";
 import { GoalRing } from "./Celebration.jsx";
+import { useCountUp } from "../lib/motion.js";
 import { ImportBank } from "./Cards.jsx";
 
 const WEEKDAY = ["D", "L", "M", "X", "J", "V", "S"];
@@ -12,16 +13,47 @@ const WEEKDAY = ["D", "L", "M", "X", "J", "V", "S"];
 // volver a la pestaña es frecuente y repetir la animación la haría pesada.
 let introPlayed = false;
 
-export function RankFolder({ xp, tab = "Nivel", intro = false }) {
+export function RankFolder({ xp, from, tab = "Nivel", intro = false }) {
   return (
     <Folder color={PAL.lilac} tab={tab} className={intro ? "anim-folder" : ""}>
-      <RankContent xp={xp} />
+      <RankContent xp={xp} from={from} />
     </Folder>
   );
 }
 
-function RankContent({ xp }) {
+/* XP que ya has visto en Inicio: si al volver hay más, se anima la subida (+XP que vuela, barra que se llena). */
+const XP_SEEN_KEY = "recuento-xp-visto.v1";
+const readXpSeen = () => {
+  try {
+    const v = localStorage.getItem(XP_SEEN_KEY);
+    return v === null ? null : Number(v);
+  } catch (e) {
+    return null;
+  }
+};
+const writeXpSeen = (xp) => {
+  try {
+    localStorage.setItem(XP_SEEN_KEY, String(xp));
+  } catch (e) {
+    /* sin almacenamiento */
+  }
+};
+
+/**
+ * Hoja de nivel. Con `from` (XP anterior) la cifra cuenta desde ahí, la barra se llena desde el
+ * punto anterior y un «+N XP» sube y se desvanece. Pasa pocas veces al día: aquí sí hay deleite.
+ */
+function RankContent({ xp, from }) {
   const { rank, next, pct, toNext } = rankInfo(xp);
+  const gained = from != null && xp > from ? xp - from : 0;
+  const startPct = gained ? (rankInfo(from).rank.level === rank.level ? rankInfo(from).pct : 0) : pct;
+  const [barPct, setBarPct] = useState(startPct);
+  const xpShown = useCountUp(xp, { from: gained ? from : xp, duration: 1.1 });
+  useEffect(() => {
+    // Un fotograma en el punto de partida y luego al nuevo valor: la transición de la barra hace el resto.
+    const f = requestAnimationFrame(() => requestAnimationFrame(() => setBarPct(pct)));
+    return () => cancelAnimationFrame(f);
+  }, [pct]);
   return (
     <div>
       <div className="p-5 flex gap-4">
@@ -38,10 +70,17 @@ function RankContent({ xp }) {
       </div>
       <div className="px-5 pb-5">
         <div className="flex items-baseline justify-between gap-2 mb-2">
-          <span className="font-mono font-semibold">{xp} XP</span>
+          <span className="relative font-mono font-semibold">
+            {xpShown} XP
+            {gained > 0 && (
+              <span className="xp-float absolute left-0 -top-6 whitespace-nowrap rounded-full bg-sun px-2 py-0.5 text-xs font-bold" aria-hidden="true">
+                +{gained} XP
+              </span>
+            )}
+          </span>
           <span className="text-sm text-right">{next ? `${toNext} XP para ${next.name}` : "Rango máximo"}</span>
         </div>
-        <ProgressBar pct={pct} color={PAL.plum} track="bg-card/70" className="h-3" label="Progreso hasta el siguiente rango" />
+        <ProgressBar pct={barPct} color={PAL.plum} track="bg-card/70" className="h-3" label="Progreso hasta el siguiente rango" />
       </div>
     </div>
   );
@@ -112,6 +151,25 @@ function PlanContent({ store, onPlan }) {
     ? new Date(`${store.plan.examDate}T12:00`).toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" })
     : null;
 
+  // La primera vez que se ve la meta cumplida cada día, el anillo lo celebra.
+  const [celebrate] = useState(() => {
+    if (done < goal) return false;
+    try {
+      return localStorage.getItem("recuento-meta-celebrada.v1") !== today;
+    } catch (e) {
+      return false;
+    }
+  });
+  useEffect(() => {
+    if (!celebrate) return;
+    try {
+      localStorage.setItem("recuento-meta-celebrada.v1", today);
+      navigator.vibrate?.([20, 40, 20]);
+    } catch (e) {
+      /* sin almacenamiento o sin vibración */
+    }
+  }, [celebrate, today]);
+
   const openEditor = () => {
     setDraftDate(store.plan.examDate || "");
     setDraftGoal(goal);
@@ -142,11 +200,11 @@ function PlanContent({ store, onPlan }) {
             </>
           )}
         </div>
-        <GoalRing done={done} goal={goal} size={112} stroke={10} color={PAL.ink} track="rgba(34,34,34,0.12)">
+        <GoalRing done={done} goal={goal} size={112} stroke={10} color={PAL.ink} track="rgba(34,34,34,0.12)" celebrate={celebrate}>
           <span className="font-mono text-xl font-semibold">
             {Math.min(done, 999)}/{goal}
           </span>
-          <span className="text-xs font-medium">{done >= goal ? "¡meta!" : "hoy"}</span>
+          <span className={`text-xs font-medium ${celebrate ? "anim-pop" : ""}`}>{done >= goal ? "¡meta!" : "hoy"}</span>
         </GoalRing>
       </div>
       <div className="px-5 pb-5">
@@ -214,10 +272,25 @@ let lastFolder = "examen";
 
 function HomeCabinet({ store, onPlan, intro }) {
   const [active, setActive] = useState(lastFolder);
+  // XP visto la última vez: la primera vez no hay animación; después, lo ganado se celebra al abrir «Nivel».
+  const [xpSeen, setXpSeen] = useState(() => {
+    const v = readXpSeen();
+    if (v === null) writeXpSeen(store.xp);
+    return v === null ? store.xp : v;
+  });
+  const [animFrom, setAnimFrom] = useState(undefined); // XP desde el que animar la hoja abierta
+  const pendingXp = Math.max(0, store.xp - xpSeen);
+  useEffect(() => {
+    if (active !== "hoja" || !pendingXp) return;
+    setAnimFrom(xpSeen);
+    setXpSeen(store.xp);
+    writeXpSeen(store.xp);
+  }, [active, pendingXp, xpSeen, store.xp]);
   const tabs = useRef([]);
   const current = HOME_FOLDERS.find((f) => f.id === active);
   const choose = (id) => {
     lastFolder = id;
+    if (id !== "hoja") setAnimFrom(undefined);
     setActive(id);
   };
   // Patrón de pestañas: flechas para moverse entre ellas.
@@ -253,6 +326,9 @@ function HomeCabinet({ store, onPlan, intro }) {
               style={{ background: on ? f.color : PAL.ground2 }}
             >
               {f.label}
+              {f.id === "hoja" && !on && pendingXp > 0 && (
+                <span className="ml-1.5 rounded-full bg-sun px-1.5 py-0.5 text-[11px] font-bold text-ink align-middle">+{pendingXp}</span>
+              )}
             </button>
           );
         })}
@@ -267,7 +343,7 @@ function HomeCabinet({ store, onPlan, intro }) {
         <div key={active} className="anim-fade">
           {active === "examen" && <PlanContent store={store} onPlan={onPlan} />}
           {active === "racha" && <StreakContent streak={store.streak} />}
-          {active === "hoja" && <RankContent xp={store.xp} />}
+          {active === "hoja" && <RankContent key={animFrom ?? "sin-animar"} xp={store.xp} from={animFrom} />}
         </div>
       </div>
     </section>

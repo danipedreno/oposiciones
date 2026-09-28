@@ -4,6 +4,7 @@ import { Cards as CardsIcon, Fire, UploadSimple, X } from "@phosphor-icons/react
 import { BLOCKS, BLOCK_IDS, COMBO_BONUS, COMBO_STEP, MASTERED_BOX, XP_PER_CARD, cardPiles, cardsForSession, dateKey, shuffle } from "../lib/logic.js";
 import { bankCards, temaLabel, temasOf } from "../lib/bank.js";
 import { Button, ChoiceTile, Folder, IconButton, Illustration, Paper, Picker, ProgressBar } from "../ui.jsx";
+import { useReducedMotion } from "../lib/motion.js";
 import { PAL } from "../lib/palette.js";
 
 /** Botón para importar el banco privado (mi-banco.json). */
@@ -30,6 +31,90 @@ export function ImportBank({ onImport, label = "Importar mi temario", variant = 
   );
 }
 
+/**
+ * Deslizar la tarjeta (a la manera de las apps de citas, con criterios de Emil Kowalski):
+ * - el transform se escribe directamente en el nodo mientras arrastras (sin renders de React);
+ * - basta un gesto rápido (velocidad > 0,11 px/ms), no hace falta llegar al umbral;
+ * - al soltar sin decidir vuelve a su sitio en 200 ms ease-out; al decidir sale volando.
+ * Solo se activa con la respuesta a la vista; un toque sin arrastre sigue girando la tarjeta.
+ */
+function useSwipe({ enabled, onSwipe, reduce }) {
+  const ref = useRef(null);
+  const yes = useRef(null);
+  const no = useRef(null);
+  const drag = useRef(null);
+  const moved = useRef(false);
+
+  const paint = (dx, animate) => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.transition = animate ? "transform 200ms var(--ease-out)" : "none";
+    el.style.transform = dx ? `translateX(${dx}px) rotate(${reduce ? 0 : dx / 18}deg)` : "";
+    const p = Math.min(1, Math.abs(dx) / 110);
+    if (yes.current) yes.current.style.opacity = dx > 0 ? p : 0;
+    if (no.current) no.current.style.opacity = dx < 0 ? p : 0;
+  };
+
+  const handlers = {
+    onPointerDown: (e) => {
+      if (!enabled || drag.current) return; // un solo dedo
+      drag.current = { x: e.clientX, y: e.clientY, t: performance.now(), id: e.pointerId };
+      moved.current = false;
+    },
+    onPointerMove: (e) => {
+      const d = drag.current;
+      if (!d || e.pointerId !== d.id) return;
+      const dx = e.clientX - d.x;
+      const dy = e.clientY - d.y;
+      if (!moved.current) {
+        if (Math.abs(dx) < 8) return;
+        if (Math.abs(dy) > Math.abs(dx)) {
+          drag.current = null; // gesto vertical: es scroll
+          return;
+        }
+        moved.current = true;
+        e.currentTarget.setPointerCapture?.(e.pointerId);
+      }
+      paint(dx, false);
+    },
+    onPointerUp: (e) => {
+      const d = drag.current;
+      drag.current = null;
+      if (!d || !moved.current) return;
+      const dx = e.clientX - d.x;
+      const velocity = Math.abs(dx) / (performance.now() - d.t);
+      if (Math.abs(dx) > 110 || (velocity > 0.11 && Math.abs(dx) > 30)) {
+        const dir = dx > 0 ? 1 : -1;
+        const el = ref.current;
+        el.style.transition = "transform 220ms var(--ease-out), opacity 220ms var(--ease-out)";
+        el.style.transform = `translateX(${dir * window.innerWidth}px) rotate(${reduce ? 0 : dir * 18}deg)`;
+        el.style.opacity = "0";
+        try {
+          navigator.vibrate?.(10);
+        } catch (err) {
+          /* sin vibración */
+        }
+        setTimeout(() => onSwipe(dir > 0 ? "good" : "again"), 180);
+      } else {
+        paint(0, true);
+      }
+    },
+    onPointerCancel: () => {
+      drag.current = null;
+      paint(0, true);
+    },
+    // Si hubo arrastre, el «click» final no debe girar la tarjeta.
+    onClickCapture: (e) => {
+      if (moved.current) {
+        e.stopPropagation();
+        e.preventDefault();
+        moved.current = false;
+      }
+    },
+  };
+  return { ref, yes, no, handlers };
+}
+
 function Session({ bank, queue: initial, onExit, onFinish }) {
   const [queue, setQueue] = useState(initial);
   const [i, setI] = useState(0);
@@ -42,6 +127,7 @@ function Session({ bank, queue: initial, onExit, onFinish }) {
   const requeued = useRef(new Set());
   const card = queue[i];
   const block = BLOCKS[card.block];
+  const reduce = useReducedMotion();
 
   const rate = (rating) => {
     results.current.set(card.id, rating);
@@ -71,6 +157,7 @@ function Session({ bank, queue: initial, onExit, onFinish }) {
     setFlipped(false);
     setI(i + 1);
   };
+  const swipe = useSwipe({ enabled: flipped, onSwipe: rate, reduce });
 
   return (
     <div className="fixed inset-0 z-[45] flex flex-col bg-ground">
@@ -101,6 +188,13 @@ function Session({ bank, queue: initial, onExit, onFinish }) {
 
       <div className="flex-1 scroll-area px-4 pt-5 pb-6">
         <div key={`${card.id}-${i}`} className="max-w-md mx-auto anim-q-next">
+          <div ref={swipe.ref} {...swipe.handlers} className="relative will-change-transform" style={{ touchAction: "pan-y" }}>
+          <span ref={swipe.yes} className="swipe-stamp left-6 text-olive -rotate-12" aria-hidden="true">
+            LO SÉ
+          </span>
+          <span ref={swipe.no} className="swipe-stamp right-6 text-plum rotate-12" aria-hidden="true">
+            OTRA VEZ
+          </span>
           <Folder color={block.hex} tab={block.short}>
             <div className="p-2.5">
               <div
@@ -136,6 +230,7 @@ function Session({ bank, queue: initial, onExit, onFinish }) {
               </div>
             </div>
           </Folder>
+          </div>
         </div>
       </div>
 
@@ -152,6 +247,7 @@ function Session({ bank, queue: initial, onExit, onFinish }) {
               <Button variant="green" onClick={() => rate("good")} className="px-2 whitespace-nowrap">
                 Lo sé
               </Button>
+              <p className="col-span-3 text-center text-xs text-ink-soft -mb-1">También puedes deslizar: → lo sé · ← otra vez</p>
             </div>
           ) : (
             <Button variant="blue" onClick={() => setFlipped(true)} className="w-full">

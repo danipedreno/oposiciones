@@ -48,12 +48,34 @@ function Confetti() {
 }
 
 /** Anillo de progreso de la meta diaria. */
-export function GoalRing({ done, goal, size = 132, stroke = 12, color = PAL.ink, track = "rgba(34,34,34,0.12)", children }) {
+const BURST = Array.from({ length: 14 }, (_, k) => {
+  const angle = (k / 14) * Math.PI * 2;
+  const dist = 78 + (k % 3) * 14;
+  return {
+    dx: `${Math.round(Math.cos(angle) * dist)}px`,
+    dy: `${Math.round(Math.sin(angle) * dist)}px`,
+    rot: `${(k % 2 ? 1 : -1) * (120 + k * 20)}deg`,
+    color: CONFETTI_COLORS[k % CONFETTI_COLORS.length],
+    delay: `${120 + (k % 4) * 30}ms`,
+  };
+});
+
+/** Anillo de progreso de la meta diaria. Con `celebrate`, da un pulso y suelta una ráfaga de confeti (una vez). */
+export function GoalRing({ done, goal, size = 132, stroke = 12, color = PAL.ink, track = "rgba(34,34,34,0.12)", celebrate = false, children }) {
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const pct = Math.min(1, goal ? done / goal : 0);
   return (
-    <div className="relative shrink-0" style={{ width: size, height: size }}>
+    <div className={`relative shrink-0 ${celebrate ? "goal-pop" : ""}`} style={{ width: size, height: size }}>
+      {celebrate &&
+        BURST.map((p, k) => (
+          <span
+            key={k}
+            className="burst-piece"
+            aria-hidden="true"
+            style={{ background: p.color, "--dx": p.dx, "--dy": p.dy, "--rot": p.rot, animationDelay: p.delay }}
+          />
+        ))}
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90" aria-hidden="true">
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={track} strokeWidth={stroke} />
         <circle

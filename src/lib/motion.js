@@ -24,9 +24,10 @@ export function useReducedMotion() {
 const easeOutQuint = (t) => 1 - Math.pow(1 - t, 5);
 
 /** Cifra que cuenta hasta su valor (nota del resultado). Con «reducir movimiento» salta directamente. */
-export function useCountUp(value, { duration = 0.9, decimals = 0 } = {}) {
+/** `from`: valor desde el que empieza a contar (por defecto 0). */
+export function useCountUp(value, { duration = 0.9, decimals = 0, from = 0 } = {}) {
   const reduce = useReducedMotion();
-  const [display, setDisplay] = useState(reduce ? value : 0);
+  const [display, setDisplay] = useState(reduce ? value : from);
   useEffect(() => {
     if (reduce) {
       setDisplay(value);
@@ -36,11 +37,11 @@ export function useCountUp(value, { duration = 0.9, decimals = 0 } = {}) {
     const start = performance.now();
     const tick = (now) => {
       const t = Math.min(1, (now - start) / (duration * 1000));
-      setDisplay(Number((value * easeOutQuint(t)).toFixed(decimals)));
+      setDisplay(Number((from + (value - from) * easeOutQuint(t)).toFixed(decimals)));
       if (t < 1) frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [value, duration, decimals, reduce]);
+  }, [value, duration, decimals, reduce, from]);
   return display;
 }

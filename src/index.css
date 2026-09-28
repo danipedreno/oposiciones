@@ -201,6 +201,43 @@
   .anim-folder {
     animation: folder 360ms var(--ease-out) both;
   }
+  /* Respuesta correcta: un «pop» corto (se ve decenas de veces: 260 ms, 3 %) */
+  .anim-correct {
+    animation: correct-pop 260ms var(--ease-out);
+  }
+  /* «+XP» que sube y se desvanece junto a tu nivel (poco frecuente: puede durar más) */
+  .xp-float {
+    animation: xp-float 1200ms var(--ease-out) 250ms both;
+  }
+  /* Anillo de la meta diaria al completarla: pulso con rebote suave y ráfaga de confeti */
+  .goal-pop {
+    animation: goal-pop 560ms cubic-bezier(0.34, 1.4, 0.64, 1);
+  }
+  .burst-piece {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    pointer-events: none;
+    animation: burst 800ms var(--ease-out) both;
+  }
+  /* Sellos de la tarjeta al deslizar: su opacidad la pone el gesto */
+  .swipe-stamp {
+    position: absolute;
+    top: 28px;
+    z-index: 5;
+    padding: 4px 12px;
+    border: 3px solid currentColor;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: 0.02em;
+    background: rgba(255, 255, 255, 0.9);
+    opacity: 0;
+    pointer-events: none;
+  }
   /* Medalla del centro del carrusel: flota inclinándose en 3D, despacio (como en AllTrails) */
   .medal-float {
     animation: medal-float 4.2s ease-in-out infinite;
@@ -245,6 +282,26 @@
   from { transform: translateX(-16px); opacity: 0; }
   to { transform: none; opacity: 1; }
 }
+@keyframes correct-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+@keyframes xp-float {
+  0% { transform: translateY(8px); opacity: 0; }
+  18% { transform: translateY(0); opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: translateY(-28px); opacity: 0; }
+}
+@keyframes goal-pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+@keyframes burst {
+  0% { transform: translate(-50%, -50%) scale(0.9); opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot)) scale(0.9); opacity: 0; }
+}
 @keyframes medal {
   from { transform: scale(0.9); opacity: 0; }
   to { transform: none; opacity: 1; }
@@ -272,8 +329,14 @@
   .anim-rise, .anim-pop, .anim-folder, .anim-toast, .anim-q-next, .anim-q-prev, .anim-medal, .celebrate-pop, .celebrate-in {
     animation: fade 180ms ease both !important;
   }
-  .anim-shake, .anim-flicker, .medal-float {
+  .anim-shake, .anim-flicker, .medal-float, .anim-correct, .goal-pop {
     animation: none !important;
+  }
+  .burst-piece {
+    display: none;
+  }
+  .xp-float {
+    animation: fade 180ms ease both !important;
   }
   .press:active:not(:disabled) {
     transform: none;

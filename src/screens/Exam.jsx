@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowCounterClockwise, CaretDown, CaretLeft, CaretRight, Check, Flag, Minus, Plus, Timer, X } from "@phosphor-icons/react";
+import { ArrowCounterClockwise, CaretDown, CaretLeft, CaretRight, Check, Fire, Flag, Minus, Plus, Timer, X } from "@phosphor-icons/react";
 import {
   ACHIEVEMENTS,
   mistakePool,
@@ -250,6 +250,31 @@ export function ExamRunner({ exam, remainingMs, onSelect, onBlank, onGoto, onFin
     prevIndex.current = i;
   }, [i]);
 
+  // Racha de aciertos seguidos (solo con corrección al momento): cuenta hacia atrás desde la última corregida.
+  let streak = 0;
+  if (immediate) {
+    for (let k = i; k >= 0; k--) {
+      if (!exam.revealed[k]) {
+        if (k === i) continue;
+        break;
+      }
+      if (exam.answers[k] === exam.questions[k].answer) streak++;
+      else break;
+    }
+  }
+  // Vibración corta al corregir: un toque si aciertas, doble si fallas y triple cada 5 seguidas.
+  const buzzed = useRef(new Set());
+  useEffect(() => {
+    if (!revealed || buzzed.current.has(i)) return;
+    buzzed.current.add(i);
+    const ok = chosen === q.answer;
+    try {
+      navigator.vibrate?.(ok ? (streak > 0 && streak % 5 === 0 ? [20, 40, 20, 40, 20] : 12) : [30, 60, 30]);
+    } catch (e) {
+      /* sin vibración */
+    }
+  }, [revealed, i, chosen, q.answer, streak]);
+
   useEffect(() => {
     chipRefs.current[i]?.scrollIntoView?.({ behavior: "smooth", inline: "center", block: "nearest" });
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
@@ -267,7 +292,7 @@ export function ExamRunner({ exam, remainingMs, onSelect, onBlank, onGoto, onFin
 
   const optionClass = (idx) => {
     if (revealed) {
-      if (idx === q.answer) return "bg-mint border-olive text-ink";
+      if (idx === q.answer) return `bg-mint border-olive text-ink ${idx === chosen ? "anim-correct" : ""}`;
       if (idx === chosen) return "bg-peach border-plum text-ink anim-shake";
       return "bg-card border-line text-ink-soft opacity-70";
     }
@@ -355,6 +380,16 @@ export function ExamRunner({ exam, remainingMs, onSelect, onBlank, onGoto, onFin
         {/* La pregunta nueva entra desde el lado hacia el que avanzas. Se ve decenas de veces por
             examen: 180 ms, 16 px y sin animación de salida. */}
         <div key={i} className={`max-w-md mx-auto ${dir > 0 ? "anim-q-next" : "anim-q-prev"}`}>
+          {immediate && (
+            <div className="h-9 -mt-1 mb-2 flex justify-end items-center" aria-live="polite">
+              {streak >= 2 && (
+                <span key={streak} className="anim-pop inline-flex items-center gap-1.5 rounded-full bg-peach text-ink px-3 h-8 text-sm font-semibold">
+                  <Fire size={16} weight="fill" className="anim-flicker text-plum" /> {streak} seguidas
+                  {streak % 5 === 0 && <span className="text-plum">· ¡imparable!</span>}
+                </span>
+              )}
+            </div>
+          )}
           <Folder color={block.hex} tab={block.short}>
             <div className="p-2.5">
               <Paper className="p-5">
@@ -526,7 +561,7 @@ export function ExamResults({ result, xp, pendingMistakes, onNew, onHome, onRevi
             ¡Ascenso! Ahora eres <span className="font-semibold text-plum">{rankAfter.name}</span>.
           </p>
         )}
-        <RankFolder xp={xp} tab={`+${xpGained} XP en este test`} />
+        <RankFolder xp={xp} from={xp - xpGained} tab={`+${xpGained} XP en este test`} />
       </div>
 
       {earned.length > 0 && (
