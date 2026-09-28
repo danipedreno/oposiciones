@@ -2,10 +2,11 @@
    El repositorio es público, así que viaja CIFRADO (public/banco.enc, AES-256-GCM). Con usuario y
    contraseña se descarga, se descifra en el móvil y se guarda en su propia clave de localStorage.
    También se puede importar a mano desde un archivo mi-banco.json. */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 const BANK_KEY = "recuento-banco.v1";
 const ACCESS_KEY = "recuento-acceso.v1";
+const EXTRA_KEY = "recuento-extra.v1"; // preguntas y tarjetas generadas en este móvil
 const ITERATIONS = 310000; // mismo valor que temario-privado/cifrar-banco.mjs
 const url = (f) => `${import.meta.env.BASE_URL}${f}`;
 
@@ -18,7 +19,7 @@ const readJSON = (k) => {
 };
 
 /** Descifra banco.enc: "RCB1" | sal (16) | iv (12) | gzip cifrado con AES-GCM. Lanza si la clave no es correcta. */
-async function decryptBank(buffer, user, pass) {
+export async function decryptFile(buffer, user, pass) {
   const bytes = new Uint8Array(buffer);
   if (new TextDecoder().decode(bytes.slice(0, 4)) !== "RCB1") throw new Error("formato");
   const salt = bytes.slice(4, 20);
@@ -34,7 +35,7 @@ async function decryptBank(buffer, user, pass) {
 async function downloadBank(user, pass, version) {
   const res = await fetch(url(`banco.enc?v=${encodeURIComponent(version || Date.now())}`), { cache: "no-store" });
   if (!res.ok) throw new Error("red");
-  return decryptBank(await res.arrayBuffer(), user, pass);
+  return decryptFile(await res.arrayBuffer(), user, pass);
 }
 
 async function remoteVersion() {
@@ -48,6 +49,12 @@ async function remoteVersion() {
 
 const loadBank = () => readJSON(BANK_KEY);
 
+/** Usuario y contraseña guardados al entrar (para descargar el texto del temario). */
+export const getAccess = () => readJSON(ACCESS_KEY);
+
+const emptyExtra = () => ({ preguntas: [], flashcards: [] });
+const loadExtra = () => readJSON(EXTRA_KEY) || emptyExtra();
+
 /** Comprueba que el archivo tiene el formato que genera temario-privado/generar-banco.mjs. */
 export function validateBank(json) {
   if (!json || json.formato !== "recuento-banco") return "El archivo no es un banco de Recuento (mi-banco.json).";
@@ -58,7 +65,8 @@ export function validateBank(json) {
 }
 
 export function useBank({ onUpdated } = {}) {
-  const [bank, setBank] = useState(loadBank);
+  const [base, setBank] = useState(loadBank);
+  const [extra, setExtra] = useState(loadExtra);
 
   const save = (json) => {
     localStorage.setItem(BANK_KEY, JSON.stringify(json));
@@ -137,7 +145,26 @@ export function useBank({ onUpdated } = {}) {
     return { ok: true, bank: json };
   }, []);
 
-  return { bank, importFile, login, logout, loggedIn: !!readJSON(ACCESS_KEY) };
+  /** Añade preguntas y tarjetas generadas en el móvil (se guardan aparte y sobreviven a las actualizaciones). */
+  const addExtra = useCallback((items) => {
+    setExtra((prev) => {
+      const next = { preguntas: [...prev.preguntas, ...(items.preguntas || [])], flashcards: [...prev.flashcards, ...(items.flashcards || [])] };
+      try {
+        localStorage.setItem(EXTRA_KEY, JSON.stringify(next));
+      } catch (e) {
+        /* sin espacio: se quedan hasta cerrar la app */
+      }
+      return next;
+    });
+  }, []);
+
+  // El banco que ve la app: el publicado más lo generado en este móvil.
+  const bank = useMemo(
+    () => (base ? { ...base, preguntas: [...base.preguntas, ...extra.preguntas], flashcards: [...base.flashcards, ...extra.flashcards] } : null),
+    [base, extra]
+  );
+
+  return { bank, importFile, login, logout, addExtra, loggedIn: !!readJSON(ACCESS_KEY) };
 }
 
 export const temasOf = (bank, block) => (bank?.temas || []).filter((t) => block === "all" || t.bloque === block);

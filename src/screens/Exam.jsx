@@ -14,6 +14,7 @@ import { SEED_QUESTIONS } from "../data/questions.js";
 import { Button, ChoiceTile, Folder, IconButton, Illustration, Paper, Picker, ProgressBar, Segmented, Sheet } from "../ui.jsx";
 import { RankFolder } from "./Home.jsx";
 import { temaLabel, temasOf } from "../lib/bank.js";
+import GeneratePanel from "./Generar.jsx";
 import { useCountUp } from "../lib/motion.js";
 import { PAL } from "../lib/palette.js";
 
@@ -44,7 +45,7 @@ function Step({ n, title, hint, children }) {
   );
 }
 
-export function ExamSetup({ store, bank, onSettings, onStart }) {
+export function ExamSetup({ store, bank, onSettings, onStart, onAddExtra }) {
   const s = store.settings;
   const base = bank ? bank.preguntas : SEED_QUESTIONS;
   const blocks = (s.blocks || []).filter((b) => BLOCK_IDS.includes(b));
@@ -112,6 +113,7 @@ export function ExamSetup({ store, bank, onSettings, onStart }) {
             options={[{ value: "all", label: `Todos los temas` }, ...temasOf(bank, blocks[0]).map((t) => ({ value: t.id, label: `Tema ${t.numero} · ${t.titulo}` }))]}
           />
         )}
+        {bank && tema !== "all" && <GeneratePanel key={tema} bank={bank} temaId={tema} onAdd={onAddExtra} compact />}
         <button
           type="button"
           role="switch"

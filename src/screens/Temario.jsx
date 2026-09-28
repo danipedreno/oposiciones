@@ -4,9 +4,10 @@ import { BLOCKS, BLOCK_IDS } from "../lib/logic.js";
 import { bankCards, bankQuestions, temasOf } from "../lib/bank.js";
 import { Button, FolderTab, Illustration, Paper, Sheet } from "../ui.jsx";
 import { ImportBank } from "./Cards.jsx";
+import GeneratePanel from "./Generar.jsx";
 
 /** Pestaña Temario: cargar o actualizar el banco y ver qué hay en cada carpeta. */
-export default function Temario({ bank, onImport, onBack, onLogout }) {
+export default function Temario({ bank, onImport, onAddExtra, onBack, onLogout }) {
   const [confirm, setConfirm] = useState(false);
   const back = (
     <button type="button" onClick={onBack} className="tap press mb-3 h-11 pl-3 pr-4 rounded-full bg-card paper-shadow text-ink flex items-center gap-1 text-sm font-semibold">
@@ -61,6 +62,8 @@ export default function Temario({ bank, onImport, onBack, onLogout }) {
           </div>
         ))}
       </div>
+
+      <GeneratePanel bank={bank} onAdd={onAddExtra} />
 
       {bloques.map((b) => (
         <section key={b} aria-label={BLOCKS[b].label}>

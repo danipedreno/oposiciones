@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowCounterClockwise, Cards, CheckCircle, ClipboardText, House, Trophy, WarningCircle } from "@phosphor-icons/react";
 import { applyCardsResult, applyExamResult, createExam, mistakePool } from "./lib/logic.js";
 import { useBank } from "./lib/bank.js";
+import { clearTextos } from "./lib/generar.js";
 import CardsScreen from "./screens/Cards.jsx";
 import { DEFAULT_STORE, useInstallPrompt, useNow, usePersistentStore } from "./lib/store.js";
 import { AppToaster, notify } from "./ui.jsx";
@@ -66,7 +67,7 @@ export default function App() {
   const [store, setStore] = usePersistentStore();
   const [tab, setTab] = useState(() => (store.activeExam || store.lastResult ? "test" : "home"));
   const install = useInstallPrompt();
-  const { bank, importFile, login, logout } = useBank({
+  const { bank, importFile, login, logout, addExtra } = useBank({
     onUpdated: (b) =>
       notify({
         icon: <CheckCircle size={24} weight="fill" />,
@@ -208,16 +209,18 @@ export default function App() {
                     onReview={onReview}
                   />
                 ) : (
-                  <ExamSetup store={store} bank={bank} onSettings={onSettings} onStart={startExam} />
+                  <ExamSetup store={store} bank={bank} onSettings={onSettings} onStart={startExam} onAddExtra={addExtra} />
                 ))}
               {tab === "cards" && <CardsScreen store={store} bank={bank} onImport={onImport} onFinish={onCardsFinish} />}
               {tab === "temario" && (
                 <Temario
                   bank={bank}
                   onImport={onImport}
+                  onAddExtra={addExtra}
                   onBack={() => setTab("home")}
                   onLogout={() => {
                     logout();
+                    clearTextos();
                     setTab("home");
                   }}
                 />
