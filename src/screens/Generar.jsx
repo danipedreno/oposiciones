@@ -112,9 +112,6 @@ export default function GeneratePanel({ bank, temaId: fixedTema, onAdd, compact 
               </p>
             )}
           </div>
-          <button type="button" onClick={() => setEditingKey(true)} className="tap self-start text-xs font-semibold underline underline-offset-2 -my-2">
-            Cambiar clave de Gemini
-          </button>
         </>
       )}
     </div>

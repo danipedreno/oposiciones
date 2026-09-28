@@ -15,7 +15,8 @@ const url = (f) => `${import.meta.env.BASE_URL}${f}`;
 /* ---------- Clave de Gemini (solo en este móvil) ---------- */
 export function getGeminiKey() {
   try {
-    return localStorage.getItem(GEMINI_KEY) || "";
+    // La propia del móvil (si la han puesto) o la que viene dentro del banco cifrado.
+    return localStorage.getItem(GEMINI_KEY) || JSON.parse(localStorage.getItem("recuento-banco.v1") || "null")?.ia?.key || "";
   } catch (e) {
     return "";
   }

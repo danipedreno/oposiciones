@@ -111,7 +111,7 @@ export function useBank({ onUpdated } = {}) {
     (async () => {
       const version = await remoteVersion();
       const current = loadBank();
-      if (!version || cancelled || (current && current.generado === version.generado)) return;
+      if (!version || cancelled || (current && current.generado === version.generado && (current.rev || null) === (version.rev || null))) return;
       try {
         const json = await downloadBank(access.user, access.pass, version.generado);
         if (cancelled || validateBank(json)) return;
