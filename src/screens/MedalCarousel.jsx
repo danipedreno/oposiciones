@@ -125,9 +125,9 @@ export default function MedalCarousel({ items }) {
                 {m.kind === "tier" ? (
                   <>
                     <span className="block text-sm mt-1">{m.level ? `Nivel ${ROMAN[m.level]} de ${m.progress.max}` : "Aún sin empezar"}</span>
-                    <span className="block brand text-[34px] leading-none mt-3">
+                    <span className="block display font-mono text-[32px] leading-none mt-3">
                       {Math.min(m.progress.value, m.progress.next || m.progress.value)}
-                      <span className="font-sans text-base font-medium">{m.progress.next ? ` / ${m.progress.next}` : ""}</span>
+                      {m.progress.next ? <span className="text-ink/45"> / {m.progress.next}</span> : null}
                     </span>
                     <span className="block text-xs mt-1 leading-snug">{m.progress.next ? m.family.unit : `¡Nivel máximo! · ${m.family.unit}`}</span>
                     <span className="block w-36 mx-auto mt-3">
