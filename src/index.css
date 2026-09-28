@@ -201,6 +201,10 @@
   .anim-folder {
     animation: folder 360ms var(--ease-out) both;
   }
+  /* Medalla del centro del carrusel: flota inclinándose en 3D, despacio (como en AllTrails) */
+  .medal-float {
+    animation: medal-float 4.2s ease-in-out infinite;
+  }
 }
 
 @keyframes rise {
@@ -255,6 +259,10 @@
   100% { transform: translate3d(var(--drift), 105vh, 0) rotate(var(--spin)); opacity: 0; }
 }
 /* Las carpetas «se deslizan» desde abajo, como al sacarlas del archivador */
+@keyframes medal-float {
+  0%, 100% { transform: perspective(600px) rotateY(-9deg) rotateX(4deg) rotate(-2deg); }
+  50% { transform: perspective(600px) rotateY(9deg) rotateX(-3deg) rotate(2deg); }
+}
 @keyframes folder {
   from { transform: translateY(24px) rotate(-1deg); opacity: 0; }
   to { transform: none; opacity: 1; }
@@ -264,7 +272,7 @@
   .anim-rise, .anim-pop, .anim-folder, .anim-toast, .anim-q-next, .anim-q-prev, .anim-medal, .celebrate-pop, .celebrate-in {
     animation: fade 180ms ease both !important;
   }
-  .anim-shake, .anim-flicker {
+  .anim-shake, .anim-flicker, .medal-float {
     animation: none !important;
   }
   .press:active:not(:disabled) {

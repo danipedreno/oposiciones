@@ -3,6 +3,7 @@ import { Check, Lock, Trophy } from "@phosphor-icons/react";
 import { ACHIEVEMENTS, MEDAL_FAMILIES, RANKS, ROMAN, medalProgress, rankInfo } from "../lib/logic.js";
 import { Button, Illustration, MedalBadge, Paper, ProgressBar, Sheet } from "../ui.jsx";
 import { PAL } from "../lib/palette.js";
+import MedalCarousel from "./MedalCarousel.jsx";
 
 export default function Achievements({ store, onReset }) {
   const [confirm, setConfirm] = useState(false);
@@ -11,6 +12,13 @@ export default function Achievements({ store, onReset }) {
   const unlocked = specials + tiers.reduce((acc, t) => acc + t.p.level, 0);
   const total = ACHIEVEMENTS.length + MEDAL_FAMILIES.reduce((acc, f) => acc + f.tiers.length, 0);
   const { rank } = rankInfo(store.xp);
+  // Carrusel: primero las conseguidas (por nivel), luego las pendientes; las especiales al final.
+  const carousel = [
+    ...[...tiers]
+      .sort((a, b) => b.p.level - a.p.level || b.p.pct - a.p.pct)
+      .map(({ f, p }) => ({ id: f.id, kind: "tier", title: f.name, color: f.color, locked: p.level === 0, family: f, level: p.level, progress: p })),
+    ...ACHIEVEMENTS.map((a) => ({ id: a.id, kind: "special", title: a.name, color: PAL.lilac, locked: !store.achievements[a.id], illustration: a.illustration, fallback: a.fallback, desc: a.desc, date: store.achievements[a.id] })),
+  ];
 
   return (
     <div className="flex flex-col gap-6">
@@ -24,8 +32,10 @@ export default function Achievements({ store, onReset }) {
         </p>
       </header>
 
+      <MedalCarousel items={carousel} />
+
       <section aria-labelledby="medallas-title">
-        <h2 id="medallas-title" className="display text-[30px] mb-1">Medallas</h2>
+        <h2 id="medallas-title" className="display text-[30px] mb-1">Todas las medallas</h2>
         <p className="text-sm text-ink-soft mb-3">Cada una tiene varios niveles repartidos por el mes. Sube de nivel para desbloquear el siguiente.</p>
         <ul className="flex flex-col gap-2">
           {tiers.map(({ f, p }) => (
