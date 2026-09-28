@@ -174,6 +174,14 @@ export function ChoiceTile({ selected, onClick, color, title, note, illustration
 export function Picker({ id, label, value, options, onChange }) {
   const [open, setOpen] = useState(false);
   const current = options.find((o) => o.value === value) || options[0];
+  const triggerText = current.num != null ? `Tema ${current.num} · ${current.label}` : current.label;
+  // Opciones consecutivas del mismo grupo (bloque) van juntas bajo una sola cabecera.
+  const sections = [];
+  for (const o of options) {
+    const last = sections[sections.length - 1];
+    if (last && last.group === o.group) last.items.push(o);
+    else sections.push({ group: o.group, color: o.color, items: [o] });
+  }
   return (
     <div>
       <span id={`${id}-label`} className="label text-ink-soft block mb-2">
@@ -184,10 +192,12 @@ export function Picker({ id, label, value, options, onChange }) {
         aria-haspopup="dialog"
         aria-labelledby={`${id}-label ${id}-value`}
         onClick={() => setOpen(true)}
-        className="tap press w-full min-h-12 rounded-full bg-card paper-shadow pl-5 pr-2 py-1.5 flex items-center gap-2 text-left"
+        className="tap press w-full min-h-12 rounded-full bg-card paper-shadow pl-4 pr-2 py-1.5 flex items-center gap-2.5 text-left"
       >
+        {current.color && <span className="w-3.5 h-3.5 blob shrink-0" style={{ background: current.color }} aria-hidden="true" />}
         <span id={`${id}-value`} className="flex-1 min-w-0 truncate font-semibold text-[15px]">
-          {current.label}
+          {current.group && <span className="text-ink-soft font-medium">{current.short || current.group} · </span>}
+          {triggerText}
         </span>
         <span className="w-9 h-9 rounded-full bg-ground flex items-center justify-center shrink-0" aria-hidden="true">
           <CaretDown size={16} weight="bold" />
@@ -198,27 +208,47 @@ export function Picker({ id, label, value, options, onChange }) {
         title={label}
         onClose={() => setOpen(false)}
         body={
-          <div role="listbox" aria-label={label} className="-mx-2 max-h-[55vh] overflow-y-auto flex flex-col gap-1 pt-1">
-            {options.map((o) => {
-              const on = o.value === value;
-              return (
-                <button
-                  key={o.value}
-                  type="button"
-                  role="option"
-                  aria-selected={on}
-                  onClick={() => {
-                    onChange(o.value);
-                    setOpen(false);
-                  }}
-                  className={`tap press w-full text-left rounded-[16px] px-3 py-2.5 flex items-center gap-3 text-ink ${on ? "bg-sun" : "hover:bg-ground"}`}
-                >
-                  {o.color && <span className="w-4 h-4 blob shrink-0" style={{ background: o.color }} aria-hidden="true" />}
-                  <span className="flex-1 min-w-0 leading-snug">{o.label}</span>
-                  {on && <Check size={18} weight="bold" className="shrink-0" />}
-                </button>
-              );
-            })}
+          <div role="listbox" aria-label={label} className="-mx-2 max-h-[60vh] overflow-y-auto overscroll-contain flex flex-col gap-1 pt-1 pb-2">
+            {sections.map((sec, si) => (
+              <div key={sec.group || `s${si}`} className="shrink-0 flex flex-col gap-1" role={sec.group ? "group" : undefined} aria-label={sec.group || undefined}>
+                {/* Cabecera del bloque: se queda fija arriba mientras recorres sus temas */}
+                {sec.group && (
+                  <p className="sticky top-0 z-[1] bg-card flex items-center gap-2 px-3 pt-3 pb-1.5 text-sm font-semibold text-ink-soft" aria-hidden="true">
+                    {sec.color && <span className="w-3.5 h-3.5 blob shrink-0" style={{ background: sec.color }} />}
+                    {sec.group}
+                  </p>
+                )}
+                {sec.items.map((o) => {
+                  const on = o.value === value;
+                  return (
+                    <button
+                      key={o.value}
+                      type="button"
+                      role="option"
+                      aria-selected={on}
+                      onClick={() => {
+                        onChange(o.value);
+                        setOpen(false);
+                      }}
+                      className={`tap press shrink-0 w-full text-left rounded-[16px] px-3 py-2.5 flex items-center gap-3 text-ink ${on ? "bg-sun" : "hover:bg-ground"}`}
+                    >
+                      {o.num != null ? (
+                        <span className={`w-8 h-8 rounded-full font-mono text-sm font-semibold flex items-center justify-center shrink-0 ${on ? "bg-card" : "bg-ground"}`} aria-hidden="true">
+                          {o.num}
+                        </span>
+                      ) : (
+                        !o.group && o.color && <span className="w-4 h-4 blob shrink-0" style={{ background: o.color }} aria-hidden="true" />
+                      )}
+                      <span className="flex-1 min-w-0 leading-snug">
+                        {o.num != null && <span className="sr-only">Tema {o.num}: </span>}
+                        {o.label}
+                      </span>
+                      {on && <Check size={18} weight="bold" className="shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
           </div>
         }
       />

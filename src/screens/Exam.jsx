@@ -111,7 +111,7 @@ export function ExamSetup({ store, bank, onSettings, onStart, onAddExtra }) {
             label={`Tema de ${BLOCKS[blocks[0]].label}`}
             value={tema}
             onChange={(v) => onSettings({ tema: v })}
-            options={[{ value: "all", label: `Todos los temas` }, ...temasOf(bank, blocks[0]).map((t) => ({ value: t.id, label: `Tema ${t.numero} · ${t.titulo}` }))]}
+            options={[{ value: "all", label: `Todos los temas` }, ...temasOf(bank, blocks[0]).map((t) => ({ value: t.id, num: t.numero, label: t.titulo }))]}
           />
         )}
         {bank && tema !== "all" && <GeneratePanel key={tema} bank={bank} temaId={tema} onAdd={onAddExtra} compact />}

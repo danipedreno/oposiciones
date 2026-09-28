@@ -406,7 +406,7 @@ export default function CardsScreen({ store, bank, onImport, onFinish }) {
             label={`Tema de ${BLOCKS[block].label}`}
             value={tema}
             onChange={setTema}
-            options={[{ value: "all", label: "Todos los temas" }, ...temasOf(bank, block).map((t) => ({ value: t.id, label: `Tema ${t.numero} · ${t.titulo}` }))]}
+            options={[{ value: "all", label: "Todos los temas" }, ...temasOf(bank, block).map((t) => ({ value: t.id, num: t.numero, label: t.titulo }))]}
           />
         )}
       </section>

@@ -45,7 +45,7 @@ export default function GeneratePanel({ bank, temaId: fixedTema, onAdd, compact 
   };
 
   const temaOptions = BLOCK_IDS.flatMap((b) =>
-    temasOf(bank, b).map((t) => ({ value: t.id, label: `${BLOCKS[b].short} · Tema ${t.numero} · ${t.titulo}`, color: BLOCKS[b].hex }))
+    temasOf(bank, b).map((t) => ({ value: t.id, num: t.numero, label: t.titulo, group: BLOCKS[b].label, short: BLOCKS[b].short, color: BLOCKS[b].hex }))
   );
 
   const keyForm = (
