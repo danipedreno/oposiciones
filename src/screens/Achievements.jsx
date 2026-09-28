@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Check, Lock, Trophy } from "@phosphor-icons/react";
-import { ACHIEVEMENTS, MEDAL_FAMILIES, RANKS, ROMAN, medalProgress, rankInfo } from "../lib/logic.js";
-import { Button, Illustration, MedalBadge, Paper, ProgressBar, Sheet } from "../ui.jsx";
+import { Check, Trophy } from "@phosphor-icons/react";
+import { ACHIEVEMENTS, MEDAL_FAMILIES, RANKS, medalProgress, rankInfo } from "../lib/logic.js";
+import { Button, Illustration, Sheet } from "../ui.jsx";
 import { PAL } from "../lib/palette.js";
 import MedalCarousel from "./MedalCarousel.jsx";
 
@@ -33,59 +33,6 @@ export default function Achievements({ store, onReset }) {
       </header>
 
       <MedalCarousel items={carousel} />
-
-      <section aria-labelledby="medallas-title">
-        <h2 id="medallas-title" className="display text-[30px] mb-1">Todas las medallas</h2>
-        <p className="text-sm text-ink-soft mb-3">Cada una tiene varios niveles repartidos por el mes. Sube de nivel para desbloquear el siguiente.</p>
-        <ul className="flex flex-col gap-2">
-          {tiers.map(({ f, p }) => (
-            <li key={f.id}>
-              <Paper className="p-3 flex items-center gap-4">
-                <MedalBadge family={f} level={p.level} size={56} />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-baseline justify-between gap-2">
-                    <p className="font-semibold text-[17px] leading-tight">{f.name}</p>
-                    <p className="text-xs text-ink-soft shrink-0">
-                      {p.level ? `Nivel ${ROMAN[p.level]}` : "Sin empezar"} · {p.level}/{p.max}
-                    </p>
-                  </div>
-                  <ProgressBar pct={p.pct} color={p.next ? PAL.ink : PAL.olive} track="bg-ground-2" className="h-2.5 mt-2" label={`Progreso de ${f.name}`} />
-                  <p className="text-xs text-ink-soft mt-1.5 leading-snug">
-                    {p.next ? `${Math.min(p.value, p.next)}/${p.next} ${f.unit}` : `¡Nivel máximo! ${p.value} ${f.unit}`}
-                  </p>
-                </div>
-              </Paper>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <h2 className="display text-[30px] -mb-3">Especiales</h2>
-
-      <ul className="grid grid-cols-2 gap-3">
-        {ACHIEVEMENTS.map((a, k) => {
-          const date = store.achievements[a.id];
-          return (
-            <li key={a.id} className="anim-rise" style={{ animationDelay: `${k * 60}ms` }}>
-              <Paper className="h-full p-3 flex flex-col gap-2">
-                <div className={`relative blob p-2 ${date ? "bg-lilac" : "bg-ground"}`}>
-                  <Illustration name={a.illustration} fallback={a.fallback} alt="" className={`w-full ${date ? "" : "opacity-30"}`} />
-                  {!date && (
-                    <span className="absolute top-0 right-0 w-8 h-8 rounded-full bg-card paper-shadow text-ink flex items-center justify-center" aria-label="Bloqueada">
-                      <Lock size={16} weight="bold" />
-                    </span>
-                  )}
-                </div>
-                <p className="font-semibold text-[17px] leading-tight">{a.name}</p>
-                <p className="text-sm text-ink-soft leading-snug flex-1">{a.desc}</p>
-                <p className={`label ${date ? "text-olive" : "text-ink-soft"}`}>
-                  {date ? `Conseguida ${new Date(date).toLocaleDateString("es-ES", { day: "numeric", month: "short" })}` : "Bloqueada"}
-                </p>
-              </Paper>
-            </li>
-          );
-        })}
-      </ul>
 
       <section aria-labelledby="escalafon-title" className="rounded-folder bg-plum text-ground p-3">
         <h2 id="escalafon-title" className="display text-[30px] text-lilac px-2 pt-2 pb-3">
