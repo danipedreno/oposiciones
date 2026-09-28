@@ -398,7 +398,7 @@ export default function Home({ store, bank, install, onDismissInstall, onImport,
     <div className="flex flex-col gap-6">
       <header className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="brand text-[46px]">Recuento</h1>
+          <h1 className="brand text-[46px]">Empolla</h1>
           <p className="label text-ink-soft mt-1.5 first-letter:uppercase">{dateLabel}</p>
         </div>
         <div className="flex items-center gap-2">
@@ -447,7 +447,7 @@ export default function Home({ store, bank, install, onDismissInstall, onImport,
             <Illustration name="instalar" className="w-full" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="font-semibold leading-tight">Instala Recuento</p>
+            <p className="font-semibold leading-tight">Instala Empolla</p>
             <p className="text-sm text-ink-soft leading-snug">Ábrela desde tu pantalla de inicio, también sin conexión.</p>
           </div>
           <button type="button" onClick={install.install} className="tap press h-11 px-4 rounded-full bg-ink text-ground text-sm font-semibold flex items-center gap-1.5">

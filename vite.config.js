@@ -13,8 +13,8 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["icons/*.png", "illustrations/*"],
       manifest: {
-        name: "Recuento · Oposiciones IIPP",
-        short_name: "Recuento",
+        name: "Empolla · Oposiciones IIPP",
+        short_name: "Empolla",
         description: "Tests con corrección oficial, tarjetas de repaso, racha y rangos para preparar Ayudantes de Instituciones Penitenciarias.",
         lang: "es",
         theme_color: "#fdf4df",

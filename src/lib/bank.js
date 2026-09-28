@@ -57,7 +57,7 @@ const loadExtra = () => readJSON(EXTRA_KEY) || emptyExtra();
 
 /** Comprueba que el archivo tiene el formato que genera temario-privado/generar-banco.mjs. */
 export function validateBank(json) {
-  if (!json || json.formato !== "recuento-banco") return "El archivo no es un banco de Recuento (mi-banco.json).";
+  if (!json || json.formato !== "recuento-banco") return "El archivo no es un banco de Empolla (mi-banco.json).";
   if (!Array.isArray(json.temas) || !Array.isArray(json.preguntas) || !Array.isArray(json.flashcards)) return "El banco está incompleto.";
   const badQ = json.preguntas.find((q) => !q.id || !q.q || q.options?.length !== 4 || !(q.answer >= 0 && q.answer <= 3));
   if (badQ) return `Hay una pregunta con formato incorrecto (${badQ.id || "sin id"}).`;

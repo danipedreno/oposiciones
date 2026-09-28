@@ -42,7 +42,7 @@ export default function Onboarding({ onDone }) {
       tabIndex={-1}
       role="dialog"
       aria-modal="true"
-      aria-label="Bienvenida a Recuento"
+      aria-label="Bienvenida a Empolla"
       className="fixed inset-0 z-[80] flex flex-col outline-none transition-colors duration-300 ease-out"
       style={{ background: s.bg }}
     >
