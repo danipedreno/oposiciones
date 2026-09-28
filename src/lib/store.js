@@ -9,7 +9,7 @@ export const DEFAULT_STORE = {
   history: [],
   blockStats: {},
   totals: { tests: 0, answered: 0, correct: 0 },
-  settings: { feedback: "immediate", count: 20, secsPerQ: OFFICIAL_SECONDS_PER_QUESTION, blocks: [], tema: "all", onlyMistakes: false },
+  settings: { feedback: "immediate", count: 20, secsPerQ: OFFICIAL_SECONDS_PER_QUESTION, blocks: [], tema: "all", onlyMistakes: false, sound: false },
   mistakes: {},
   plan: { examDate: null, dailyGoal: DEFAULT_DAILY_GOAL },
   daily: {}, // preguntas hechas por día (YYYY-MM-DD → n)
@@ -20,6 +20,7 @@ export const DEFAULT_STORE = {
   activeExam: null,
   lastResult: null,
   installDismissed: false,
+  onboarded: false, // bienvenida de primera vez vista
 };
 
 function loadStore() {

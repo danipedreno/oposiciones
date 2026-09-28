@@ -17,6 +17,7 @@ import { temaLabel, temasOf } from "../lib/bank.js";
 import GeneratePanel from "./Generar.jsx";
 import { useCountUp } from "../lib/motion.js";
 import { PAL } from "../lib/palette.js";
+import { play } from "../lib/sound.js";
 
 /* ---------------------------------------------------------------------
    Crear el test: pasos numerados (la numeración es el orden real de decisión)
@@ -268,6 +269,7 @@ export function ExamRunner({ exam, remainingMs, onSelect, onBlank, onGoto, onFin
     if (!revealed || buzzed.current.has(i)) return;
     buzzed.current.add(i);
     const ok = chosen === q.answer;
+    play(ok ? (streak > 0 && streak % 5 === 0 ? "combo" : "correct") : "wrong");
     try {
       navigator.vibrate?.(ok ? (streak > 0 && streak % 5 === 0 ? [20, 40, 20, 40, 20] : 12) : [30, 60, 30]);
     } catch (e) {

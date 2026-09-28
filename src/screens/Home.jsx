@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowCounterClockwise, Books, CaretRight, Check, DeviceMobile, Fire, X } from "@phosphor-icons/react";
+import { ArrowCounterClockwise, Books, CaretRight, Check, DeviceMobile, Fire, Lightning, SpeakerHigh, SpeakerSlash, X } from "@phosphor-icons/react";
 import { DAILY_GOALS, MASTERED_AFTER, dateKey, daysUntil, rankInfo, streakView } from "../lib/logic.js";
 import { PAL } from "../lib/palette.js";
 import { Button, Folder, Galones, IconButton, Illustration, Paper, ProgressBar, Segmented, Sheet } from "../ui.jsx";
@@ -385,7 +385,7 @@ function TemarioCard({ bank, onImport, onGoTemario }) {
   );
 }
 
-export default function Home({ store, bank, install, onDismissInstall, onImport, onGoTemario, onReview, onPlan }) {
+export default function Home({ store, bank, install, onDismissInstall, onImport, onGoTemario, onReview, onPlan, onQuickTest, onToggleSound }) {
   const intro = useRef(!introPlayed).current;
   useEffect(() => {
     introPlayed = true;
@@ -401,9 +401,19 @@ export default function Home({ store, bank, install, onDismissInstall, onImport,
           <h1 className="brand text-[46px]">Recuento</h1>
           <p className="label text-ink-soft mt-1.5 first-letter:uppercase">{dateLabel}</p>
         </div>
-        <div className={`flex items-center gap-1.5 h-11 px-4 rounded-full ${streakCount ? "bg-sun" : "bg-card paper-shadow"}`} aria-label={`Racha de ${streakCount} días`}>
-          <Fire size={20} weight="fill" className={streakCount ? "text-ink" : "text-line-strong"} />
-          <span className="font-mono font-semibold">{streakCount}</span>
+        <div className="flex items-center gap-2">
+          <IconButton
+            label={store.settings.sound ? "Silenciar sonidos" : "Activar sonidos"}
+            aria-pressed={!!store.settings.sound}
+            onClick={onToggleSound}
+            className="w-11 h-11 bg-card paper-shadow text-ink"
+          >
+            {store.settings.sound ? <SpeakerHigh size={20} weight="fill" /> : <SpeakerSlash size={20} weight="bold" className="text-ink-soft" />}
+          </IconButton>
+          <div className={`flex items-center gap-1.5 h-11 px-4 rounded-full ${streakCount ? "bg-sun" : "bg-card paper-shadow"}`} aria-label={`Racha de ${streakCount} días`}>
+            <Fire size={20} weight="fill" className={streakCount ? "text-ink" : "text-line-strong"} />
+            <span className="font-mono font-semibold">{streakCount}</span>
+          </div>
         </div>
       </header>
 
@@ -451,6 +461,18 @@ export default function Home({ store, bank, install, onDismissInstall, onImport,
 
       {!bank && <TemarioCard bank={bank} onImport={onImport} onGoTemario={onGoTemario} />}
       <HomeCabinet store={store} onPlan={onPlan} intro={intro} />
+
+      {/* Test rápido de un toque: para los ratos muertos */}
+      <button type="button" onClick={onQuickTest} className="tap press text-left rounded-folder bg-ink text-ground p-5 flex items-center gap-4">
+        <span className="w-12 h-12 blob bg-sun text-ink flex items-center justify-center shrink-0">
+          <Lightning size={24} weight="fill" />
+        </span>
+        <span className="flex-1 min-w-0">
+          <span className="display text-[26px] block">Test rápido</span>
+          <span className="text-sm leading-snug block mt-1 text-ground/85">10 preguntas al azar de todo el temario, con la corrección al momento</span>
+        </span>
+        <CaretRight size={22} weight="bold" className="shrink-0" />
+      </button>
 
       {pendingMistakes > 0 && (
         <button type="button" onClick={onReview} className="tap press text-left rounded-folder bg-plum text-ground p-5 flex items-center gap-4">

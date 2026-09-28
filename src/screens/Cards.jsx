@@ -5,6 +5,7 @@ import { BLOCKS, BLOCK_IDS, COMBO_BONUS, COMBO_STEP, MASTERED_BOX, XP_PER_CARD, 
 import { bankCards, temaLabel, temasOf } from "../lib/bank.js";
 import { Button, ChoiceTile, Folder, IconButton, Illustration, Paper, Picker, ProgressBar } from "../ui.jsx";
 import { useReducedMotion } from "../lib/motion.js";
+import { play } from "../lib/sound.js";
 import { PAL } from "../lib/palette.js";
 
 /** Botón para importar el banco privado (mi-banco.json). */
@@ -136,6 +137,7 @@ function Session({ bank, queue: initial, onExit, onFinish }) {
     live.current = { bonus: live.current.bonus + (milestone ? COMBO_BONUS : 0), best: Math.max(live.current.best, nextCombo) };
     setCombo(nextCombo);
     setXp((v) => v + XP_PER_CARD[rating] + (milestone ? COMBO_BONUS : 0));
+    if (rating === "good") play(milestone ? "combo" : "card");
     if (milestone) {
       try {
         navigator.vibrate?.(25);

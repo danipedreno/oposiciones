@@ -4,6 +4,7 @@ import { ACHIEVEMENTS, MEDAL_FAMILIES, RANKS, ROMAN, fmt2, medalProgress } from 
 import { useCountUp, useReducedMotion } from "../lib/motion.js";
 import { Button, Galones, Illustration, MedalBadge } from "../ui.jsx";
 import { PAL } from "../lib/palette.js";
+import { play } from "../lib/sound.js";
 
 /* Pantallas de celebración a pantalla completa (bucle de Duolingo): al terminar un test se
    encadenan test completado → racha → meta diaria → medallas → ascenso, cada una con «Continuar».
@@ -313,6 +314,7 @@ export default function Celebrations({ queue, report, store, onDone }) {
   }, []);
 
   useEffect(() => {
+    play("celebrate");
     // Vibración corta en Android (en iOS la web no puede vibrar).
     try {
       navigator.vibrate?.(item.type === "test" ? 20 : [30, 60, 40]);

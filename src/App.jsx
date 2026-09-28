@@ -12,6 +12,9 @@ import Celebrations from "./screens/Celebration.jsx";
 import Temario from "./screens/Temario.jsx";
 import Login from "./screens/Login.jsx";
 import Achievements from "./screens/Achievements.jsx";
+import Onboarding from "./screens/Onboarding.jsx";
+import { SEED_QUESTIONS } from "./data/questions.js";
+import { setSoundEnabled } from "./lib/sound.js";
 import { ExamResults, ExamRunner, ExamSetup } from "./screens/Exam.jsx";
 
 const TABS = [
@@ -82,6 +85,10 @@ export default function App() {
   const mainRef = useRef(null);
   storeRef.current = store;
 
+  useEffect(() => {
+    setSoundEnabled(store.settings.sound);
+  }, [store.settings.sound]);
+
   const exam = store.activeExam;
   const now = useNow(!!exam);
   const remainingMs = exam ? Math.max(0, exam.endsAt - now) : 0;
@@ -141,6 +148,13 @@ export default function App() {
     if (!pool.length) return;
     startExam({ pool, count: pool.length, feedback: s.settings.feedback, secsPerQ: s.settings.secsPerQ, source: "mistakes", title: "Repaso de fallos" });
   };
+  // Test rápido de un toque: 10 preguntas al azar de todo el temario, con corrección al momento.
+  const onQuickTest = () => {
+    const s = storeRef.current;
+    startExam({ pool: bank ? bank.preguntas : SEED_QUESTIONS, count: 10, feedback: "immediate", secsPerQ: s.settings.secsPerQ, source: bank ? "temario" : "bank", title: "Test rápido" });
+  };
+  const onToggleSound = () => setStore((s) => ({ ...s, settings: { ...s.settings, sound: !s.settings.sound } }));
+
   const onImport = async (file) => {
     const r = await importFile(file);
     if (r.ok) {
@@ -179,6 +193,7 @@ export default function App() {
         <Login onLogin={login} />
       ) : (
       <>
+      {!store.onboarded && store.totals.answered === 0 && <Onboarding onDone={() => setStore((s) => ({ ...s, onboarded: true }))} />}
       {celebration && <Celebrations queue={celebration.queue} report={celebration.report} store={store} onDone={() => setCelebration(null)} />}
       {exam ? (
         <ExamRunner exam={exam} remainingMs={remainingMs} onSelect={onSelect} onBlank={onBlank} onGoto={onGoto} onFinish={() => finishExam("submitted")} onAbandon={onAbandon} />
@@ -196,6 +211,8 @@ export default function App() {
                   onGoTemario={() => setTab("temario")}
                   onReview={onReview}
                   onPlan={(patch) => setStore((s) => ({ ...s, plan: { ...s.plan, ...patch } }))}
+                  onQuickTest={onQuickTest}
+                  onToggleSound={onToggleSound}
                 />
               )}
               {tab === "test" &&
