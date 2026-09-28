@@ -350,3 +350,51 @@
   .flip-card[data-flipped="true"] .flip-face:not(.flip-back),
   .flip-card[data-flipped="false"] .flip-back { opacity: 0; }
 }
+
+/* Logo reveal de arranque (Splash.jsx) */
+.splash-logo svg { width: 100%; height: auto; display: block; overflow: visible; }
+.splash-logo .logo-blob {
+  transform-box: fill-box;
+  transform-origin: 50% 70%;
+  animation: splash-blob 420ms var(--ease-out) both;
+}
+.splash-logo .logo-fig { animation: splash-fig 640ms var(--ease-in-out) 160ms both; }
+.splash-letter { display: inline-block; animation: splash-letter 320ms var(--ease-out) both; }
+.splash { transition: opacity 260ms var(--ease-out), transform 260ms var(--ease-out); }
+.splash-out { opacity: 0; transform: scale(1.03); pointer-events: none; }
+@keyframes splash-blob {
+  from { opacity: 0; transform: scale(0.86); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes splash-fig {
+  from { clip-path: inset(100% 0 0 0); transform: translateY(18px); }
+  to { clip-path: inset(0 0 0 0); transform: translateY(0); }
+}
+@keyframes splash-letter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Fuego de la racha en Tarjetas */
+.fire-flow { animation: fire-flow 2s linear infinite; }
+.fire-flash { animation: fire-flash 520ms var(--ease-out); }
+.xp-gain { animation: xp-gain 900ms var(--ease-out) both; }
+.spark { width: 7px; height: 7px; border-radius: 999px; }
+@keyframes fire-flow {
+  from { background-position: 0% 0; }
+  to { background-position: -200% 0; }
+}
+@keyframes fire-flash {
+  0% { transform: scaleY(1); }
+  30% { transform: scaleY(1.9); }
+  100% { transform: scaleY(1); }
+}
+@keyframes xp-gain {
+  0% { transform: translateY(6px) scale(0.9); opacity: 0; }
+  20% { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-34px) scale(1); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fire-flow, .fire-flash, .splash-logo .logo-blob, .splash-logo .logo-fig, .splash-letter { animation: none !important; }
+  .xp-gain { animation: fade 180ms ease both !important; }
+}

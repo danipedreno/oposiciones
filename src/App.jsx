@@ -6,6 +6,7 @@ import { clearTextos } from "./lib/generar.js";
 import CardsScreen from "./screens/Cards.jsx";
 import { DEFAULT_STORE, useInstallPrompt, useNow, usePersistentStore } from "./lib/store.js";
 import { AppToaster, notify } from "./ui.jsx";
+import Splash, { shouldShowSplash } from "./screens/Splash.jsx";
 import { PAL } from "./lib/palette.js";
 import Home from "./screens/Home.jsx";
 import Celebrations from "./screens/Celebration.jsx";
@@ -80,6 +81,8 @@ export default function App() {
       }),
   });
   const [celebration, setCelebration] = useState(null); // { queue, report }
+  const [splash, setSplash] = useState(shouldShowSplash);
+  const endSplash = useCallback(() => setSplash(false), []);
   const storeRef = useRef(store);
   const finishedIds = useRef(new Set());
   const mainRef = useRef(null);
@@ -189,6 +192,7 @@ export default function App() {
   return (
     <div className="fixed inset-0 overflow-hidden bg-ground">
       <AppToaster />
+      {splash && <Splash onDone={endSplash} />}
       {!bank ? (
         <Login onLogin={login} />
       ) : (

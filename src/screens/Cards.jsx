@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { Cards as CardsIcon, Fire, UploadSimple, X } from "@phosphor-icons/react";
 import { BLOCKS, BLOCK_IDS, COMBO_BONUS, COMBO_STEP, MASTERED_BOX, XP_PER_CARD, cardPiles, cardsForSession, dateKey, shuffle } from "../lib/logic.js";
 import { bankCards, temaLabel, temasOf } from "../lib/bank.js";
-import { Button, ChoiceTile, Folder, IconButton, Illustration, Paper, Picker, ProgressBar } from "../ui.jsx";
+import { Button, ChoiceTile, Folder, IconButton, Illustration, Paper, Picker } from "../ui.jsx";
 import { useReducedMotion } from "../lib/motion.js";
 import { play } from "../lib/sound.js";
 import { PAL } from "../lib/palette.js";
@@ -74,7 +74,11 @@ function useSwipe({ enabled, onSwipe, reduce }) {
           return;
         }
         moved.current = true;
-        e.currentTarget.setPointerCapture?.(e.pointerId);
+        try {
+          e.currentTarget.setPointerCapture?.(e.pointerId);
+        } catch (err) {
+          /* el puntero ya se soltó */
+        }
       }
       paint(dx, false);
     },
@@ -116,6 +120,84 @@ function useSwipe({ enabled, onSwipe, reduce }) {
   return { ref, yes, no, handlers };
 }
 
+/* Calor de la racha: cuanto más seguidas, más fuego (barra, chip y +XP). */
+const HEAT = [
+  { bar: "#222222", chip: "#f6d5c2", glow: 0, speed: 0 },
+  { bar: "linear-gradient(90deg,#fae355,#f7c04a,#fae355)", chip: "#f6d5c2", glow: 0, speed: 2.6 },
+  { bar: "linear-gradient(90deg,#fae355,#f59b3a,#ef6a2c,#f59b3a,#fae355)", chip: "linear-gradient(90deg,#fae355,#f59b3a)", glow: 6, speed: 1.8 },
+  { bar: "linear-gradient(90deg,#fae355,#f59b3a,#e8452a,#c62a2a,#e8452a,#f59b3a,#fae355)", chip: "linear-gradient(90deg,#f59b3a,#e8452a)", glow: 10, speed: 1.2 },
+  { bar: "linear-gradient(90deg,#fae355,#f59b3a,#e8452a,#b0183a,#e8452a,#f59b3a,#fae355)", chip: "linear-gradient(90deg,#e8452a,#b0183a)", glow: 16, speed: 0.8 },
+];
+const heatOf = (combo) => (combo < 2 ? 0 : combo < 5 ? 1 : combo < 10 ? 2 : combo < 15 ? 3 : 4);
+const SPARKS = ["#fae355", "#f59b3a", "#e8452a", "#fae355", "#ef6a2c", "#c62a2a", "#f59b3a", "#fae355", "#e8452a", "#f59b3a"];
+
+/** Barra de progreso que se calienta con la racha: degradado que fluye y brillo naranja. */
+function FireBar({ pct, heat, flash }) {
+  const h = HEAT[heat];
+  const v = Math.max(0, Math.min(100, pct));
+  return (
+    <div
+      className={`relative h-2.5 rounded-full bg-ground-2 transition-[box-shadow] duration-500 ${flash ? "fire-flash" : ""}`}
+      key={flash || "bar"}
+      style={{ boxShadow: h.glow ? `0 0 ${h.glow}px ${h.glow / 3}px rgba(239,106,44,${0.25 + heat * 0.08})` : "none" }}
+      role="progressbar"
+      aria-valuenow={Math.round(v)}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-label="Progreso del repaso"
+    >
+      <div className="absolute inset-0 rounded-full overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-[width] duration-500 ease-out ${heat ? "fire-flow" : ""}`}
+          style={{ width: `${v}%`, background: h.bar, backgroundSize: "200% 100%", animationDuration: `${h.speed}s` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+/** Chip de XP: late con cada ganancia; el «+N» sube más grande y más caliente cuanto mayor es la racha. */
+function XpChip({ xp, gain }) {
+  const heat = gain?.heat || 0;
+  return (
+    <span className="relative shrink-0">
+      <span
+        key={xp}
+        className="anim-pop font-mono text-sm font-semibold rounded-full text-ink px-3 h-8 flex items-center"
+        style={{ background: heat >= 2 ? HEAT[Math.min(heat, 3)].chip : "#fae355", animationDuration: `${250 + heat * 60}ms` }}
+        aria-label={`${xp} XP en esta sesión`}
+      >
+        +{xp} XP
+      </span>
+      {gain && (
+        <span
+          key={gain.id}
+          aria-hidden="true"
+          className="xp-gain absolute right-full mr-2 top-1 font-mono font-bold pointer-events-none whitespace-nowrap"
+          style={{ fontSize: `${13 + heat * 3 + (gain.milestone ? 6 : 0)}px`, color: ["#222222", "#b77a00", "#ef6a2c", "#d9302a", "#b0183a"][heat] }}
+        >
+          +{gain.n}
+        </span>
+      )}
+      {gain?.milestone && (
+        <span key={`b${gain.id}`} aria-hidden="true" className="absolute inset-0 pointer-events-none">
+          {SPARKS.map((c, k) => {
+            const a = (k / SPARKS.length) * Math.PI * 2;
+            const r = 34 + (k % 3) * 10;
+            return (
+              <span
+                key={k}
+                className="burst-piece spark"
+                style={{ background: c, "--dx": `${Math.cos(a) * r}px`, "--dy": `${Math.sin(a) * r}px`, "--rot": `${k * 47}deg` }}
+              />
+            );
+          })}
+        </span>
+      )}
+    </span>
+  );
+}
+
 function Session({ bank, queue: initial, onExit, onFinish }) {
   const [queue, setQueue] = useState(initial);
   const [i, setI] = useState(0);
@@ -123,6 +205,7 @@ function Session({ bank, queue: initial, onExit, onFinish }) {
   // Gamificación en vivo: racha de «Lo sé» seguidos y XP acumulado en la sesión.
   const [combo, setCombo] = useState(0);
   const [xp, setXp] = useState(0);
+  const [gain, setGain] = useState(null); // último +XP, para la animación que sube
   const live = useRef({ bonus: 0, best: 0 });
   const results = useRef(new Map());
   const requeued = useRef(new Set());
@@ -136,7 +219,9 @@ function Session({ bank, queue: initial, onExit, onFinish }) {
     const milestone = nextCombo > 0 && nextCombo % COMBO_STEP === 0;
     live.current = { bonus: live.current.bonus + (milestone ? COMBO_BONUS : 0), best: Math.max(live.current.best, nextCombo) };
     setCombo(nextCombo);
-    setXp((v) => v + XP_PER_CARD[rating] + (milestone ? COMBO_BONUS : 0));
+    const earned = XP_PER_CARD[rating] + (milestone ? COMBO_BONUS : 0);
+    setXp((v) => v + earned);
+    setGain({ n: earned, id: performance.now(), milestone, heat: heatOf(nextCombo) });
     if (rating === "good") play(milestone ? "combo" : "card");
     if (milestone) {
       try {
@@ -169,19 +254,21 @@ function Session({ bank, queue: initial, onExit, onFinish }) {
             <X size={22} weight="bold" />
           </IconButton>
           <div className="flex-1">
-            <ProgressBar pct={(i / queue.length) * 100} className="h-2" label="Progreso del repaso" />
+            <FireBar pct={(i / queue.length) * 100} heat={heatOf(combo)} flash={gain?.milestone ? gain.id : null} />
             <p className="font-mono text-xs text-ink-soft mt-1.5">
               {i + 1} de {queue.length}
             </p>
           </div>
-          <span key={xp} className="anim-pop font-mono text-sm font-semibold rounded-full bg-sun text-ink px-3 h-8 flex items-center" aria-label={`${xp} XP en esta sesión`}>
-            +{xp} XP
-          </span>
+          <XpChip xp={xp} gain={gain} />
         </div>
         <div className="max-w-md mx-auto h-8 mt-2 flex items-center" aria-live="polite">
           {combo >= 2 && (
-            <span key={combo} className="anim-pop inline-flex items-center gap-1.5 rounded-full bg-peach text-ink px-3 h-8 text-sm font-semibold">
-              <Fire size={16} weight="fill" className="anim-flicker" /> Racha ×{combo}
+            <span
+              key={combo}
+              className={`anim-pop inline-flex items-center gap-1.5 rounded-full px-3 h-8 text-sm font-semibold ${heatOf(combo) >= 3 ? "text-white" : "text-ink"}`}
+              style={{ background: HEAT[heatOf(combo)].chip }}
+            >
+              <Fire size={14 + heatOf(combo) * 2} weight="fill" className="anim-flicker" style={{ animationDuration: `${1.9 - heatOf(combo) * 0.3}s` }} /> Racha ×{combo}
               {combo % COMBO_STEP === 0 && <span className="font-mono">· +{COMBO_BONUS} XP</span>}
             </span>
           )}
