@@ -1,6 +1,6 @@
 # Ilustraciones de Recuento
 
-Total: **33 ilustraciones**, en line art editorial de tinta negra.
+Total: **37 ilustraciones**, en line art editorial de tinta negra.
 
 ## Cómo se generan
 
@@ -24,6 +24,7 @@ npm run illustrations ascenso  # regenera solo esa (útil si no te gusta el resu
 | `racha-pendiente` | 1:1 | Tarjeta de racha cuando estudiaste ayer pero aún no hoy. |
 | `racha-apagada` | 1:1 | Tarjeta de racha sin racha o con la racha rota. |
 | `instalar` | 1:1 | Aviso para instalar la app en el móvil (Android). |
+| `dia-del-examen` | 1:1 | Tarjeta «Tu examen» el mismo día del examen. |
 
 ## Rangos
 
@@ -82,4 +83,17 @@ npm run illustrations ascenso  # regenera solo esa (útil si no te gusta el resu
 |---|---|---|
 | `caja-las-se` | 1:1 | Caja «Las sé». |
 | `caja-no-las-se` | 1:1 | Caja «No las sé». |
+| `todo-al-dia` | 1:1 | Cuando no quedan tarjetas pendientes hoy. |
+
+## Test / Temario
+
+| Archivo | Formato | Dónde aparece |
+|---|---|---|
+| `generando-preguntas` | 1:1 | Mientras Gemini escribe preguntas nuevas. |
+
+## Test / Tarjetas
+
+| Archivo | Formato | Dónde aparece |
+|---|---|---|
+| `bloque-conducta` | 1:1 | Baldosa del bloque Conducta Humana. |
 

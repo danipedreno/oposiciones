@@ -3,7 +3,7 @@ import { Key, Sparkle, WarningCircle } from "@phosphor-icons/react";
 import { BLOCKS, BLOCK_IDS } from "../lib/logic.js";
 import { temasOf } from "../lib/bank.js";
 import { generateForTema, getGeminiKey, setGeminiKey } from "../lib/generar.js";
-import { Button, Picker } from "../ui.jsx";
+import { Button, Illustration, Picker } from "../ui.jsx";
 
 /**
  * «Generar preguntas nuevas»: pide a Gemini una tanda de preguntas y tarjetas de un tema.
@@ -87,9 +87,15 @@ export default function GeneratePanel({ bank, temaId: fixedTema, onAdd, compact 
   return (
     <div className={`rounded-folder bg-mint ${compact ? "p-4" : "p-5"} flex flex-col gap-3`}>
       <div className="flex items-start gap-3">
-        <span className="w-11 h-11 blob bg-card flex items-center justify-center shrink-0" aria-hidden="true">
-          <Sparkle size={22} weight="fill" />
-        </span>
+        {busy ? (
+          <span className="w-16 h-16 blob bg-card p-1 shrink-0" aria-hidden="true">
+            <Illustration name="generando-preguntas" fallback="procesando" className="w-full" alt="" />
+          </span>
+        ) : (
+          <span className="w-11 h-11 blob bg-card flex items-center justify-center shrink-0" aria-hidden="true">
+            <Sparkle size={22} weight="fill" />
+          </span>
+        )}
         <div className="min-w-0">
           <p className="display text-[22px] leading-tight">Generar preguntas nuevas</p>
           <p className="text-sm leading-snug mt-1">Gemini lee {fixedTema ? "este tema" : "el tema que elijas"} y escribe 15 preguntas y 8 tarjetas más, siempre citando el temario.</p>

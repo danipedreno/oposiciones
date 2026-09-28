@@ -44,7 +44,8 @@ export const BLOCKS = {
     short: "Conducta",
     hex: "#e6befb",
     bg: "bg-lilac",
-    illustration: "procesando",
+    illustration: "bloque-conducta",
+    fallback: "procesando",
   },
   funcion: {
     id: "funcion",

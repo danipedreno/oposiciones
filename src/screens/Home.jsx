@@ -134,6 +134,11 @@ function PlanContent({ store, onPlan }) {
               <p className="brand text-[80px] leading-[0.85]">{left === 0 ? "Hoy" : left}</p>
               <p className="text-lg font-medium mt-2 leading-tight">{left === 0 ? "¡Mucha suerte!" : `${left === 1 ? "día" : "días"} para el examen`}</p>
               <p className="text-sm mt-1 first-letter:uppercase">{examLabel}</p>
+              {left === 0 && (
+                <div className="w-24 h-24 mt-3 p-1.5 bg-card blob">
+                  <Illustration name="dia-del-examen" fallback="ascenso" className="w-full" alt="" />
+                </div>
+              )}
             </>
           )}
         </div>

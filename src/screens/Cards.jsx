@@ -295,6 +295,7 @@ export default function CardsScreen({ store, bank, onImport, onFinish }) {
               title={BLOCKS[b].label}
               color={BLOCKS[b].hex}
               illustration={BLOCKS[b].illustration}
+              fallback={BLOCKS[b].fallback}
               selected={block === b}
               onClick={() => {
                 setBlock(b);
@@ -316,9 +317,15 @@ export default function CardsScreen({ store, bank, onImport, onFinish }) {
 
       <div className="rounded-folder bg-peach p-5">
         <div className="flex items-center gap-4">
-        <span className="w-14 h-14 blob bg-card text-ink flex items-center justify-center shrink-0">
-          <CardsIcon size={28} weight="fill" />
-        </span>
+        {queue.length ? (
+          <span className="w-14 h-14 blob bg-card text-ink flex items-center justify-center shrink-0">
+            <CardsIcon size={28} weight="fill" />
+          </span>
+        ) : (
+          <span className="w-20 h-20 blob bg-card p-1.5 shrink-0">
+            <Illustration name="todo-al-dia" fallback="test-listo" className="w-full" alt="" />
+          </span>
+        )}
         <div className="min-w-0">
           <p className="display text-[24px] leading-tight">{queue.length ? `${queue.length} tarjetas en esta sesión` : "Todo al día"}</p>
           <p className="text-sm mt-1 leading-snug">

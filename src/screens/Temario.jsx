@@ -23,7 +23,7 @@ export default function Temario({ bank, onImport, onAddExtra, onBack, onLogout }
         </header>
         <Paper className="p-4">
           <div className="bg-mist blob p-3">
-            <Illustration name="apuntes-vacio" className="w-full" alt="" />
+            <Illustration name="apuntes-vacio" fallback="bienvenida" className="w-full" alt="" />
           </div>
           <p className="display text-[30px] mt-3">Carga tu temario</p>
           <ol className="mt-3 flex flex-col gap-2 text-[15px] text-ink-soft">

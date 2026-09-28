@@ -50,6 +50,11 @@ export const ILLUSTRATIONS = {
   "caja-las-se": { ratio: "square", lote: 8, screen: "Tarjetas", where: "Caja «Las sé».", scene: "A smiling person dropping one more index card into an open cardboard box already full of neatly stacked cards, giving a thumbs up with the other hand." },
   "caja-no-las-se": { ratio: "square", lote: 8, screen: "Tarjetas", where: "Caja «No las sé».", scene: "A determined person sitting on an open cardboard box with a few loose index cards, holding one card up close and reading it carefully, a pencil behind the ear." },
   "medalla-madrugador": { ratio: "square", lote: 8, screen: "Logros", where: "Medalla Madrugador.", scene: "An early riser stretching happily at a desk with an open book and a steaming mug of coffee, a rising sun visible through the window behind." },
+  // Lote 9 (estados vacíos, generación, día del examen y bloque de Conducta Humana)
+  "todo-al-dia": { ratio: "square", lote: 9, screen: "Tarjetas", where: "Cuando no quedan tarjetas pendientes hoy.", scene: "A relaxed person leaning back in an office chair with feet up on the desk and hands behind the head, an empty in-tray and a neat tied stack of index cards on the desk." },
+  "generando-preguntas": { ratio: "square", lote: 9, screen: "Test / Temario", where: "Mientras Gemini escribe preguntas nuevas.", scene: "A cheerful person typing energetically on a vintage typewriter while a stream of paper sheets flies out of it and swirls up into the air." },
+  "dia-del-examen": { ratio: "square", lote: 9, screen: "Inicio", where: "Tarjeta «Tu examen» el mismo día del examen.", scene: "A confident young woman in smart clothes striding toward the entrance of an exam building, holding a pen and an ID card, raising a clenched fist of determination." },
+  "bloque-conducta": { ratio: "square", lote: 9, screen: "Test / Tarjetas", where: "Baldosa del bloque Conducta Humana.", scene: "A calm psychologist seated in an armchair taking notes in a notebook while observing a person who talks and gestures expressively from a couch, a small potted plant beside them." },
   reiniciar: { ratio: "square", screen: "Logros", where: "Hoja de confirmación «¿Reiniciar progreso?».", scene: "A person sweeping a messy pile of papers with a broom, clearing the floor." },
 };
 

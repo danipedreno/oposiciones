@@ -99,6 +99,7 @@ export function ExamSetup({ store, bank, onSettings, onStart, onAddExtra }) {
               note={base.some((q) => q.block === id) ? null : "Aún sin preguntas"}
               color={BLOCKS[id].hex}
               illustration={BLOCKS[id].illustration}
+              fallback={BLOCKS[id].fallback}
               selected={blocks.includes(id)}
               onClick={() => toggleBlock(id)}
             />
