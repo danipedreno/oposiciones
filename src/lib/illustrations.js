@@ -55,6 +55,15 @@ export const ILLUSTRATIONS = {
   "generando-preguntas": { ratio: "square", lote: 9, screen: "Test / Temario", where: "Mientras Gemini escribe preguntas nuevas.", scene: "A cheerful person typing energetically on a vintage typewriter while a stream of paper sheets flies out of it and swirls up into the air." },
   "dia-del-examen": { ratio: "square", lote: 9, screen: "Inicio", where: "Tarjeta «Tu examen» el mismo día del examen.", scene: "A confident young woman in smart clothes striding toward the entrance of an exam building, holding a pen and an ID card, raising a clenched fist of determination." },
   "bloque-conducta": { ratio: "square", lote: 9, screen: "Test / Tarjetas", where: "Baldosa del bloque Conducta Humana.", scene: "A calm psychologist seated in an armchair taking notes in a notebook while observing a person who talks and gestures expressively from a couch, a small potted plant beside them." },
+  // Lotes 10 y 11: medallas por niveles (sustituyen a los iconos)
+  "medalla-racha": { ratio: "square", lote: 10, screen: "Logros", where: "Medalla «En racha».", scene: "A determined person jogging forward while holding a burning torch high, a long trail of footprints behind them." },
+  "medalla-meta": { ratio: "square", lote: 10, screen: "Logros", where: "Medalla «Meta cumplida».", scene: "An archer who has just hit the exact center of a round target with an arrow, raising both arms in celebration." },
+  "medalla-respondidas": { ratio: "square", lote: 10, screen: "Logros", where: "Medalla «Fondo de armario».", scene: "A proud person patting a tall filing cabinet whose drawers are all open and stuffed with documents and folders." },
+  "medalla-maraton": { ratio: "square", lote: 10, screen: "Logros", where: "Medalla «Maratón».", scene: "A tired but happy runner breaking through a finish line ribbon with arms wide open, holding a sheaf of papers in one hand." },
+  "medalla-repaso": { ratio: "square", lote: 11, screen: "Logros", where: "Medalla «Sin cuentas pendientes».", scene: "A satisfied person with a giant pencil ticking off the last box on a long unrolled checklist scroll that reaches the floor, every box already ticked." },
+  "medalla-tarjetero": { ratio: "square", lote: 11, screen: "Logros", where: "Medalla «Tarjetero».", scene: "A confident smiling person juggling many blank index cards in the air above their head." },
+  "medalla-matricula": { ratio: "square", lote: 11, screen: "Logros", where: "Medalla «Matrícula».", scene: "A person in a graduation cap standing on the top step of a winners podium, holding a big trophy cup high above their head." },
+  "medalla-especialista": { ratio: "square", lote: 11, screen: "Logros", where: "Medalla «Especialista».", scene: "A focused person looking through a large magnifying glass at a thick open law book resting on a lectern, a small scale of justice beside it." },
   reiniciar: { ratio: "square", screen: "Logros", where: "Hoja de confirmación «¿Reiniciar progreso?».", scene: "A person sweeping a messy pile of papers with a broom, clearing the floor." },
 };
 

@@ -299,7 +299,17 @@ export function MedalBadge({ family, level, size = 64 }) {
         className={`w-full h-full blob flex items-center justify-center ${locked ? "bg-ground-2 text-line-strong" : "text-ink"}`}
         style={locked ? undefined : { background: family.color }}
       >
-        <Icon size={size * 0.46} weight={locked ? "regular" : "fill"} />
+        {family.illustration ? (
+          // Ilustración de la medalla; mientras no exista, se ve su icono.
+          <Illustration
+            name={family.illustration}
+            alt=""
+            className={`w-[78%] ${locked ? "opacity-30" : ""}`}
+            fallbackNode={<Icon size={size * 0.46} weight={locked ? "regular" : "fill"} />}
+          />
+        ) : (
+          <Icon size={size * 0.46} weight={locked ? "regular" : "fill"} />
+        )}
       </div>
       {!locked && (
         <span
@@ -318,14 +328,15 @@ export function MedalBadge({ family, level, size = 64 }) {
    --------------------------------------------------------------------- */
 const EXTENSIONS = ["svg", "png", "webp"];
 
-export function Illustration({ name, className = "", alt = "", fallback }) {
+export function Illustration({ name, className = "", alt = "", fallback, fallbackNode }) {
   const meta = ILLUSTRATIONS[name] || { ratio: "square" };
   const [attempt, setAttempt] = useState(0);
   const aspect = meta.ratio === "wide" ? "aspect-video" : "aspect-square";
 
   if (attempt >= EXTENSIONS.length) {
     // Mientras llega una ilustración nueva, se usa otra parecida en vez del marcador.
-    if (fallback) return <Illustration name={fallback} className={className} alt={alt} />;
+    if (fallback) return <Illustration name={fallback} className={className} alt={alt} fallbackNode={fallbackNode} />;
+    if (fallbackNode) return fallbackNode;
     return (
       <div
         className={`${aspect} rounded-folder border-2 border-dashed border-line flex flex-col items-center justify-center gap-1 text-center px-2 ${className}`}

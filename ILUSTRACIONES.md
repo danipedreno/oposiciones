@@ -1,6 +1,6 @@
 # Ilustraciones de Recuento
 
-Total: **37 ilustraciones**, en line art editorial de tinta negra.
+Total: **45 ilustraciones**, en line art editorial de tinta negra.
 
 ## Cómo se generan
 
@@ -75,6 +75,14 @@ npm run illustrations ascenso  # regenera solo esa (útil si no te gusta el resu
 | `medalla-imbatible` | 1:1 | Medalla Imbatible. |
 | `medalla-estudioso-nocturno` | 1:1 | Medalla Estudioso Nocturno. |
 | `medalla-madrugador` | 1:1 | Medalla Madrugador. |
+| `medalla-racha` | 1:1 | Medalla «En racha». |
+| `medalla-meta` | 1:1 | Medalla «Meta cumplida». |
+| `medalla-respondidas` | 1:1 | Medalla «Fondo de armario». |
+| `medalla-maraton` | 1:1 | Medalla «Maratón». |
+| `medalla-repaso` | 1:1 | Medalla «Sin cuentas pendientes». |
+| `medalla-tarjetero` | 1:1 | Medalla «Tarjetero». |
+| `medalla-matricula` | 1:1 | Medalla «Matrícula». |
+| `medalla-especialista` | 1:1 | Medalla «Especialista». |
 | `reiniciar` | 1:1 | Hoja de confirmación «¿Reiniciar progreso?». |
 
 ## Tarjetas
